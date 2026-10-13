@@ -690,7 +690,7 @@ class JarvisConversationService : Service() {
         return withContext(Dispatchers.IO) {
             val memoryContext = app.memoryManager.getSystemPromptContext()
             val favSong = app.memoryManager.resolveSongQuery("my favorite song")
-            com.jarvis.assistant.util.PromptGenerator.generateSystemPrompt(
+            val basePrompt = com.jarvis.assistant.util.PromptGenerator.generateSystemPrompt(
                 personality = preferences.personality,
                 userName = preferences.userName,
                 memoryContext = memoryContext,
@@ -701,6 +701,17 @@ class JarvisConversationService : Service() {
                 language = preferences.language,
                 isSilentExecutionMode = preferences.isSilentExecutionMode
             )
+            val userSoulBlock = app.userSoulManager.buildUserSoulPromptContext()
+            val agentSoulBlock = app.agentSoulManager.buildAgentSoulPromptContext()
+            buildString {
+                append(basePrompt)
+                if (userSoulBlock.isNotBlank()) {
+                    append("\n\n").append(userSoulBlock)
+                }
+                if (agentSoulBlock.isNotBlank()) {
+                    append("\n\n").append(agentSoulBlock)
+                }
+            }
         }
     }
 
@@ -1073,8 +1084,10 @@ class JarvisConversationService : Service() {
                             }
 
                             val userUtterance = currentTurnUserText.toString().trim()
+                            val rawAssistantReply = currentTurnAssistantText.toString().trim()
                             if (userUtterance.isNotEmpty()) {
                                 app.memoryManager.learnPreferencesFromConversation(userUtterance)
+                                app.userSoulManager.observeTurn(userUtterance, rawAssistantReply)
                             }
                             val assistantText = currentTurnAssistantText.toString().lowercase(Locale.ROOT)
                             val isConfused = assistantText.contains("not understand") ||
@@ -2843,6 +2856,7 @@ class JarvisConversationService : Service() {
 
         if (query.isNotEmpty()) {
             app?.memoryManager?.learnPreferencesFromConversation(query)
+            app?.userSoulManager?.observeTurn(query, reply)
         }
 
         if (reply.isNotEmpty() && app != null) {

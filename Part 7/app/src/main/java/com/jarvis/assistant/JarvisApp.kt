@@ -58,6 +58,15 @@ class JarvisApp : Application() {
     lateinit var commandExecutor: CommandExecutor
         private set
 
+    lateinit var soulDatabase: com.jarvis.assistant.agentic.soul.SoulDatabase
+        private set
+
+    lateinit var userSoulManager: com.jarvis.assistant.agentic.soul.UserSoulManager
+        private set
+
+    lateinit var agentSoulManager: com.jarvis.assistant.agentic.soul.AgentSoulManager
+        private set
+
     override fun onCreate() {
         super.onCreate()
         SecurityManager.verify(this)
@@ -69,6 +78,11 @@ class JarvisApp : Application() {
         memoryDatabase = MemoryDatabase.getInstance(this)
         memoryRepository = MemoryRepository(memoryDatabase.memoryDao())
         memoryManager = MemoryManager(memoryRepository, preferences, chatRepository, appScope)
+
+        // Dual-SOUL Memory Matrix (Phase 1)
+        soulDatabase = com.jarvis.assistant.agentic.soul.SoulDatabase.getInstance(this)
+        userSoulManager = com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(this)
+        agentSoulManager = com.jarvis.assistant.agentic.soul.AgentSoulManager.getInstance(this)
 
         // Automation Systems
         youTubePreferences = YouTubePreferences(this)
