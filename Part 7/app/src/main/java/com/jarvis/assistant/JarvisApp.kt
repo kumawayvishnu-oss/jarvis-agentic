@@ -20,6 +20,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class JarvisApp : Application() {
 
@@ -105,27 +106,6 @@ class JarvisApp : Application() {
         userSoulManager = com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(this)
         agentSoulManager = com.jarvis.assistant.agentic.soul.AgentSoulManager.getInstance(this)
 
-        // Ingest legacy memories into User SOUL automatically
-        appScope.launch(Dispatchers.IO) {
-            try {
-                val legacyList = memoryDatabase.memoryDao().getAllMemories()
-                if (legacyList.isNotEmpty()) {
-                    userSoulManager.importLegacyMemories(legacyList)
-                }
-            } catch (_: Exception) {}
-        }
-
-        // Multi-Provider Smart Router & Encrypted Vault (Phase 2)
-        providerVault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(this)
-        smartProviderRouter = com.jarvis.assistant.agentic.router.SmartProviderRouter.getInstance(this)
-
-        // Multi-Agent Swarm, App Connector, & Self-Healing (Phases 3-5)
-        specialistAgentPool = com.jarvis.assistant.agentic.swarm.SpecialistAgentPool.getInstance(this)
-        dynamicAgentFactory = com.jarvis.assistant.agentic.swarm.DynamicAgentFactory.getInstance(this)
-        managerAgent = com.jarvis.assistant.agentic.swarm.ManagerAgent.getInstance(this)
-        hybridActionDispatcher = com.jarvis.assistant.agentic.connector.HybridActionDispatcher.getInstance(this)
-        selfHealingEngine = com.jarvis.assistant.agentic.healing.SelfHealingEngine.getInstance(this)
-
         // Automation Systems
         youTubePreferences = YouTubePreferences(this)
         youTubeAutomationManager = YouTubeAutomationManager(this, youTubePreferences)
@@ -141,7 +121,28 @@ class JarvisApp : Application() {
             memoryManager = memoryManager
         )
 
-        VoskModelManager.init(this, CoroutineScope(Dispatchers.Default))
+        // Ingest legacy memories into User SOUL automatically
+        appScope.launch(Dispatchers.IO) {
+            try {
+                val legacyList = memoryDatabase.memoryDao().getAllMemories()
+                if (legacyList.isNotEmpty()) {
+                    userSoulManager.importLegacyMemories(legacyList)
+                }
+            } catch (e: Exception) {}
+        }
+
+        // Multi-Provider Smart Router & Encrypted Vault (Phase 2)
+        providerVault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(this)
+        smartProviderRouter = com.jarvis.assistant.agentic.router.SmartProviderRouter.getInstance(this)
+
+        // Multi-Agent Swarm, App Connector, & Self-Healing (Phases 3-5)
+        specialistAgentPool = com.jarvis.assistant.agentic.swarm.SpecialistAgentPool.getInstance(this)
+        dynamicAgentFactory = com.jarvis.assistant.agentic.swarm.DynamicAgentFactory.getInstance(this)
+        managerAgent = com.jarvis.assistant.agentic.swarm.ManagerAgent.getInstance(this)
+        hybridActionDispatcher = com.jarvis.assistant.agentic.connector.HybridActionDispatcher.getInstance(this)
+        selfHealingEngine = com.jarvis.assistant.agentic.healing.SelfHealingEngine.getInstance(this)
+
+        VoskModelManager.init(this, appScope)
 
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             private var startedActivities = 0
