@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit
  */
 class GeminiRestClient(
     private val apiKey: String,
+    private val baseUrl: String = ModelProvider.GEMINI.baseUrl,
     private val client: OkHttpClient = defaultClient
 ) {
     private val gson = Gson()
@@ -28,7 +29,16 @@ class GeminiRestClient(
         val provider = ModelProvider.GEMINI
         val model = provider.defaultModel
 
-        val endpointUrl = "${provider.baseUrl}/models/$model:generateContent?key=$apiKey"
+        val endpointUrl = "$baseUrl/models/$model:generateContent?key=$apiKey"
+
+        val effectiveClient = if (request.timeoutSeconds > 0 && request.timeoutSeconds != 30L) {
+            client.newBuilder()
+                .callTimeout(request.timeoutSeconds, TimeUnit.SECONDS)
+                .readTimeout(request.timeoutSeconds, TimeUnit.SECONDS)
+                .build()
+        } else {
+            client
+        }
 
         val bodyJson = JsonObject().apply {
             // System instruction
@@ -56,10 +66,24 @@ class GeminiRestClient(
                 val contentObj = JsonObject().apply {
                     addProperty("role", roleStr)
                     val partsArr = JsonArray()
-                    val textPart = JsonObject().apply {
-                        addProperty("text", msg.content)
+                    if (msg.role == MessageRole.TOOL) {
+                        val fnResponseObj = JsonObject().apply {
+                            addProperty("name", msg.name ?: "function")
+                            val respInner = JsonObject().apply {
+                                addProperty("content", msg.content)
+                            }
+                            add("response", respInner)
+                        }
+                        val part = JsonObject().apply {
+                            add("functionResponse", fnResponseObj)
+                        }
+                        partsArr.add(part)
+                    } else {
+                        val textPart = JsonObject().apply {
+                            addProperty("text", msg.content)
+                        }
+                        partsArr.add(textPart)
                     }
-                    partsArr.add(textPart)
                     add("parts", partsArr)
                 }
                 contentsArr.add(contentObj)
@@ -91,6 +115,11 @@ class GeminiRestClient(
                                 val p = JsonObject().apply {
                                     addProperty("type", pDef.type.uppercase())
                                     addProperty("description", pDef.description)
+                                    pDef.enum?.let { enumList ->
+                                        val enumArr = JsonArray()
+                                        enumList.forEach { enumArr.add(it) }
+                                        add("enum", enumArr)
+                                    }
                                 }
                                 propsObj.add(pName, p)
                             }
@@ -118,7 +147,7 @@ class GeminiRestClient(
             .build()
 
         try {
-            client.newCall(httpRequest).execute().use { response ->
+            effectiveClient.newCall(httpRequest).execute().use { response ->
                 val responseBody = response.body?.string().orEmpty()
                 val duration = System.currentTimeMillis() - startTime
 
@@ -133,42 +162,76 @@ class GeminiRestClient(
                     )
                 }
 
-                val parsed = gson.fromJson(responseBody, JsonObject::class.java)
-                val candidates = parsed.getAsJsonArray("candidates")
-                if (candidates == null || candidates.size() == 0) {
+                val parsed = try {
+                    gson.fromJson(responseBody, JsonObject::class.java)
+                } catch (e: Exception) {
+                    null
+                }
+
+                if (parsed == null) {
                     return@withContext UnifiedPromptResponse(
                         content = "",
                         provider = provider,
                         modelName = model,
                         latencyMs = duration,
                         isSuccess = false,
-                        errorMessage = "Gemini returned empty candidates"
+                        errorMessage = "Invalid JSON response from Gemini API"
+                    )
+                }
+
+                val candidates = parsed.getAsJsonArray("candidates")
+                if (candidates == null || candidates.size() == 0) {
+                    val promptFeedback = parsed.getAsJsonObject("promptFeedback")
+                    val blockReason = promptFeedback?.get("blockReason")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asString
+                    return@withContext UnifiedPromptResponse(
+                        content = "",
+                        provider = provider,
+                        modelName = model,
+                        latencyMs = duration,
+                        isSuccess = false,
+                        errorMessage = if (blockReason != null) "Blocked by Gemini safety: $blockReason" else "Gemini returned empty candidates"
                     )
                 }
 
                 val firstCandidate = candidates[0].asJsonObject
                 val contentObj = firstCandidate.getAsJsonObject("content")
                 val partsArr = contentObj?.getAsJsonArray("parts")
+                val finishReason = firstCandidate.get("finishReason")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asString
 
                 var textAccumulator = ""
                 val toolCallsList = mutableListOf<UnifiedToolCall>()
 
                 partsArr?.forEach { partElem ->
-                    val partObj = partElem.asJsonObject
-                    partObj.get("text")?.let { textAccumulator += it.asString }
+                    if (partElem.isJsonObject) {
+                        val partObj = partElem.asJsonObject
+                        partObj.get("text")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.let {
+                            textAccumulator += it.asString
+                        }
 
-                    partObj.getAsJsonObject("functionCall")?.let { fnCallObj ->
-                        val fnName = fnCallObj.get("name")?.asString.orEmpty()
-                        val argsObj = fnCallObj.getAsJsonObject("args")
-                        val argsJson = argsObj?.toString() ?: "{}"
-                        val callId = "call_${UUID.randomUUID().toString().take(8)}"
-                        toolCallsList.add(UnifiedToolCall(callId, fnName, argsJson))
+                        partObj.getAsJsonObject("functionCall")?.let { fnCallObj ->
+                            val fnName = fnCallObj.get("name")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asString.orEmpty()
+                            val argsObj = fnCallObj.getAsJsonObject("args")
+                            val argsJson = argsObj?.toString() ?: "{}"
+                            val callId = "call_${UUID.randomUUID().toString().take(8)}"
+                            toolCallsList.add(UnifiedToolCall(callId, fnName, argsJson))
+                        }
                     }
                 }
 
+                if (textAccumulator.isEmpty() && toolCallsList.isEmpty() && finishReason != null && finishReason != "STOP") {
+                    return@withContext UnifiedPromptResponse(
+                        content = "",
+                        provider = provider,
+                        modelName = model,
+                        latencyMs = duration,
+                        isSuccess = false,
+                        errorMessage = "Gemini finished with abnormal reason: $finishReason"
+                    )
+                }
+
                 val usageMetadata = parsed.getAsJsonObject("usageMetadata")
-                val promptTokens = usageMetadata?.get("promptTokenCount")?.asInt ?: 0
-                val compTokens = usageMetadata?.get("candidatesTokenCount")?.asInt ?: 0
+                val promptTokens = usageMetadata?.get("promptTokenCount")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asInt ?: 0
+                val compTokens = usageMetadata?.get("candidatesTokenCount")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asInt ?: 0
 
                 UnifiedPromptResponse(
                     content = textAccumulator,
@@ -182,6 +245,7 @@ class GeminiRestClient(
                 )
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             val duration = System.currentTimeMillis() - startTime
             UnifiedPromptResponse(
                 content = "",

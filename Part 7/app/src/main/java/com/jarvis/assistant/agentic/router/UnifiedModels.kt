@@ -86,10 +86,10 @@ data class UnifiedPromptResponse(
  */
 data class ProviderHealth(
     val provider: ModelProvider,
-    var isHealthy: Boolean = true,
-    var consecutiveErrors: Int = 0,
-    var lastErrorTimestamp: Long = 0L,
-    var lastErrorMessage: String? = null,
-    var requestsInCurrentMinute: Int = 0,
-    var minuteWindowStart: Long = System.currentTimeMillis()
+    @Volatile var isHealthy: Boolean = true,
+    @Volatile var consecutiveErrors: Int = 0,
+    @Volatile var lastErrorTimestamp: Long = 0L,
+    @Volatile var lastErrorMessage: String? = null,
+    @Volatile var requestsInCurrentMinute: Int = 0,
+    @Volatile var minuteWindowStart: Long = System.currentTimeMillis()
 )

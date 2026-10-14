@@ -12,17 +12,18 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class ProviderVault private constructor(context: Context) {
 
+    private val context: Context = context.applicationContext
     private val memoryFallback = ConcurrentHashMap<String, String>()
     private var securePrefs: SharedPreferences? = null
 
     init {
         try {
-            val masterKey = MasterKey.Builder(context)
+            val masterKey = MasterKey.Builder(this.context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
 
             securePrefs = EncryptedSharedPreferences.create(
-                context,
+                this.context,
                 PREFS_FILE_NAME,
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
@@ -45,6 +46,17 @@ class ProviderVault private constructor(context: Context) {
         val stored = securePrefs?.getString(keyName, null) ?: memoryFallback[keyName]
         if (!stored.isNullOrBlank()) {
             return stored
+        }
+        // Fallback for Gemini: check main AppPreferences where existing user API key is saved
+        if (provider == ModelProvider.GEMINI) {
+            val appPrefKey = try {
+                com.jarvis.assistant.data.preferences.AppPreferences(context).apiKey.trim()
+            } catch (e: Exception) {
+                null
+            }
+            if (!appPrefKey.isNullOrBlank()) {
+                return appPrefKey
+            }
         }
         // Check environment variable as fallback (e.g., GEMINI_API_KEY, GROQ_API_KEY)
         val envName = "${provider.name}_API_KEY"
@@ -77,6 +89,25 @@ class ProviderVault private constructor(context: Context) {
         val keyName = keyForProvider(provider)
         memoryFallback.remove(keyName)
         securePrefs?.edit()?.remove(keyName)?.apply()
+    }
+
+    /**
+     * Gets effective base URL for a provider (custom override or default).
+     */
+    fun getBaseUrl(provider: ModelProvider): String {
+        val urlKey = "base_url_${provider.id}"
+        val custom = securePrefs?.getString(urlKey, null) ?: memoryFallback[urlKey]
+        return if (!custom.isNullOrBlank()) custom.trim() else provider.baseUrl
+    }
+
+    /**
+     * Stores a custom base URL override for a provider (e.g., local Ollama IP).
+     */
+    fun setBaseUrl(provider: ModelProvider, url: String) {
+        val urlKey = "base_url_${provider.id}"
+        val trimmed = url.trim()
+        memoryFallback[urlKey] = trimmed
+        securePrefs?.edit()?.putString(urlKey, trimmed)?.apply()
     }
 
     private fun keyForProvider(provider: ModelProvider): String {

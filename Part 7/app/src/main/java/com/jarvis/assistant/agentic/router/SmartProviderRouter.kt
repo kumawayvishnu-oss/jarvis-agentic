@@ -79,6 +79,22 @@ class SmartProviderRouter private constructor(
                 continue
             }
 
+            // Check RPM limits
+            if (now - health.minuteWindowStart >= 60_000L) {
+                health.minuteWindowStart = now
+                health.requestsInCurrentMinute = 0
+            }
+            if (health.requestsInCurrentMinute >= provider.defaultRpmLimit) {
+                agentSoulManager.postStepLog(
+                    agentName = agentName,
+                    action = "SkipProviderRpmLimit",
+                    detail = "Provider ${provider.displayName} reached local RPM limit (${health.requestsInCurrentMinute}/${provider.defaultRpmLimit}). Cascading to next provider.",
+                    level = StepLogLevel.WARNING,
+                    taskId = taskId
+                )
+                continue
+            }
+
             // Attempt execution with current provider
             agentSoulManager.postStepLog(
                 agentName = agentName,
@@ -88,13 +104,15 @@ class SmartProviderRouter private constructor(
                 taskId = taskId
             )
 
+            health.requestsInCurrentMinute++
             val apiKey = vault.getApiKey(provider).orEmpty()
+            val baseUrl = vault.getBaseUrl(provider)
             val response = when (provider) {
                 ModelProvider.GEMINI -> {
-                    GeminiRestClient(apiKey).execute(request)
+                    GeminiRestClient(apiKey = apiKey, baseUrl = baseUrl).execute(request)
                 }
                 else -> {
-                    OpenAICompatibleClient(provider, apiKey).execute(request)
+                    OpenAICompatibleClient(provider = provider, apiKey = apiKey, baseUrl = baseUrl).execute(request)
                 }
             }
 
@@ -136,7 +154,11 @@ class SmartProviderRouter private constructor(
         }
 
         // If all providers fail, return graceful fallback response
-        val fallbackMsg = "All configured AI providers are currently unavailable or reached rate limits. Last error: $lastError"
+        val fallbackMsg = if (lastError != null) {
+            "All configured AI providers are currently unavailable or reached rate limits. Last error: $lastError"
+        } else {
+            "No AI providers configured with valid API keys or all keys exhausted. Please configure API keys in Settings."
+        }
         agentSoulManager.postStepLog(
             agentName = agentName,
             action = "AllProvidersExhausted",

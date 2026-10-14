@@ -62,7 +62,7 @@ class SelfHealingEngine private constructor(
                     fallbackStrategy = "OPEN_WEB_ALTERNATIVE"
                 )
             }
-            msg.contains("NodeNotFound", ignoreCase = true) || msg.contains("Element not clickable", ignoreCase = true) -> {
+            msg.contains("NodeNotFound", ignoreCase = true) || msg.contains("Element not clickable", ignoreCase = true) || msg.contains("Node not found", ignoreCase = true) -> {
                 HealingRecommendation(
                     category = FailureCategory.UI_ELEMENT_NOT_FOUND,
                     suggestedAction = "Scroll active screen view and re-query Accessibility node hierarchy.",
@@ -79,6 +79,24 @@ class SelfHealingEngine private constructor(
                     fallbackStrategy = "REQUEST_USER_PERMISSION"
                 )
             }
+            msg.contains("SSLException", ignoreCase = true) || msg.contains("SSLHandshakeException", ignoreCase = true) || msg.contains("CertPathValidatorException", ignoreCase = true) -> {
+                HealingRecommendation(
+                    category = FailureCategory.NETWORK_UNAVAILABLE,
+                    suggestedAction = "SSL Handshake failure. Retry or bypass proxy.",
+                    shouldRetry = true,
+                    backoffDelayMs = 1500L,
+                    fallbackStrategy = "RETRY_NETWORK"
+                )
+            }
+            msg.contains("EOFException", ignoreCase = true) || msg.contains("ConnectionReset", ignoreCase = true) || msg.contains("stream was reset", ignoreCase = true) -> {
+                HealingRecommendation(
+                    category = FailureCategory.NETWORK_UNAVAILABLE,
+                    suggestedAction = "Connection reset by peer. Retry connection with clean socket.",
+                    shouldRetry = true,
+                    backoffDelayMs = 1000L,
+                    fallbackStrategy = "RECONNECT_SOCKET"
+                )
+            }
             msg.contains("UnknownHostException", ignoreCase = true) || msg.contains("SocketTimeoutException", ignoreCase = true) -> {
                 HealingRecommendation(
                     category = FailureCategory.NETWORK_UNAVAILABLE,
@@ -86,6 +104,15 @@ class SelfHealingEngine private constructor(
                     shouldRetry = true,
                     backoffDelayMs = 2000L,
                     fallbackStrategy = "OFFLINE_CACHE_FALLBACK"
+                )
+            }
+            msg.contains("JsonSyntaxException", ignoreCase = true) || msg.contains("MalformedJsonException", ignoreCase = true) -> {
+                HealingRecommendation(
+                    category = FailureCategory.TOOL_EXECUTION_ERROR,
+                    suggestedAction = "Malformed JSON payload. Re-query with strict JSON output requirement.",
+                    shouldRetry = true,
+                    backoffDelayMs = 500L,
+                    fallbackStrategy = "RETRY_WITH_CLEAN_FORMAT"
                 )
             }
             else -> {
@@ -127,6 +154,7 @@ class SelfHealingEngine private constructor(
                 }
                 return Result.success(result)
             } catch (e: Throwable) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 val diagnosis = diagnose(e, actionName)
                 agentSoulManager.postStepLog(
                     agentName = agentName,
