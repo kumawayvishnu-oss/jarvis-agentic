@@ -2,6 +2,7 @@
 <resources>
     <!-- Central Theme Tokens -->
     <attr name="themeBg" format="color|reference" />
+    <attr name="themeBgSecondary" format="color|reference" />
     <attr name="themeSurface" format="color|reference" />
     <attr name="themeCardBg" format="color|reference" />
     <attr name="themeCardBorder" format="color|reference" />

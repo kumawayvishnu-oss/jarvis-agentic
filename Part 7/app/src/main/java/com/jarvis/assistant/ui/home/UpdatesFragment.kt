@@ -44,7 +44,7 @@ class UpdatesFragment : Fragment() {
             binding.scrollMissionControl.visibility = View.VISIBLE
             binding.scrollAnnouncements.visibility = View.GONE
             binding.tabMissionControl.setTextColor(themeColor(R.attr.themeAccent))
-            binding.tabMissionControl.setBackgroundColor(themeColor(R.attr.themeBgSecondary))
+            binding.tabMissionControl.setBackgroundColor(themeColor(R.attr.themeSurface))
             binding.tabAnnouncements.setTextColor(themeColor(R.attr.themeTextMuted))
             binding.tabAnnouncements.background = null
         }
@@ -53,7 +53,7 @@ class UpdatesFragment : Fragment() {
             binding.scrollMissionControl.visibility = View.GONE
             binding.scrollAnnouncements.visibility = View.VISIBLE
             binding.tabAnnouncements.setTextColor(themeColor(R.attr.themeAccent))
-            binding.tabAnnouncements.setBackgroundColor(themeColor(R.attr.themeBgSecondary))
+            binding.tabAnnouncements.setBackgroundColor(themeColor(R.attr.themeSurface))
             binding.tabMissionControl.setTextColor(themeColor(R.attr.themeTextMuted))
             binding.tabMissionControl.background = null
         }

@@ -55,7 +55,7 @@
                 android:textSize="11sp"
                 android:textStyle="bold"
                 android:textColor="?attr/themeAccent"
-                android:background="?attr/themeBgSecondary" />
+                android:background="?attr/themeSurface" />
 
             <TextView
                 android:id="@+id/tabAnnouncements"
