@@ -974,6 +974,13 @@ class JarvisConversationService : Service() {
                                 return
                             }
                             app.memoryManager.learnPreferencesFromConversation(currentTurnUserText.toString())
+                            serviceScope.launch(Dispatchers.IO) {
+                                try {
+                                    app.userSoulManager.analyzeAndLearn(currentTurnUserText.toString())
+                                } catch (e: Exception) {
+                                    Log.w("JarvisService", "UserSoulManager learning failed: ${e.message}")
+                                }
+                            }
                             // Do not run checkAndExecuteCommand on streaming chunks mid-speech!
                             // Gemini Live onToolCall is the authoritative neural intent engine.
                         }
@@ -1660,6 +1667,13 @@ class JarvisConversationService : Service() {
                         val userText = currentTurnUserText.toString().trim()
                         autonomousTaskGoal = if (userText.isNotEmpty()) userText else "Complete $name automation task"
                         com.jarvis.assistant.automation.agent.AgentTaskEngine.begin(autonomousTaskGoal, "gemini-live-tools")
+                        app.agentSoulManager.createTask(
+                            title = autonomousTaskGoal.take(60),
+                            description = autonomousTaskGoal,
+                            initiator = "GeminiLive",
+                            assignedTo = "AgentTaskEngine",
+                            priority = com.jarvis.assistant.agentic.soul.TaskPriority.HIGH
+                        )
                         bulkEndOfListVerified = false
                         bulkNoProgressScrollCount = 0
                         lastBulkScreenSignature = null
@@ -1693,6 +1707,12 @@ class JarvisConversationService : Service() {
                 }
 
                 Log.i("JarvisService", "Handling native toolCall: $name with args: $args")
+                app.agentSoulManager.postStepLog(
+                    agentName = "GeminiLiveService",
+                    action = name,
+                    detail = "Executing $name with params: ${args.toString().take(120)}",
+                    level = com.jarvis.assistant.agentic.soul.StepLogLevel.INFO
+                )
                 val result = JSONObject()
 
                 when (name) {
@@ -2370,6 +2390,12 @@ class JarvisConversationService : Service() {
                 }
 
                             liveWebSocket?.sendToolResponse(callId, name, result)
+                            app.agentSoulManager.postStepLog(
+                                agentName = "GeminiLiveService",
+                                action = "${name}_Result",
+                                detail = "Tool execution result (success=${result.optBoolean("success", true)}): ${result.optString("message", "Completed")}",
+                                level = if (result.optBoolean("success", true)) com.jarvis.assistant.agentic.soul.StepLogLevel.SUCCESS else com.jarvis.assistant.agentic.soul.StepLogLevel.WARNING
+                            )
                         }
                     } catch (e: TimeoutCancellationException) {
                         Log.e("JarvisService", "Tool call '$name' (callId=$callId) timed out after 25 seconds.")
