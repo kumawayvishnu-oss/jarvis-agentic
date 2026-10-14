@@ -35,8 +35,12 @@
 ## 📊 Current Task State
 - [x] Initial 6 Phases implemented on `feature/dual-soul`.
 - [x] Context established via `ARCHITECTURE.md`, `PROGRESS.md`, `AGENTS.md`.
-- [ ] Fix 1: Resolve GitHub Actions SDK installation error (`android-actions/setup-android@v3`).
-- [ ] Fix 2: Resolve `UserSoulManager.kt` mismatch with `SoulDao` and `UserSoulEntity`.
-- [ ] Fix 3: Resolve `AccessibilityNodeParser.kt` and `HybridActionDispatcher.kt` API compatibility.
-- [ ] CI Verification: Push and monitor GitHub Actions until build is green.
-- [ ] Wire & verify all added agentic features into real operational status.
+- [x] Fix 1: Resolve GitHub Actions SDK installation error (`android-actions/setup-android@v3`).
+- [x] Fix 2: Resolve `UserSoulManager.kt` mismatch with `SoulDao` and `UserSoulEntity`.
+- [x] Fix 3: Resolve `AccessibilityNodeParser.kt` and `HybridActionDispatcher.kt` API compatibility.
+- [x] Fix 4: Resolve `ManagerAgent.kt` `taskId` type mismatch with `AgentSoulManager`.
+- [x] Fix 5: Resolve `SpecialistAgentPool.kt` command execution via `HybridActionDispatcher`.
+- [x] Fix 6: Resolve `AppCategoryCatalog.kt` nullability and missing lookup methods.
+- [x] Fix 7: Eliminate all `catch (_: Exception)` across legacy code for Kotlin 2.0.20 compatibility.
+- [ ] CI Verification: Push and monitor GitHub Actions until build is green (Current Run: 38521854238).
+- [ ] Verify generated APK and end-to-end operational wiring.

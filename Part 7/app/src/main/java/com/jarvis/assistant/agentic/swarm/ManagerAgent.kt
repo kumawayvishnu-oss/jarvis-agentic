@@ -32,14 +32,13 @@ class ManagerAgent private constructor(
      * Executes an autonomous workflow for a user request.
      */
     suspend fun executeGoal(userGoal: String): String = withContext(Dispatchers.Default) {
-        val mission = agentSoulManager.createTask(
+        val taskId = agentSoulManager.createTask(
             title = userGoal.take(50),
             description = userGoal,
             initiator = "User",
             assignedTo = "ManagerAgent",
             priority = TaskPriority.HIGH
         )
-        val taskId = mission.missionId
 
         agentSoulManager.updateTaskStatus(taskId, TaskStatus.IN_PROGRESS)
         agentSoulManager.postStepLog(
