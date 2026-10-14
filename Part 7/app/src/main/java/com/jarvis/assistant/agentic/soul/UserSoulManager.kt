@@ -71,17 +71,18 @@ class UserSoulManager(
                     val key = mem.key ?: "legacy_mem_${mem.id}"
                     val value = mem.value ?: mem.rawText
                     val cat = when (mem.category.lowercase()) {
-                        "user", "profile", "identity" -> SoulCategory.IDENTITY
-                        "preference", "habit" -> SoulCategory.PREFERENCE
-                        else -> SoulCategory.HABIT
+                        "user", "profile", "identity" -> UserSoulEntity.CAT_PERSONALITY
+                        "preference", "habit" -> UserSoulEntity.CAT_PREFERENCES
+                        "routine", "schedule" -> UserSoulEntity.CAT_ROUTINES
+                        else -> UserSoulEntity.CAT_HABITS
                     }
-                    soulDao.upsertUserSoul(
+                    soulDao.insertOrUpdateUserSoul(
                         UserSoulEntity(
-                            key = key,
-                            value = value,
                             category = cat,
+                            traitKey = key,
+                            traitValue = value,
                             confidence = 0.95f,
-                            source = "LegacyMemoryDB"
+                            evidenceSummary = "LegacyMemoryDB import"
                         )
                     )
                 }
@@ -90,6 +91,13 @@ class UserSoulManager(
                 Log.e(TAG, "Error importing legacy memories: ${e.message}")
             }
         }
+    }
+
+    /**
+     * Analyzes and learns from ongoing user conversation turn.
+     */
+    fun analyzeAndLearn(userText: String) {
+        observeTurn(userText, "")
     }
 
     /**
