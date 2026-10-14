@@ -73,6 +73,21 @@ class JarvisApp : Application() {
     lateinit var smartProviderRouter: com.jarvis.assistant.agentic.router.SmartProviderRouter
         private set
 
+    lateinit var specialistAgentPool: com.jarvis.assistant.agentic.swarm.SpecialistAgentPool
+        private set
+
+    lateinit var dynamicAgentFactory: com.jarvis.assistant.agentic.swarm.DynamicAgentFactory
+        private set
+
+    lateinit var managerAgent: com.jarvis.assistant.agentic.swarm.ManagerAgent
+        private set
+
+    lateinit var hybridActionDispatcher: com.jarvis.assistant.agentic.connector.HybridActionDispatcher
+        private set
+
+    lateinit var selfHealingEngine: com.jarvis.assistant.agentic.healing.SelfHealingEngine
+        private set
+
     override fun onCreate() {
         super.onCreate()
         SecurityManager.verify(this)
@@ -93,6 +108,13 @@ class JarvisApp : Application() {
         // Multi-Provider Smart Router & Encrypted Vault (Phase 2)
         providerVault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(this)
         smartProviderRouter = com.jarvis.assistant.agentic.router.SmartProviderRouter.getInstance(this)
+
+        // Multi-Agent Swarm, App Connector, & Self-Healing (Phases 3-5)
+        specialistAgentPool = com.jarvis.assistant.agentic.swarm.SpecialistAgentPool.getInstance(this)
+        dynamicAgentFactory = com.jarvis.assistant.agentic.swarm.DynamicAgentFactory.getInstance(this)
+        managerAgent = com.jarvis.assistant.agentic.swarm.ManagerAgent.getInstance(this)
+        hybridActionDispatcher = com.jarvis.assistant.agentic.connector.HybridActionDispatcher.getInstance(this)
+        selfHealingEngine = com.jarvis.assistant.agentic.healing.SelfHealingEngine.getInstance(this)
 
         // Automation Systems
         youTubePreferences = YouTubePreferences(this)
