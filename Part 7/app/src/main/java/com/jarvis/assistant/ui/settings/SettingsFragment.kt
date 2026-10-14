@@ -165,6 +165,10 @@ class SettingsFragment : Fragment() {
             startActivity(Intent(requireContext(), PermissionActivity::class.java))
         }
 
+        binding.rowSelfDiagnostic.setOnClickListener {
+            startActivity(Intent(requireContext(), com.jarvis.assistant.ui.diagnostic.DiagnosticActivity::class.java))
+        }
+
         binding.rowOverlayAvatars.setOnClickListener {
             startActivity(Intent(requireContext(), OverlayAvatarActivity::class.java))
         }
@@ -190,6 +194,10 @@ class SettingsFragment : Fragment() {
                 .show()
         }
 
+        binding.rowCredits.setOnClickListener {
+            showCreditsDialog()
+        }
+
         // Social Media Community Buttons
         binding.btnSocialTelegram.setOnClickListener {
             openUrl("https://t.me/+sYana61LvHdmZmE1")
@@ -204,38 +212,31 @@ class SettingsFragment : Fragment() {
         }
 
         binding.tvFooterCredit.setOnClickListener {
-            openUrl("https://t.me/+sYana61LvHdmZmE1")
+            showCreditsDialog()
         }
     }
 
-    private fun showLanguageDialog() {
-        val languages = GeminiConstants.SUPPORTED_LANGUAGES.toTypedArray()
-        val currentIndex = languages.indexOfFirst { it.equals(preferences.language, ignoreCase = true) }.let { if (it >= 0) it else 0 }
+    private fun showCreditsDialog() {
+        val options = arrayOf(
+            "📺 YouTube Channel (@TechGptX)",
+            "📢 Telegram Channel",
+            "💬 Telegram Discussion Group",
+            "📸 Instagram (@techgptx.ai)",
+            "💻 GitHub Repository (Playlist)"
+        )
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Select Conversation Language")
-            .setSingleChoiceItems(languages, currentIndex) { dialog, which ->
-                val chosen = languages[which]
-                preferences.language = chosen
-                binding.tvCurrentLanguage.text = chosen
-                dialog.dismiss()
+            .setTitle("Credits & Original Creator")
+            .setMessage("Original Project & Tutorial Series:\nJARVIS Android AI Assistant (Part 1 to 7)\nCreated by Tech GPTx / Rehaan.\n\nLicense: TAMCL v1.0\nAttribution strictly preserved.\n\nSelect a link below to visit:")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openUrl("https://youtube.com/@TechGptX")
+                    1 -> openUrl("https://t.me/+sYana61LvHdmZmE1")
+                    2 -> openUrl("https://t.me/+DmyO7NFUia01YTVl")
+                    3 -> openUrl("https://www.instagram.com/techgptx.ai")
+                    4 -> openUrl("https://github.com/techgptx/Playlist")
+                }
             }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun showWakeWordDialog() {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Wake Words & Sensitivity")
-            .setMessage("• Wake Words: 'Jarvis', 'Hey Jarvis'\n• Acoustic Trigger: Double Clap detection\n• Standby Mode: Low-power local Vosk offline engine\n\nWhen standby listening is active, Jarvis awakens instantly upon hearing your voice.")
-            .setPositiveButton("Got It", null)
-            .show()
-    }
-
-    private fun showAppAutomationDialog() {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Autonomous App Automation")
-            .setMessage("Jarvis is integrated with your device capabilities:\n\n• WhatsApp: Hands-free messaging & calls\n• YouTube: Search and playback automation\n• Phone Controls: Flashlight, Volume, Brightness, Bluetooth\n• Apps & Tools: Launch, search, and manage apps via voice")
             .setPositiveButton("Close", null)
             .show()
     }

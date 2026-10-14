@@ -38,8 +38,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="API &amp; Connection"
-                android:textColor="@color/text_primary"
+                android:text="AI Provider Vault"
+                android:textColor="?attr/themeTextPrimary"
                 android:textSize="20sp"
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
@@ -47,8 +47,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gemini Live WebSocket &amp; Engine"
-                android:textColor="@color/text_muted"
+                android:text="Multi-Provider Cascading Failover"
+                android:textColor="?attr/themeTextMuted"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif" />
         </LinearLayout>
@@ -98,61 +98,28 @@
                         android:layout_height="wrap_content"
                         android:text="ONLINE • READY"
                         android:textColor="?attr/themeTextPrimary"
-                        android:textSize="13sp"
-                        android:fontFamily="sans-serif-medium"
+                        android:textSize="14sp"
                         android:textStyle="bold"
-                        android:letterSpacing="0.06"
-                        android:layout_marginStart="8dp" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1" />
-
-                    <TextView
-                        android:id="@+id/tvPingResult"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Ping: -- ms"
-                        android:textColor="?attr/themeAccent"
-                        android:textSize="12sp"
                         android:fontFamily="sans-serif-medium"
-                        android:textStyle="bold" />
+                        android:layout_marginStart="10dp" />
                 </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvEndpointSummary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="wss://generativelanguage.googleapis.com (Gemini 2.0 Live Protocol)"
+                    android:text="Failover Priority: Gemini 1.5 ➔ Groq LPU ➔ OpenRouter ➔ Local"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif"
-                    android:layout_marginTop="8dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTestConnection"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    app:strokeColor="?attr/themeAccent"
-                    app:strokeWidth="1dp"
-                    android:text="Test Connection &amp; Latency"
-                    android:textColor="?attr/themeAccent"
-                    android:textSize="12sp"
-                    android:textAllCaps="false"
-                    android:fontFamily="sans-serif-medium"
-                    android:layout_marginTop="12dp"
-                    app:icon="@drawable/ic_settings_wave"
-                    app:iconSize="16dp"
-                    app:iconTint="?attr/themeAccent" />
+                    android:layout_marginTop="6dp" />
             </LinearLayout>
 
-            <!-- Card 2: Gemini API Key -->
+            <!-- Card 2: Google Gemini (Primary) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="API Credentials"
+                android:text="Primary Provider: Google Gemini"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -176,27 +143,16 @@
                     android:fontFamily="sans-serif-medium"
                     android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Direct authorization key from Google AI Studio"
-                    android:textColor="?attr/themeTextMuted"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="2dp" />
-
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilApiKey"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="10dp"
                     app:boxBackgroundMode="outline"
                     app:boxCornerRadiusTopStart="12dp"
                     app:boxCornerRadiusTopEnd="12dp"
                     app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="?attr/themeAccent"
-                    app:passwordToggleEnabled="true">
+                    app:boxStrokeColor="?attr/themeAccent">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etApiKey"
@@ -213,6 +169,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:layout_marginTop="10dp">
 
                     <com.google.android.material.button.MaterialButton
@@ -222,7 +179,7 @@
                         android:layout_height="38dp"
                         app:strokeColor="?attr/themeAccent"
                         app:strokeWidth="1dp"
-                        android:text="Paste Clipboard"
+                        android:text="Paste"
                         android:textColor="?attr/themeAccent"
                         android:textSize="12sp"
                         android:textAllCaps="false"
@@ -240,80 +197,477 @@
                         android:textColor="?attr/themeTextMuted"
                         android:textSize="12sp"
                         android:textAllCaps="false"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestConnection"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Test Ping"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
                         android:fontFamily="sans-serif-medium" />
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvGeminiStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Not tested"
+                    android:textColor="?attr/themeTextMuted"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+
+                <!-- Model Engine Selection -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Gemini Model Engine"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="6dp" />
+
+                <RadioGroup
+                    android:id="@+id/rgModelGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:id="@+id/rbModelFlash15"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="gemini-1.5-flash (Balanced &amp; Stable)"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="13sp" />
+
+                    <RadioButton
+                        android:id="@+id/rbModelFlashThinking"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="gemini-2.0-flash (Ultra-Fast Live Preview)"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="13sp" />
+
+                    <RadioButton
+                        android:id="@+id/rbModelFlash20"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="gemini-1.5-pro (Flagship Cognitive Reasoning)"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="13sp" />
+                </RadioGroup>
             </LinearLayout>
 
-            <!-- Card 3: AI Model Engine -->
+            <!-- Card 3: Groq LPU (Ultra-Fast Fallback 1) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Model Engine"
+                android:text="Fallback 1: Groq LPU (Ultra-Fast ~250ms)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <RadioGroup
-                android:id="@+id/rgModelGroup"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:background="@drawable/bg_jarvis_card"
-                android:padding="14dp"
+                android:padding="18dp"
                 android:layout_marginBottom="18dp">
 
-                <RadioButton
-                    android:id="@+id/rbModelFlashThinking"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Groq API Key (gsk_...)"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="gemini-3.1-flash (Ultra-Low Latency Live • ~700ms Recommended)"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="13sp"
-                    android:fontFamily="sans-serif-medium"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp" />
+                    android:layout_marginTop="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="?attr/themeAccent">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/themeCardBorder" />
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etGroqKey"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="gsk_..."
+                        android:inputType="textPassword"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <RadioButton
-                    android:id="@+id/rbModelFlash20"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="gemini-3.8-live (Flagship Conversational Intelligence)"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="13sp"
-                    android:fontFamily="sans-serif-medium"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp" />
-
-
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/themeCardBorder" />
-
-                <RadioButton
-                    android:id="@+id/rbModelFlash15"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="gemini-3.1-flash (Balanced Multi-Model Autonomous Agent)"
-                    android:textColor="?attr/themeTextPrimary"
-                    android:textSize="13sp"
-                    android:fontFamily="sans-serif-medium"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp" />
-            </RadioGroup>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
 
-            <!-- Card 4: Custom WebSocket Endpoint -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPasteGroq"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Paste"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnClearGroq"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeTextMuted"
+                        app:strokeWidth="1dp"
+                        android:text="Clear"
+                        android:textColor="?attr/themeTextMuted"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestGroq"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Test Ping"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvGroqStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Not tested"
+                    android:textColor="?attr/themeTextMuted"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Card 4: OpenRouter Free Matrix (Fallback 2) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Custom Endpoint (Optional)"
+                android:text="Fallback 2: OpenRouter Matrix (Free &amp; Paid)"
+                android:textColor="?attr/themeTextMuted"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_jarvis_card"
+                android:padding="18dp"
+                android:layout_marginBottom="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OpenRouter API Key (sk-or-...)"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="?attr/themeAccent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etOpenRouterKey"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="sk-or-..."
+                        android:inputType="textPassword"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPasteOpenRouter"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Paste"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnClearOpenRouter"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeTextMuted"
+                        app:strokeWidth="1dp"
+                        android:text="Clear"
+                        android:textColor="?attr/themeTextMuted"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestOpenRouter"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Test Ping"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvOpenRouterStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Not tested"
+                    android:textColor="?attr/themeTextMuted"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Card 5: DeepSeek (Fallback 3) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fallback 3: DeepSeek V3 / R1 (Reasoning)"
+                android:textColor="?attr/themeTextMuted"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_jarvis_card"
+                android:padding="18dp"
+                android:layout_marginBottom="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DeepSeek API Key (sk-...)"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="?attr/themeAccent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDeepSeekKey"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="sk-..."
+                        android:inputType="textPassword"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPasteDeepSeek"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Paste"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnClearDeepSeek"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeTextMuted"
+                        app:strokeWidth="1dp"
+                        android:text="Clear"
+                        android:textColor="?attr/themeTextMuted"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestDeepSeek"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Test Ping"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvDeepSeekStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Not tested"
+                    android:textColor="?attr/themeTextMuted"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Card 6: Local Ollama Engine -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fallback 4: Local Ollama (LAN / Termux Engine)"
+                android:textColor="?attr/themeTextMuted"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_jarvis_card"
+                android:padding="18dp"
+                android:layout_marginBottom="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ollama Endpoint URL"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="?attr/themeAccent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etOllamaUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="http://127.0.0.1:11434/v1"
+                        android:inputType="textUri"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestOllama"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Test Ping"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvOllamaStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Not tested"
+                    android:textColor="?attr/themeTextMuted"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Card 7: Custom WebSocket Gateway (Optional) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Custom WebSocket Relay (Optional)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -336,15 +690,6 @@
                     android:textSize="15sp"
                     android:fontFamily="sans-serif-medium"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Override standard Google endpoint with your proxy or relay (leave empty for default)"
-                    android:textColor="?attr/themeTextMuted"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif"
-                    android:layout_marginTop="2dp" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
@@ -390,7 +735,7 @@
             android:layout_height="54dp"
             android:background="@drawable/bg_jarvis_pill_button"
             app:backgroundTint="@null"
-            android:text="Save &amp; Apply Configuration"
+            android:text="Save &amp; Apply All Configurations"
             android:textColor="#FFFFFF"
             android:textSize="15sp"
             android:textStyle="bold"

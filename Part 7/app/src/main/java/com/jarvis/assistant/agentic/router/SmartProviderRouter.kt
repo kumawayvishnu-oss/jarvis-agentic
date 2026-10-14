@@ -184,6 +184,40 @@ class SmartProviderRouter private constructor(
         return healthMap.toMap()
     }
 
+    /**
+     * Tests a specific provider with a lightweight ping and returns latency or error.
+     */
+    suspend fun testProvider(provider: ModelProvider): Pair<Boolean, String> = withContext(Dispatchers.IO) {
+        val apiKey = vault.getApiKey(provider).orEmpty()
+        val baseUrl = vault.getBaseUrl(provider)
+        if (!provider.isLocal && apiKey.isBlank()) {
+            return@withContext Pair(false, "No API key configured")
+        }
+
+        val testReq = UnifiedPromptRequest(
+            messages = listOf(UnifiedMessage(role = MessageRole.USER, content = "Say 'OK' in one word.")),
+            maxTokens = 8,
+            temperature = 0.1f,
+            timeoutSeconds = 8L
+        )
+
+        val startTime = System.currentTimeMillis()
+        try {
+            val response = when (provider) {
+                ModelProvider.GEMINI -> GeminiRestClient(apiKey = apiKey, baseUrl = baseUrl).execute(testReq)
+                else -> OpenAICompatibleClient(provider = provider, apiKey = apiKey, baseUrl = baseUrl).execute(testReq)
+            }
+            val elapsed = System.currentTimeMillis() - startTime
+            if (response.isSuccess) {
+                Pair(true, "${elapsed}ms")
+            } else {
+                Pair(false, response.errorMessage ?: "Request failed")
+            }
+        } catch (e: Exception) {
+            Pair(false, e.message ?: "Connection error")
+        }
+    }
+
     private fun getOrCreateHealth(provider: ModelProvider): ProviderHealth {
         return healthMap.computeIfAbsent(provider) {
             ProviderHealth(provider = provider)

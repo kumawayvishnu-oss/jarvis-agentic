@@ -73,17 +73,15 @@ class ChatFragment : Fragment() {
             (activity as? MainActivity)?.selectTab(MainActivity.TAB_HOME)
         }
 
-        // Mode Chips
+        // Interactive Chips
         binding.chipPersona.setOnClickListener {
-            Toast.makeText(requireContext(), "Persona: Jarvis Active", Toast.LENGTH_SHORT).show()
+            val intent = android.content.Intent(requireContext(), com.jarvis.assistant.ui.settings.PersonaActivity::class.java)
+            startActivity(intent)
         }
 
         binding.chipMode.setOnClickListener {
-            Toast.makeText(requireContext(), "Mode: Code & Assistant", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.btnAttach.setOnClickListener {
-            Toast.makeText(requireContext(), "Attachment options", Toast.LENGTH_SHORT).show()
+            val intent = android.content.Intent(requireContext(), com.jarvis.assistant.ui.settings.ApiConnectionActivity::class.java)
+            startActivity(intent)
         }
 
         observeChatTurns()
@@ -119,6 +117,10 @@ class ChatFragment : Fragment() {
         super.onResume()
         if (_binding != null) {
             com.jarvis.assistant.util.ThemeManager.applyDynamicBackground(binding.root)
+            val prefs = JarvisApp.instance.preferences
+            val persona = if (prefs.personalityMode == com.jarvis.assistant.data.model.GeminiConstants.PERSONALITY_NAIRA) "Naira" else "Jarvis"
+            binding.tvChipPersona.text = persona
+            binding.tvChatSubtitle.text = "$persona • Multi-Provider • Active"
         }
     }
 

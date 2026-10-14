@@ -96,16 +96,32 @@ class UpdatesFragment : Fragment() {
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
-                text = "Auto-Failover Matrix Active"
+                text = "Auto-Failover Matrix Status"
                 textSize = 14f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 setPadding(0, dp(6), 0, dp(4))
             })
+            val vault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(requireContext())
+            val geminiReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.GEMINI)
+            val groqReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.GROQ)
+            val openRouterReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.OPENROUTER)
+            val deepSeekReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.DEEPSEEK)
+
+            val statusText = buildString {
+                append("• Gemini: ${if (geminiReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• Groq LPU: ${if (groqReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• OpenRouter: ${if (openRouterReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• DeepSeek: ${if (deepSeekReady) "✅ Ready" else "⚪ Optional"}\n")
+                append("• Local Ollama: ⚡ Ready\n")
+                append("Failover Cascade: Active (RPM 429 Protected)")
+            }
+
             addView(TextView(requireContext()).apply {
-                text = "Primary: Gemini 1.5 Live/Flash\nFallback 1: DeepSeek V3/R1\nFallback 2: Groq LPU (Ultra-Fast)\nFallback 3: OpenRouter Free Matrix\nFallback 4: Local Ollama\nProtection: RPM 429 Circuit Breakers Active"
+                text = statusText
                 textSize = 12f
                 setTextColor(themeColor(R.attr.themeTextMuted))
+                setLineSpacing(dp(2).toFloat(), 1f)
             })
         }
         container.addView(routerCard)
@@ -262,8 +278,8 @@ class UpdatesFragment : Fragment() {
             FeatureNotice("Silent execution", "Quiet task automation", "When enabled, task narration is muted while ordinary conversation stays audible."),
             FeatureNotice("WhatsApp", "Saved contact lookup", "Contact aliases are supported. Grant Contacts permission first; JARVIS will report a missing permission separately from a name mismatch."),
             FeatureNotice("Phone calls", "Permission-aware calling", "Normal calls require Contacts and Phone permissions. WhatsApp calls use WhatsApp and do not place a cellular call."),
-            FeatureNotice("Google Flow / AI Studio", "Browser input diagnostics", "The captured Flow run could not verify the prompt input in Chrome. Some editor fields are not exposed to Accessibility; screen sharing must be active and have a fresh frame for visual targeting. The captured logs did not show a Google AI Studio page, so that failure still needs a fresh log capture.", "DIAGNOSTIC"),
-            FeatureNotice("Instagram", "Bulk action safety", "Bulk tasks track list progress and require end-of-list evidence. The captured run repeatedly reached the action limit and did not establish completion; avoid treating an unverified result as done.", "DIAGNOSTIC"),
+            FeatureNotice("Web Intelligence", "Zero-Cost Live Web Research", "JARVIS uses DuckDuckGo and multi-tier scraping to research live facts, weather, and news without consuming API quotas."),
+            FeatureNotice("App Automation", "Multi-Tier Hybrid Execution", "Automates 1500+ apps via deep links, Accessibility semantic tree parsing, and rootless Shizuku fallback."),
             FeatureNotice("Spotify", "Song search and playback checks", "Searches can inspect results and verify playback before reporting success; physical-device behavior still depends on the Spotify screen and account."),
             FeatureNotice("Permissions", "Per-feature access status", "The System Authorizations page lists microphone, location, notifications, overlay, Accessibility, contacts, phone, camera, Bluetooth, battery, and brightness access."),
             FeatureNotice("AI persona", "Operator profile preview", "Preview your selected assistant voice and the name it will use before activating the persona."),

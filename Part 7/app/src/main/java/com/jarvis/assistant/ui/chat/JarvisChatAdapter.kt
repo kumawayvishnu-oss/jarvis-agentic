@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.jarvis.assistant.data.model.ChatTurn
-import com.jarvis.assistant.databinding.ItemNairaChatMessageBinding
+import com.jarvis.assistant.databinding.ItemJarvisChatMessageBinding
 
 class JarvisChatAdapter(
     private val onEditUserMessage: ((String) -> Unit)? = null
@@ -23,7 +23,7 @@ class JarvisChatAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
-        val binding = ItemNairaChatMessageBinding.inflate(
+        val binding = ItemJarvisChatMessageBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -36,7 +36,7 @@ class JarvisChatAdapter(
     }
 
     inner class MessageViewHolder(
-        private val binding: ItemNairaChatMessageBinding
+        private val binding: ItemJarvisChatMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(turn: ChatTurn) {

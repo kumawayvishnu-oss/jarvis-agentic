@@ -39,7 +39,7 @@
             android:id="@+id/tvChatTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hi"
+            android:text="JARVIS AI"
             android:textColor="?attr/themeTextPrimary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -130,6 +130,7 @@
                     android:layout_marginEnd="6dp" />
 
                 <TextView
+                    android:id="@+id/tvChipPersona"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Jarvis"
@@ -139,7 +140,7 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Chip 2: Mode / Code -->
+            <!-- Chip 2: Providers -->
             <LinearLayout
                 android:id="@+id/chipMode"
                 android:layout_width="wrap_content"
@@ -158,9 +159,10 @@
                     android:layout_marginEnd="6dp" />
 
                 <TextView
+                    android:id="@+id/tvChipProvider"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Code"
+                    android:text="Providers"
                     android:textColor="?attr/themeTextPrimary"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-medium"
@@ -171,17 +173,6 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
-
-            <!-- Plus attachment button -->
-            <ImageButton
-                android:id="@+id/btnAttach"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="@null"
-                android:src="@drawable/ic_plus"
-                app:tint="?attr/themeTextSecondary"
-                android:layout_marginEnd="8dp"
-                android:contentDescription="Attach" />
 
             <!-- Send Button -->
             <ImageButton

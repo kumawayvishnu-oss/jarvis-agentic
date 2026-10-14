@@ -252,7 +252,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="2. Gemini 3.8 Live Brain"
+                            android:text="2. Gemini Live Bidi Brain"
                             android:textColor="?attr/themeTextPrimary"
                             android:textSize="15sp"
                             android:textStyle="bold"
@@ -262,7 +262,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Your speech is processed in real time using Google&apos;s latest Gemini 3.8 Live model. It understands context in Hindi, Urdu, English, Hinglish, and regional languages."
+                            android:text="Your speech is processed in real time using Google&apos;s latest Gemini Live model. It understands context in Hindi, Urdu, English, Hinglish, and regional languages."
                             android:textColor="?attr/themeTextMuted"
                             android:textSize="12.5sp"
                             android:lineSpacingExtra="2dp" />
@@ -555,7 +555,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Best Selected Model: Gemini 3.8 Live"
+                    android:text="Best Selected Model: Gemini Live 1.5 / 2.0"
                     android:textColor="?attr/themeTextPrimary"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -564,7 +564,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="The app comes pre-configured with Google's gemini-3.8-live model and embedded release API key. Ultra-low latency voice streaming with immediate responses."
+                    android:text="The app comes pre-configured for Google's Gemini Live model with low latency voice streaming and multi-provider failover."
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12.5sp"
                     android:lineSpacingExtra="2dp" />
