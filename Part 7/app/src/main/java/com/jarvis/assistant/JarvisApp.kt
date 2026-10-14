@@ -67,6 +67,12 @@ class JarvisApp : Application() {
     lateinit var agentSoulManager: com.jarvis.assistant.agentic.soul.AgentSoulManager
         private set
 
+    lateinit var providerVault: com.jarvis.assistant.agentic.router.ProviderVault
+        private set
+
+    lateinit var smartProviderRouter: com.jarvis.assistant.agentic.router.SmartProviderRouter
+        private set
+
     override fun onCreate() {
         super.onCreate()
         SecurityManager.verify(this)
@@ -83,6 +89,10 @@ class JarvisApp : Application() {
         soulDatabase = com.jarvis.assistant.agentic.soul.SoulDatabase.getInstance(this)
         userSoulManager = com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(this)
         agentSoulManager = com.jarvis.assistant.agentic.soul.AgentSoulManager.getInstance(this)
+
+        // Multi-Provider Smart Router & Encrypted Vault (Phase 2)
+        providerVault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(this)
+        smartProviderRouter = com.jarvis.assistant.agentic.router.SmartProviderRouter.getInstance(this)
 
         // Automation Systems
         youTubePreferences = YouTubePreferences(this)

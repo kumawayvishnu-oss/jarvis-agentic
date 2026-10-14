@@ -5,6 +5,13 @@ build/
 
 # Local configuration file (sdk.dir, secrets)
 local.properties
+secrets.properties
+keys.properties
+*.key
+*.secret
+.env
+.env.*
+!.env.example
 
 # Log files
 *.log
