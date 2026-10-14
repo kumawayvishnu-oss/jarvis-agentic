@@ -241,6 +241,22 @@ class SettingsFragment : Fragment() {
             .show()
     }
 
+    private fun showLanguageDialog() {
+        val languages = GeminiConstants.SUPPORTED_LANGUAGES.toTypedArray()
+        val currentIndex = languages.indexOfFirst { it.equals(preferences.language, ignoreCase = true) }.let { if (it >= 0) it else 0 }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Select Conversation Language")
+            .setSingleChoiceItems(languages, currentIndex) { dialog, which ->
+                val chosen = languages[which]
+                preferences.language = chosen
+                binding.tvCurrentLanguage.text = chosen
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     private fun showEditNameDialog() {
         val input = EditText(requireContext()).apply {
             setText(preferences.userName.ifBlank { "Rehaan" })

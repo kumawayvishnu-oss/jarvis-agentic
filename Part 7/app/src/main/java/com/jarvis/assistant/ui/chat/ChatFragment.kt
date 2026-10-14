@@ -118,7 +118,12 @@ class ChatFragment : Fragment() {
         if (_binding != null) {
             com.jarvis.assistant.util.ThemeManager.applyDynamicBackground(binding.root)
             val prefs = JarvisApp.instance.preferences
-            val persona = if (prefs.personalityMode == com.jarvis.assistant.data.model.GeminiConstants.PERSONALITY_NAIRA) "Naira" else "Jarvis"
+            val persona = when (prefs.personality) {
+                com.jarvis.assistant.data.model.GeminiConstants.PERSONALITY_GIRLFRIEND -> "Pari"
+                com.jarvis.assistant.data.model.GeminiConstants.PERSONALITY_BOYFRIEND -> "Kabir"
+                com.jarvis.assistant.data.model.GeminiConstants.PERSONALITY_TECHGPT_X -> "TechGPT X"
+                else -> "Jarvis"
+            }
             binding.tvChipPersona.text = persona
             binding.tvChatSubtitle.text = "$persona • Multi-Provider • Active"
         }

@@ -1,14 +1,22 @@
 package com.jarvis.assistant.util
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.util.TypedValue
 import android.view.View
 import androidx.core.view.WindowInsetsControllerCompat
 import com.jarvis.assistant.JarvisApp
 import com.jarvis.assistant.R
 
 object ThemeManager {
+
+    fun resolveThemeColor(context: Context, attrRes: Int): Int {
+        val typedValue = TypedValue()
+        context.theme.resolveAttribute(attrRes, typedValue, true)
+        return typedValue.data
+    }
 
     fun isLight(colorInt: Int): Boolean {
         val r = Color.red(colorInt) / 255.0

@@ -297,7 +297,7 @@ class DiagnosticActivity : AppCompatActivity() {
         }
     }
 
-    private fun testFreeSearch(): Pair<Boolean, String> {
+    private suspend fun testFreeSearch(): Pair<Boolean, String> {
         val startTime = System.currentTimeMillis()
         val results = FreeLiveSearchClient().search("JARVIS Assistant")
         val elapsed = System.currentTimeMillis() - startTime
