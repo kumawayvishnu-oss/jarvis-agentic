@@ -1,5 +1,6 @@
 package com.jarvis.assistant.agentic.connector
 
+import android.content.Context
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
@@ -119,6 +120,12 @@ data class CompactUiTree(
  */
 object AccessibilityNodeParser {
     private const val TAG = "AccessibilityNodeParser"
+
+    fun getInstance(context: Context? = null): AccessibilityNodeParser = this
+
+    fun findNodeByTextOrDesc(root: AccessibilityNodeInfo, textQuery: String): AccessibilityNodeInfo? {
+        return findByQuery(root, textQuery)
+    }
 
     /**
      * Parses an active root AccessibilityNodeInfo into a compact, filtered semantic UI tree.
@@ -445,3 +452,25 @@ object AccessibilityNodeParser {
         }
     }
 }
+
+/**
+ * Extension helper to safely click an AccessibilityNodeInfo or its nearest clickable parent.
+ */
+fun AccessibilityNodeInfo.click(): Boolean {
+    if (this.isClickable) {
+        return this.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+    }
+    var current: AccessibilityNodeInfo? = this.parent
+    while (current != null) {
+        if (current.isClickable) {
+            val result = current.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+            current.recycle()
+            return result
+        }
+        val next = current.parent
+        current.recycle()
+        current = next
+    }
+    return false
+}
+
