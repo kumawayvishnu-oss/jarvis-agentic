@@ -251,7 +251,7 @@ class CognitiveSpecialistAgent(
 /**
  * SpecialistAgentPool: Manages the registry of active and built-in specialist agents.
  */
-class SpecialistAgentPool private constructor(context: Context) {
+class SpecialistAgentPool private constructor(private val context: Context) {
     private val pool = ConcurrentHashMap<String, BaseSpecialistAgent>()
 
     init {

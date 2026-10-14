@@ -156,7 +156,7 @@ class UpdatesFragment : Fragment() {
                 textSize = 12f
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(Color.WHITE)
-                setBackgroundResource(R.drawable.bg_jarvis_button_primary)
+                setBackgroundResource(R.drawable.bg_jarvis_pill_button)
                 layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     dp(40)
