@@ -77,6 +77,7 @@ data class SoulTask(
     val assignedTo: String = "ManagerAgent",
     val priority: TaskPriority = TaskPriority.NORMAL,
     val status: TaskStatus = TaskStatus.IN_PROGRESS,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val resultSummary: String? = null
 )
 

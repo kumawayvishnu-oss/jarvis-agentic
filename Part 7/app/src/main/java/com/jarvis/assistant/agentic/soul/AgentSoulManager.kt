@@ -60,6 +60,12 @@ class AgentSoulManager(
         }
     }
 
+    fun observeAllTasks(limit: Int = 10): Flow<List<SoulTask>> {
+        return _tasksFlow.map { tasks ->
+            tasks.take(limit)
+        }
+    }
+
     fun observeRecentLogs(limit: Int = 10): Flow<List<SoulStepLog>> {
         return _recentLogsFlow.map { logs ->
             logs.take(limit)
@@ -453,7 +459,7 @@ class AgentSoulManager(
                     }
                 }
                 val updatedTasks = _tasksFlow.value.map {
-                    if (it.taskId == taskId) it.copy(status = status) else it
+                    if (it.taskId == taskId) it.copy(status = status, resultSummary = resultSummary ?: it.resultSummary) else it
                 }
                 _tasksFlow.value = updatedTasks
             } catch (e: Exception) {

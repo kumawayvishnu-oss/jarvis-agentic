@@ -22,23 +22,69 @@ data class AgentExecutionResult(
  * and structured step reporting.
  */
 abstract class BaseSpecialistAgent(
-    val id: String,
-    val name: String,
-    val role: String,
-    val description: String,
+    override val id: String,
+    override val name: String,
+    override val role: String,
+    override val description: String,
     val systemPrompt: String,
     protected val context: Context,
     protected val agentSoulManager: AgentSoulManager = AgentSoulManager.getInstance(context)
-) {
+) : Agent {
     protected val interCom: AgentInterCom by lazy { AgentInterCom.getInstance(context) }
+
+    @Volatile
+    var currentState: AgentState = AgentState.IDLE
+
+    @Volatile
+    var currentTaskGoal: String? = null
+
+    @Volatile
+    var lastActionName: String = "Standby"
+
+    @Volatile
+    var lastActiveTime: Long = System.currentTimeMillis()
+
+    override fun getLiveStatus(): AgentLiveStatus {
+        return AgentLiveStatus(
+            id = id,
+            name = name,
+            role = role,
+            description = description,
+            state = currentState,
+            currentGoal = currentTaskGoal,
+            lastAction = lastActionName,
+            lastActiveTime = lastActiveTime
+        )
+    }
+
+    fun markWorking(goal: String) {
+        currentState = AgentState.WORKING
+        currentTaskGoal = goal
+        lastActionName = "Executing: ${goal.take(40)}"
+        lastActiveTime = System.currentTimeMillis()
+    }
+
+    fun markCompleted(summary: String) {
+        currentState = AgentState.IDLE
+        currentTaskGoal = null
+        lastActionName = "Completed: ${summary.take(40)}"
+        lastActiveTime = System.currentTimeMillis()
+    }
+
+    fun markError(error: String) {
+        currentState = AgentState.ERROR
+        currentTaskGoal = null
+        lastActionName = "Error: ${error.take(40)}"
+        lastActiveTime = System.currentTimeMillis()
+    }
 
     /**
      * Executes an assigned task asynchronously.
      */
-    abstract suspend fun executeTask(
+    abstract override suspend fun executeTask(
         taskGoal: String,
         taskId: String,
-        inputData: Map<String, Any> = emptyMap()
+        inputData: Map<String, Any>
     ): AgentExecutionResult
 
     /**
@@ -50,6 +96,16 @@ abstract class BaseSpecialistAgent(
         level: StepLogLevel = StepLogLevel.INFO,
         taskId: String? = null
     ) {
+        lastActionName = "$action: $detail"
+        lastActiveTime = System.currentTimeMillis()
+        if (level == StepLogLevel.ERROR) {
+            currentState = AgentState.ERROR
+        } else if (level == StepLogLevel.SUCCESS) {
+            currentState = AgentState.IDLE
+        } else {
+            currentState = AgentState.WORKING
+        }
+
         agentSoulManager.postStepLog(
             agentName = name,
             action = action,

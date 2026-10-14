@@ -217,9 +217,31 @@ class JarvisConversationService : Service() {
         fun isServiceRunning(): Boolean = activeInstance != null
 
         fun sendTextMessage(text: String) {
-            val instance = activeInstance ?: return
-            instance.liveWebSocket?.sendClientContent(text)
-            JarvisApp.instance.chatRepository.addTurn(text, "")
+            val instance = activeInstance
+            val liveWs = instance?.liveWebSocket
+            if (instance != null && liveWs != null && liveWs.isSessionReady()) {
+                liveWs.sendClientContent(text)
+                JarvisApp.instance.chatRepository.addTurn(text, "")
+            } else {
+                // Multi-Agent Swarm Autonomous Execution
+                val app = JarvisApp.instance
+                app.chatRepository.addTurn(text, "⏳ Processing with JARVIS Multi-Agent Swarm...")
+                (instance?.serviceScope ?: CoroutineScope(Dispatchers.IO)).launch {
+                    try {
+                        val output = app.managerAgent.executeGoal(text)
+                        withContext(Dispatchers.Main) {
+                            app.chatRepository.addTurn(text, output)
+                            if (!app.preferences.isSilentExecutionMode) {
+                                instance?.tts?.speak(output, TextToSpeech.QUEUE_FLUSH, null, "text_task_done")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            app.chatRepository.addTurn(text, "Task execution error: ${e.message}")
+                        }
+                    }
+                }
+            }
         }
 
         fun cancelActiveTaskFromOverlay() {
@@ -2668,7 +2690,35 @@ class JarvisConversationService : Service() {
             Log.i("JarvisService", "USER TEXT → Detected command [${parsed.matchedPattern}] confidence=${parsed.confidence}: $cmd")
             executeDetectedCommand(cmd, cleanSpeech)
         } else {
-            Log.d("JarvisService", "No command match from user text (confidence=${parsed.confidence})")
+            Log.d("JarvisService", "No direct command pattern from user text (confidence=${parsed.confidence}). Checking Swarm routing for: '$cleanSpeech'")
+            val isLiveReady = liveWebSocket?.isSessionReady() == true
+            val isActionOrTask = cleanSpeech.contains("then", ignoreCase = true) ||
+                    cleanSpeech.contains("search", ignoreCase = true) ||
+                    cleanSpeech.contains("open", ignoreCase = true) ||
+                    cleanSpeech.contains("calculate", ignoreCase = true) ||
+                    cleanSpeech.contains("turn on", ignoreCase = true) ||
+                    cleanSpeech.contains("turn off", ignoreCase = true) ||
+                    cleanSpeech.contains("who is", ignoreCase = true) ||
+                    cleanSpeech.contains("what is", ignoreCase = true) ||
+                    !isLiveReady
+
+            if (isActionOrTask && !isAutonomousTaskRunning && cleanSpeech.length >= 4) {
+                lastHandledCommandText = cleanSpeech
+                hasExecutedCommandInCurrentTurn = true
+                serviceScope.launch(Dispatchers.IO) {
+                    try {
+                        val output = app.managerAgent.executeGoal(cleanSpeech)
+                        if (output.isNotBlank()) {
+                            announce(output)
+                            if (!preferences.isSilentExecutionMode && !isLiveReady) {
+                                tts?.speak(output, TextToSpeech.QUEUE_FLUSH, null, "voice_swarm_done")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("JarvisService", "Swarm goal execution error: ${e.message}")
+                    }
+                }
+            }
         }
     }
 

@@ -1,12 +1,22 @@
 package com.jarvis.assistant.ui.home
 
+import android.content.Context
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.TextUtils
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import android.widget.Button
+import android.widget.EditText
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -14,16 +24,23 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.jarvis.assistant.JarvisApp
 import com.jarvis.assistant.R
+import com.jarvis.assistant.agentic.soul.StepLogLevel
 import com.jarvis.assistant.agentic.soul.TaskStatus
+import com.jarvis.assistant.agentic.swarm.AgentLiveStatus
+import com.jarvis.assistant.agentic.swarm.AgentState
 import com.jarvis.assistant.databinding.FragmentUpdatesBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class UpdatesFragment : Fragment() {
 
     private var _binding: FragmentUpdatesBinding? = null
     private val binding get() = _binding!!
 
+    private var dynamicAgentsLayout: LinearLayout? = null
     private var dynamicTasksLayout: LinearLayout? = null
     private var dynamicSoulLayout: LinearLayout? = null
     private var dynamicLogsLayout: LinearLayout? = null
@@ -65,20 +82,197 @@ class UpdatesFragment : Fragment() {
         val container = binding.missionControlContainer
         container.removeAllViews()
 
-        // 1. Dual-SOUL Memory Card
+        // 0. Quick Mission Dispatcher Card (लिखकर task देना)
+        val dispatcherCard = createCard().apply {
+            addView(TextView(requireContext()).apply {
+                text = "🚀 SWARM MISSION DISPATCHER"
+                textSize = 11f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeAccent))
+            })
+            addView(TextView(requireContext()).apply {
+                text = "Direct Goal & Task Execution"
+                textSize = 14f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeTextPrimary))
+                setPadding(0, dp(4), 0, dp(6))
+            })
+
+            val etGoal = EditText(requireContext()).apply {
+                hint = "Enter task (e.g. 'Turn on flashlight', 'Search AI news', 'Open WhatsApp')..."
+                setHintTextColor(Color.parseColor("#64748B"))
+                setTextColor(themeColor(R.attr.themeTextPrimary))
+                textSize = 13f
+                setBackgroundResource(R.drawable.bg_jarvis_card)
+                setPadding(dp(12), dp(10), dp(12), dp(10))
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = dp(8) }
+            }
+            addView(etGoal)
+
+            // Horizontal layout for action chips
+            val chipRow = HorizontalScrollView(requireContext()).apply {
+                isHorizontalScrollBarEnabled = false
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = dp(8) }
+            }
+            val chipLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+            }
+            val quickGoals = listOf(
+                "💡 Torch On" to "Turn on flashlight",
+                "🔍 Search News" to "Search latest tech news",
+                "📱 WhatsApp" to "Open WhatsApp",
+                "🧠 Complex Goal" to "Search Kotlin version and then turn on torch"
+            )
+            quickGoals.forEach { (label, goalText) ->
+                val chip = TextView(requireContext()).apply {
+                    text = label
+                    textSize = 11f
+                    setTextColor(themeColor(R.attr.themeAccent))
+                    setBackgroundResource(R.drawable.bg_jarvis_chip)
+                    setPadding(dp(10), dp(4), dp(10), dp(4))
+                    val lp = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    ).apply { marginEnd = dp(6) }
+                    layoutParams = lp
+                    setOnClickListener {
+                        etGoal.setText(goalText)
+                        etGoal.setSelection(goalText.length)
+                    }
+                }
+                chipLayout.addView(chip)
+            }
+            chipRow.addView(chipLayout)
+            addView(chipRow)
+
+            val btnLaunch = Button(requireContext()).apply {
+                text = "⚡ LAUNCH MISSION"
+                textSize = 12f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(Color.WHITE)
+                setBackgroundResource(R.drawable.bg_jarvis_button_primary)
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    dp(40)
+                )
+                setOnClickListener {
+                    val goal = etGoal.text?.toString()?.trim() ?: ""
+                    if (goal.isBlank()) {
+                        Toast.makeText(requireContext(), "Please enter a task or goal", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    etGoal.text?.clear()
+                    val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                    imm?.hideSoftInputFromWindow(windowToken, 0)
+
+                    Toast.makeText(requireContext(), "Mission launched: '$goal'", Toast.LENGTH_SHORT).show()
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        try {
+                            val result = JarvisApp.instance.managerAgent.executeGoal(goal)
+                            withContext(Dispatchers.Main) {
+                                if (isAdded) {
+                                    Toast.makeText(requireContext(), "Mission Done: ${result.take(50)}", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                if (isAdded) {
+                                    Toast.makeText(requireContext(), "Mission error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            addView(btnLaunch)
+        }
+        container.addView(dispatcherCard)
+
+        // 1. Active Swarm Agents Card (चलते agents की स्थिति)
+        val agentsCard = createCard().apply {
+            addView(TextView(requireContext()).apply {
+                text = "👥 ACTIVE SWARM AGENTS & STATUS"
+                textSize = 11f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeAccent))
+            })
+            addView(TextView(requireContext()).apply {
+                text = "Specialist Agent Registry & Roster"
+                textSize = 14f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeTextPrimary))
+                setPadding(0, dp(4), 0, dp(6))
+            })
+            dynamicAgentsLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+            addView(dynamicAgentsLayout)
+        }
+        container.addView(agentsCard)
+
+        // 2. Multi-Agent Swarm Missions Card (Task की स्थिति)
+        val swarmCard = createCard().apply {
+            addView(TextView(requireContext()).apply {
+                text = "⚡ MULTI-AGENT SWARM MISSIONS"
+                textSize = 11f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeAccent))
+            })
+            addView(TextView(requireContext()).apply {
+                text = "Active & Recent Executed Tasks"
+                textSize = 14f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeTextPrimary))
+                setPadding(0, dp(4), 0, dp(6))
+            })
+            dynamicTasksLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+            addView(dynamicTasksLayout)
+        }
+        container.addView(swarmCard)
+
+        // 3. Real-Time Blackboard Step Logs Card
+        val logsCard = createCard().apply {
+            addView(TextView(requireContext()).apply {
+                text = "📜 REAL-TIME BLACKBOARD STEP LOGS"
+                textSize = 11f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeAccent))
+            })
+            addView(TextView(requireContext()).apply {
+                text = "Live inter-agent communication & progress ledger"
+                textSize = 12f
+                setTextColor(themeColor(R.attr.themeTextMuted))
+                setPadding(0, dp(2), 0, dp(6))
+            })
+            dynamicLogsLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+            addView(dynamicLogsLayout)
+        }
+        container.addView(logsCard)
+
+        // 4. Dual-SOUL Memory Card
         val soulCard = createCard().apply {
             addView(TextView(requireContext()).apply {
                 text = "🧠 DUAL-SOUL MEMORY MATRIX · LIVE"
                 textSize = 11f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
                 text = "User SOUL & Hermes Self-Learning"
                 textSize = 14f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
-                setPadding(0, dp(6), 0, dp(4))
+                setPadding(0, dp(4), 0, dp(4))
             })
             dynamicSoulLayout = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.VERTICAL
@@ -87,20 +281,20 @@ class UpdatesFragment : Fragment() {
         }
         container.addView(soulCard)
 
-        // 2. Multi-Provider Router Card
+        // 5. Multi-Provider Router Card
         val routerCard = createCard().apply {
             addView(TextView(requireContext()).apply {
                 text = "🌐 MULTI-PROVIDER SMART ROUTER"
                 textSize = 11f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
                 text = "Auto-Failover Matrix Status"
                 textSize = 14f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
-                setPadding(0, dp(6), 0, dp(4))
+                setPadding(0, dp(4), 0, dp(4))
             })
             val vault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(requireContext())
             val geminiReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.GEMINI)
@@ -125,44 +319,6 @@ class UpdatesFragment : Fragment() {
             })
         }
         container.addView(routerCard)
-
-        // 3. Multi-Agent Swarm Blackboard Card
-        val swarmCard = createCard().apply {
-            addView(TextView(requireContext()).apply {
-                text = "⚡ MULTI-AGENT SWARM BLACKBOARD"
-                textSize = 11f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
-                setTextColor(themeColor(R.attr.themeAccent))
-            })
-            addView(TextView(requireContext()).apply {
-                text = "Active Swarm Tasks"
-                textSize = 14f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
-                setTextColor(themeColor(R.attr.themeTextPrimary))
-                setPadding(0, dp(6), 0, dp(4))
-            })
-            dynamicTasksLayout = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-            }
-            addView(dynamicTasksLayout)
-        }
-        container.addView(swarmCard)
-
-        // 4. Live Step Logs Card
-        val logsCard = createCard().apply {
-            addView(TextView(requireContext()).apply {
-                text = "📜 REAL-TIME STEP LOGS"
-                textSize = 11f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
-                setTextColor(themeColor(R.attr.themeAccent))
-            })
-            dynamicLogsLayout = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(0, dp(6), 0, 0)
-            }
-            addView(dynamicLogsLayout)
-        }
-        container.addView(logsCard)
     }
 
     private fun observeLiveState() {
@@ -170,7 +326,141 @@ class UpdatesFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // 1. Observe User SOUL attributes
+                // 1. Observe and refresh Active Agents status periodically
+                launch {
+                    while (true) {
+                        try {
+                            val statuses = app.specialistAgentPool.getAllAgentStatuses()
+                            renderAgentStatuses(statuses)
+                        } catch (e: Exception) {}
+                        delay(1200)
+                    }
+                }
+
+                // 2. Observe Active and Recent Missions from AgentSoulManager
+                launch {
+                    try {
+                        app.agentSoulManager.observeAllTasks(limit = 8).collectLatest { tasks ->
+                            val ctx = context ?: return@collectLatest
+                            val layout = dynamicTasksLayout ?: return@collectLatest
+                            layout.removeAllViews()
+                            if (tasks.isEmpty()) {
+                                layout.addView(TextView(ctx).apply {
+                                    text = "No swarm tasks yet. Dispatch a mission above or speak to JARVIS."
+                                    textSize = 12f
+                                    setTextColor(themeColor(R.attr.themeTextMuted))
+                                })
+                            } else {
+                                tasks.forEach { task ->
+                                    val taskView = LinearLayout(ctx).apply {
+                                        orientation = LinearLayout.VERTICAL
+                                        setBackgroundResource(R.drawable.bg_jarvis_card)
+                                        setPadding(dp(10), dp(8), dp(10), dp(8))
+                                        val lp = LinearLayout.LayoutParams(
+                                            ViewGroup.LayoutParams.MATCH_PARENT,
+                                            ViewGroup.LayoutParams.WRAP_CONTENT
+                                        ).apply { bottomMargin = dp(6) }
+                                        layoutParams = lp
+                                    }
+
+                                    // Header row: Badge + Assigned Agent
+                                    val headerRow = LinearLayout(ctx).apply {
+                                        orientation = LinearLayout.HORIZONTAL
+                                        gravity = Gravity.CENTER_VERTICAL
+                                    }
+
+                                    val badgeColor = when (task.status) {
+                                        TaskStatus.IN_PROGRESS -> Color.parseColor("#06B6D4")
+                                        TaskStatus.COMPLETED -> Color.parseColor("#10B981")
+                                        TaskStatus.FAILED -> Color.parseColor("#EF4444")
+                                        else -> Color.parseColor("#94A3B8")
+                                    }
+                                    val badgeText = when (task.status) {
+                                        TaskStatus.IN_PROGRESS -> "▶ RUNNING ⏳"
+                                        TaskStatus.COMPLETED -> "✓ COMPLETED ✅"
+                                        TaskStatus.FAILED -> "✕ FAILED ❌"
+                                        else -> task.status.name
+                                    }
+
+                                    headerRow.addView(TextView(ctx).apply {
+                                        text = badgeText
+                                        textSize = 10f
+                                        setTypeface(typeface, Typeface.BOLD)
+                                        setTextColor(badgeColor)
+                                        setBackgroundResource(R.drawable.bg_jarvis_chip)
+                                        setPadding(dp(6), dp(2), dp(6), dp(2))
+                                    })
+
+                                    headerRow.addView(TextView(ctx).apply {
+                                        text = "  [${task.assignedTo}]"
+                                        textSize = 11f
+                                        setTextColor(themeColor(R.attr.themeTextMuted))
+                                        layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                                    })
+
+                                    taskView.addView(headerRow)
+
+                                    // Task Title / Goal
+                                    taskView.addView(TextView(ctx).apply {
+                                        text = task.title
+                                        textSize = 13f
+                                        setTypeface(typeface, Typeface.BOLD)
+                                        setTextColor(themeColor(R.attr.themeTextPrimary))
+                                        setPadding(0, dp(4), 0, dp(2))
+                                    })
+
+                                    // Result Summary (if present)
+                                    if (!task.resultSummary.isNullOrBlank()) {
+                                        taskView.addView(TextView(ctx).apply {
+                                            text = "Result: ${task.resultSummary}"
+                                            textSize = 11f
+                                            setTextColor(Color.parseColor("#94A3B8"))
+                                            maxLines = 3
+                                            ellipsize = TextUtils.TruncateAt.END
+                                        })
+                                    }
+
+                                    layout.addView(taskView)
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {}
+                }
+
+                // 3. Observe Recent Step Logs from AgentSoulManager
+                launch {
+                    try {
+                        app.agentSoulManager.observeRecentLogs(8).collectLatest { logs ->
+                            val ctx = context ?: return@collectLatest
+                            val layout = dynamicLogsLayout ?: return@collectLatest
+                            layout.removeAllViews()
+                            if (logs.isEmpty()) {
+                                layout.addView(TextView(ctx).apply {
+                                    text = "Blackboard standby."
+                                    textSize = 12f
+                                    setTextColor(themeColor(R.attr.themeTextMuted))
+                                })
+                            } else {
+                                logs.forEach { log ->
+                                    val color = when (log.level) {
+                                        StepLogLevel.SUCCESS -> Color.parseColor("#10B981")
+                                        StepLogLevel.ERROR -> Color.parseColor("#EF4444")
+                                        StepLogLevel.WARNING -> Color.parseColor("#F59E0B")
+                                        else -> themeColor(R.attr.themeAccent)
+                                    }
+                                    layout.addView(TextView(ctx).apply {
+                                        text = "• [${log.agentName}] ${log.action}: ${log.detail}"
+                                        textSize = 11f
+                                        setTextColor(color)
+                                        setPadding(0, dp(2), 0, dp(2))
+                                    })
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {}
+                }
+
+                // 4. Observe User SOUL attributes
                 launch {
                     try {
                         app.userSoulManager.userSoulFlow.collectLatest { list ->
@@ -196,61 +486,65 @@ class UpdatesFragment : Fragment() {
                         }
                     } catch (e: Exception) {}
                 }
-
-                // 2. Observe active tasks from AgentSoulManager
-                launch {
-                    try {
-                        app.agentSoulManager.observeTasksByStatus(com.jarvis.assistant.agentic.soul.TaskStatus.IN_PROGRESS).collectLatest { tasks ->
-                            val ctx = context ?: return@collectLatest
-                            val layout = dynamicTasksLayout ?: return@collectLatest
-                            layout.removeAllViews()
-                            if (tasks.isEmpty()) {
-                                layout.addView(TextView(ctx).apply {
-                                    text = "No active swarm tasks running. Ready for autonomous goals."
-                                    textSize = 12f
-                                    setTextColor(themeColor(R.attr.themeTextMuted))
-                                })
-                            } else {
-                                tasks.forEach { task ->
-                                    layout.addView(TextView(ctx).apply {
-                                        text = "▶ [${task.assignedTo}] ${task.title} (${task.priority})"
-                                        textSize = 12f
-                                        setTextColor(themeColor(R.attr.themeAccent))
-                                        setPadding(0, dp(3), 0, dp(3))
-                                    })
-                                }
-                            }
-                        }
-                    } catch (e: Exception) {}
-                }
-
-                // 3. Observe recent step logs
-                launch {
-                    try {
-                        app.agentSoulManager.observeRecentLogs(4).collectLatest { logs ->
-                            val ctx = context ?: return@collectLatest
-                            val layout = dynamicLogsLayout ?: return@collectLatest
-                            layout.removeAllViews()
-                            if (logs.isEmpty()) {
-                                layout.addView(TextView(ctx).apply {
-                                    text = "Blackboard standby."
-                                    textSize = 12f
-                                    setTextColor(themeColor(R.attr.themeTextMuted))
-                                })
-                            } else {
-                                logs.forEach { log ->
-                                    layout.addView(TextView(ctx).apply {
-                                        text = "[${log.agentName}] ${log.action}: ${log.detail.take(50)}"
-                                        textSize = 11f
-                                        setTextColor(themeColor(R.attr.themeTextMuted))
-                                        setPadding(0, dp(1), 0, dp(1))
-                                    })
-                                }
-                            }
-                        }
-                    } catch (e: Exception) {}
-                }
             }
+        }
+    }
+
+    private fun renderAgentStatuses(statuses: List<AgentLiveStatus>) {
+        val ctx = context ?: return
+        val layout = dynamicAgentsLayout ?: return
+        layout.removeAllViews()
+
+        statuses.forEach { agent ->
+            val row = LinearLayout(ctx).apply {
+                orientation = LinearLayout.VERTICAL
+                setBackgroundResource(R.drawable.bg_jarvis_card)
+                setPadding(dp(10), dp(6), dp(10), dp(6))
+                val lp = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = dp(4) }
+                layoutParams = lp
+            }
+
+            val top = LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+
+            val tvName = TextView(ctx).apply {
+                text = agent.name
+                textSize = 12f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeTextPrimary))
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            }
+
+            val isWorking = agent.state == AgentState.WORKING
+            val tvBadge = TextView(ctx).apply {
+                text = if (isWorking) "⚡ WORKING" else if (agent.state == AgentState.ERROR) "❌ ERROR" else "⚪ IDLE"
+                textSize = 10f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(if (isWorking) Color.parseColor("#06B6D4") else if (agent.state == AgentState.ERROR) Color.parseColor("#EF4444") else Color.parseColor("#94A3B8"))
+                setBackgroundResource(R.drawable.bg_jarvis_chip)
+                setPadding(dp(6), dp(2), dp(6), dp(2))
+            }
+
+            top.addView(tvName)
+            top.addView(tvBadge)
+            row.addView(top)
+
+            val tvDetail = TextView(ctx).apply {
+                text = "${agent.role} · ${agent.lastAction}"
+                textSize = 11f
+                setTextColor(if (isWorking) themeColor(R.attr.themeAccent) else themeColor(R.attr.themeTextMuted))
+                maxLines = 2
+                ellipsize = TextUtils.TruncateAt.END
+                setPadding(0, dp(2), 0, 0)
+            }
+            row.addView(tvDetail)
+
+            layout.addView(row)
         }
     }
 
@@ -292,13 +586,13 @@ class UpdatesFragment : Fragment() {
             card.addView(TextView(requireContext()).apply {
                 text = feature.feature.uppercase() + if (feature.kind == "DIAGNOSTIC") "  ·  DIAGNOSTIC" else ""
                 textSize = 12f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             card.addView(TextView(requireContext()).apply {
                 text = feature.title
                 textSize = 15f
-                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 setPadding(0, dp(8), 0, dp(5))
             })
@@ -344,6 +638,7 @@ class UpdatesFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        dynamicAgentsLayout = null
         dynamicSoulLayout = null
         dynamicTasksLayout = null
         dynamicLogsLayout = null

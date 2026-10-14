@@ -26,12 +26,61 @@ class ManagerAgent private constructor(
     private val dynamicFactory: DynamicAgentFactory = DynamicAgentFactory.getInstance(context),
     private val router: SmartProviderRouter = SmartProviderRouter.getInstance(context),
     private val interCom: AgentInterCom = AgentInterCom.getInstance(context)
-) {
+) : Agent {
+
+    override val id: String = "agent_manager"
+    override val name: String = "ManagerAgent"
+    override val role: String = "Supreme Swarm Orchestrator"
+    override val description: String = "Decomposes goals, delegates tasks to specialists, and synthesizes unified outputs"
+
+    @Volatile
+    var currentState: AgentState = AgentState.IDLE
+
+    @Volatile
+    var currentGoalText: String? = null
+
+    @Volatile
+    var lastActionSummary: String = "Standby"
+
+    @Volatile
+    var lastActiveTime: Long = System.currentTimeMillis()
+
+    override fun getLiveStatus(): AgentLiveStatus {
+        return AgentLiveStatus(
+            id = id,
+            name = name,
+            role = role,
+            description = description,
+            state = currentState,
+            currentGoal = currentGoalText,
+            lastAction = lastActionSummary,
+            lastActiveTime = lastActiveTime
+        )
+    }
+
+    override suspend fun executeTask(
+        taskGoal: String,
+        taskId: String,
+        inputData: Map<String, Any>
+    ): AgentExecutionResult {
+        val output = executeGoal(taskGoal)
+        return AgentExecutionResult(
+            agentId = id,
+            agentName = name,
+            isSuccess = true,
+            output = output
+        )
+    }
 
     /**
      * Executes an autonomous workflow for a user request.
      */
     suspend fun executeGoal(userGoal: String): String = withContext(Dispatchers.Default) {
+        currentState = AgentState.WORKING
+        currentGoalText = userGoal
+        lastActionSummary = "Decomposing goal: '${userGoal.take(30)}'"
+        lastActiveTime = System.currentTimeMillis()
+
         val taskId = agentSoulManager.createTask(
             title = userGoal.take(50),
             description = userGoal,
@@ -77,6 +126,8 @@ class ManagerAgent private constructor(
 
             // Select matching specialist or synthesize dynamic agent on-demand
             val specialist = resolveSpecialist(subGoal)
+            lastActionSummary = "Stage $stageNum/${subGoals.size}: Delegating to ${specialist.name}"
+            lastActiveTime = System.currentTimeMillis()
 
             // Announce task delegation on InterCom
             interCom.sendMessage(
@@ -119,6 +170,8 @@ class ManagerAgent private constructor(
         }
 
         // 3. Synthesize unified response taking into account User SOUL context
+        lastActionSummary = "Synthesizing multi-agent outputs"
+        lastActiveTime = System.currentTimeMillis()
         val accumulatedOutput = stepOutputs.joinToString("\n")
         val finalOutput = if (overallSuccess || stepOutputs.isNotEmpty()) {
             val synthesisPrompt = buildString {
@@ -146,6 +199,11 @@ class ManagerAgent private constructor(
         } else {
             "I encountered a difficulty executing that request: $accumulatedOutput"
         }
+
+        currentState = if (overallSuccess) AgentState.IDLE else AgentState.ERROR
+        currentGoalText = null
+        lastActionSummary = if (overallSuccess) "Mission completed" else "Mission failed"
+        lastActiveTime = System.currentTimeMillis()
 
         agentSoulManager.updateTaskStatus(
             taskId,

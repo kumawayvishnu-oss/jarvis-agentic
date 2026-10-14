@@ -278,6 +278,18 @@ class SpecialistAgentPool private constructor(context: Context) {
     }
 
     /**
+     * Retrieves the live status of the manager agent and all registered specialists.
+     */
+    fun getAllAgentStatuses(): List<AgentLiveStatus> {
+        val list = mutableListOf<AgentLiveStatus>()
+        list.add(ManagerAgent.getInstance(context).getLiveStatus())
+        for (agent in pool.values) {
+            list.add(agent.getLiveStatus())
+        }
+        return list
+    }
+
+    /**
      * Resolves the best specialist agent for a given goal.
      */
     fun findAgentForGoal(goal: String): BaseSpecialistAgent {
