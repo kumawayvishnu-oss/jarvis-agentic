@@ -62,6 +62,37 @@ class UserSoulManager(
     val activeSkillsFlow: Flow<List<SynthesizedSkillEntity>> = soulDao.getActiveSkillsFlow()
 
     /**
+     * Ingests legacy memories from MemoryDatabase into the Hermes User SOUL matrix.
+     */
+    fun importLegacyMemories(legacyMemories: List<com.jarvis.assistant.data.memory.MemoryEntity>) {
+        scope.launch {
+            try {
+                legacyMemories.forEach { mem ->
+                    val key = mem.key ?: "legacy_mem_${mem.id}"
+                    val value = mem.value ?: mem.rawText
+                    val cat = when (mem.category.lowercase()) {
+                        "user", "profile", "identity" -> SoulCategory.IDENTITY
+                        "preference", "habit" -> SoulCategory.PREFERENCE
+                        else -> SoulCategory.HABIT
+                    }
+                    soulDao.upsertUserSoul(
+                        UserSoulEntity(
+                            key = key,
+                            value = value,
+                            category = cat,
+                            confidence = 0.95f,
+                            source = "LegacyMemoryDB"
+                        )
+                    )
+                }
+                refreshCache()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error importing legacy memories: ${e.message}")
+            }
+        }
+    }
+
+    /**
      * Analyzes an ongoing conversational turn (Hermes-style heuristic reflection).
      * Extracts traits, habits, tone, and checks if a new dynamic skill should be synthesized.
      */

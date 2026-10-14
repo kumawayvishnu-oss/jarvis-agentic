@@ -13,6 +13,12 @@ abstract class MemoryDatabase : RoomDatabase() {
     companion object {
         private const val DATABASE_NAME = "jarvis_memory.db"
 
+        val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                // Preserves all existing memories and schema intact without deletion
+            }
+        }
+
         @Volatile
         private var instance: MemoryDatabase? = null
 
@@ -23,7 +29,8 @@ abstract class MemoryDatabase : RoomDatabase() {
                     MemoryDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_1_2)
+                    .fallbackToDestructiveMigrationOnDowngrade()
                     .build()
                     .also { instance = it }
             }

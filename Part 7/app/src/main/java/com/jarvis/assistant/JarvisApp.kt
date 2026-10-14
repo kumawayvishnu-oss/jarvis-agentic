@@ -105,6 +105,16 @@ class JarvisApp : Application() {
         userSoulManager = com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(this)
         agentSoulManager = com.jarvis.assistant.agentic.soul.AgentSoulManager.getInstance(this)
 
+        // Ingest legacy memories into User SOUL automatically
+        appScope.launch(Dispatchers.IO) {
+            try {
+                val legacyList = memoryDatabase.memoryDao().getAllMemories()
+                if (legacyList.isNotEmpty()) {
+                    userSoulManager.importLegacyMemories(legacyList)
+                }
+            } catch (_: Exception) {}
+        }
+
         // Multi-Provider Smart Router & Encrypted Vault (Phase 2)
         providerVault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(this)
         smartProviderRouter = com.jarvis.assistant.agentic.router.SmartProviderRouter.getInstance(this)
