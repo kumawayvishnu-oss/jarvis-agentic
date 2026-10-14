@@ -67,13 +67,13 @@ class UpdatesFragment : Fragment() {
         val soulCard = createCard().apply {
             addView(TextView(requireContext()).apply {
                 text = "🧠 DUAL-SOUL MEMORY MATRIX · LIVE"
-                textSize = 11sp()
+                textSize = 11f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
                 text = "User SOUL & Hermes Self-Learning"
-                textSize = 14sp()
+                textSize = 14f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 setPadding(0, dp(6), 0, dp(4))
@@ -89,20 +89,20 @@ class UpdatesFragment : Fragment() {
         val routerCard = createCard().apply {
             addView(TextView(requireContext()).apply {
                 text = "🌐 MULTI-PROVIDER SMART ROUTER"
-                textSize = 11sp()
+                textSize = 11f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
                 text = "Auto-Failover Matrix Active"
-                textSize = 14sp()
+                textSize = 14f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 setPadding(0, dp(6), 0, dp(4))
             })
             addView(TextView(requireContext()).apply {
                 text = "Primary: Gemini 1.5 Live/Flash\nFallback 1: DeepSeek V3/R1\nFallback 2: Groq LPU (Ultra-Fast)\nFallback 3: OpenRouter Free Matrix\nFallback 4: Local Ollama\nProtection: RPM 429 Circuit Breakers Active"
-                textSize = 12sp()
+                textSize = 12f
                 setTextColor(themeColor(R.attr.themeTextMuted))
             })
         }
@@ -112,13 +112,13 @@ class UpdatesFragment : Fragment() {
         val swarmCard = createCard().apply {
             addView(TextView(requireContext()).apply {
                 text = "⚡ MULTI-AGENT SWARM BLACKBOARD"
-                textSize = 11sp()
+                textSize = 11f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
                 text = "Active Swarm Tasks"
-                textSize = 14sp()
+                textSize = 14f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 setPadding(0, dp(6), 0, dp(4))
@@ -134,7 +134,7 @@ class UpdatesFragment : Fragment() {
         val logsCard = createCard().apply {
             addView(TextView(requireContext()).apply {
                 text = "📜 REAL-TIME STEP LOGS"
-                textSize = 11sp()
+                textSize = 11f
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
@@ -158,46 +158,46 @@ class UpdatesFragment : Fragment() {
                     if (list.isEmpty()) {
                         dynamicSoulLayout?.addView(TextView(requireContext()).apply {
                             text = "Listening and learning user habits, personality, and recurring skills..."
-                            textSize = 12sp()
+                            textSize = 12f
                             setTextColor(themeColor(R.attr.themeTextMuted))
                         })
                     } else {
                         list.take(4).forEach { item ->
                             dynamicSoulLayout?.addView(TextView(requireContext()).apply {
                                 text = "• [${item.category}] ${item.key}: ${item.value.take(60)}"
-                                textSize = 12sp()
+                                textSize = 12f
                                 setTextColor(themeColor(R.attr.themeTextPrimary))
                                 setPadding(0, dp(2), 0, dp(2))
                             })
                         }
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
         }
 
         // Observe active tasks from AgentSoulManager
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                app.agentSoulManager.observeTasksByStatus(TaskStatus.IN_PROGRESS).collectLatest { tasks ->
+                app.agentSoulManager.observeTasksByStatus(com.jarvis.assistant.agentic.soul.TaskStatus.IN_PROGRESS).collectLatest { tasks ->
                     dynamicTasksLayout?.removeAllViews()
                     if (tasks.isEmpty()) {
                         dynamicTasksLayout?.addView(TextView(requireContext()).apply {
                             text = "No active swarm tasks running. Ready for autonomous goals."
-                            textSize = 12sp()
+                            textSize = 12f
                             setTextColor(themeColor(R.attr.themeTextMuted))
                         })
                     } else {
                         tasks.forEach { task ->
                             dynamicTasksLayout?.addView(TextView(requireContext()).apply {
                                 text = "▶ [${task.assignedTo}] ${task.title} (${task.priority})"
-                                textSize = 12sp()
+                                textSize = 12f
                                 setTextColor(themeColor(R.attr.themeAccent))
                                 setPadding(0, dp(3), 0, dp(3))
                             })
                         }
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
         }
 
         // Observe recent step logs
@@ -208,21 +208,21 @@ class UpdatesFragment : Fragment() {
                     if (logs.isEmpty()) {
                         dynamicLogsLayout?.addView(TextView(requireContext()).apply {
                             text = "Blackboard standby."
-                            textSize = 12sp()
+                            textSize = 12f
                             setTextColor(themeColor(R.attr.themeTextMuted))
                         })
                     } else {
                         logs.forEach { log ->
                             dynamicLogsLayout?.addView(TextView(requireContext()).apply {
                                 text = "[${log.agentName}] ${log.action}: ${log.detail.take(50)}"
-                                textSize = 11sp()
+                                textSize = 11f
                                 setTextColor(themeColor(R.attr.themeTextMuted))
                                 setPadding(0, dp(1), 0, dp(1))
                             })
                         }
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
         }
     }
 
@@ -291,7 +291,6 @@ class UpdatesFragment : Fragment() {
     }
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
-    private fun sp() = 12f
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -317,6 +316,9 @@ class UpdatesFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        dynamicSoulLayout = null
+        dynamicTasksLayout = null
+        dynamicLogsLayout = null
         _binding = null
     }
 }
