@@ -1800,8 +1800,14 @@ class JarvisConversationService : Service() {
                                     }
                                 }
                             } else {
-                                result.put("success", false)
-                                result.put("message", "Could not find or open $appName.")
+                                val hybridRes = app.hybridActionDispatcher.openAppOrAction(appName)
+                                if (hybridRes.isSuccess) {
+                                    result.put("success", true)
+                                    result.put("message", hybridRes.message)
+                                } else {
+                                    result.put("success", false)
+                                    result.put("message", "Could not find or open $appName.")
+                                }
                             }
                         }
                     }
@@ -2334,6 +2340,14 @@ class JarvisConversationService : Service() {
                         result.put("success", true)
                         result.put("screen_summary", summary)
                         result.put("message", "Screen inspected successfully.")
+                    }
+
+                    "autonomous_agent_workflow" -> {
+                        val goal = args.optString("goal", autonomousTaskGoal)
+                        Log.i("JarvisService", "autonomous_agent_workflow: delegating goal to ManagerAgent: '$goal'")
+                        val managerOutput = app.managerAgent.executeGoal(goal)
+                        result.put("success", true)
+                        result.put("message", managerOutput)
                     }
 
 

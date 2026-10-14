@@ -579,6 +579,21 @@ object AgentTaskEngine {
             finalVerificationResult = context.finalVerificationResult,
             failureReason = context.failureReason
         )
+
+        try {
+            val statusEnum = when (context.status) {
+                State.COMPLETED -> com.jarvis.assistant.agentic.soul.TaskStatus.COMPLETED
+                State.FAILED -> com.jarvis.assistant.agentic.soul.TaskStatus.FAILED
+                State.CANCELLED -> com.jarvis.assistant.agentic.soul.TaskStatus.CANCELLED
+                else -> com.jarvis.assistant.agentic.soul.TaskStatus.IN_PROGRESS
+            }
+            com.jarvis.assistant.JarvisApp.instance.agentSoulManager.updateTaskStatus(
+                context.taskId,
+                statusEnum,
+                context.finalVerificationResult
+            )
+        } catch (_: Exception) {
+        }
     }
 
     fun normalize(goal: String): String = goal.trim().lowercase().replace(Regex("\\s+"), " ")

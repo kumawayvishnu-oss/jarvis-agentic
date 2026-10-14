@@ -643,6 +643,22 @@ class GeminiLiveWebSocket(
                             })
                         })
 
+                        // 22. autonomous_agent_workflow
+                        put(JSONObject().apply {
+                            put("name", "autonomous_agent_workflow")
+                            put("description", "Delegates a high-level, complex, or multi-step goal to the JARVIS Multi-Agent Swarm (ManagerAgent, Specialists, DynamicAgentFactory) and 1500+ App Hybrid Connector. Use whenever the user asks for multi-step reasoning, research, complex app automation, or when standard single tools cannot fulfill the user's intent.")
+                            put("parameters", JSONObject().apply {
+                                put("type", "OBJECT")
+                                put("properties", JSONObject().apply {
+                                    put("goal", JSONObject().apply {
+                                        put("type", "STRING")
+                                        put("description", "The high-level user goal to decompose and execute across the multi-agent swarm.")
+                                    })
+                                })
+                                put("required", JSONArray().put("goal"))
+                            })
+                        })
+
 
                     })
                 }))
