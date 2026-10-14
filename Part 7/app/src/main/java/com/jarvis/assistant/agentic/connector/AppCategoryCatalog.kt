@@ -56,11 +56,11 @@ data class AppActionSchema(
         }
 
         if (uriTemplate != null) {
-            var uriString = uriTemplate
+            var uriString = uriTemplate!!
             for ((key, value) in params) {
                 val encoded = try {
                     URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     value
                 }
                 uriString = uriString.replace("{$key}", encoded)
@@ -672,7 +672,7 @@ object AppCategoryCatalog {
                     val pkgName = appInfo.packageName
                     val appLabel = try {
                         pm.getApplicationLabel(appInfo).toString()
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
                         pkgName.substringAfterLast('.')
                     }
 
@@ -881,5 +881,50 @@ object AppCategoryCatalog {
                 detectorInstance = it
             }
         }
+    }
+
+    fun getInstance(context: Context? = null): AppCategoryCatalog = this
+
+    fun lookupPackage(appName: String, context: Context? = null): String? {
+        val clean = appName.trim().lowercase(Locale.ROOT)
+        aliasMap[clean]?.let { return it }
+        val curated = CURATED_CATALOG.find {
+            it.appName.equals(clean, ignoreCase = true) || it.aliases.any { a -> a.equals(clean, ignoreCase = true) }
+        }
+        if (curated != null) return curated.packageName
+
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null }
+        return if (ctx != null) {
+            try {
+                getDetector(ctx).findApp(appName)?.packageName
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+    }
+
+    fun resolveLaunchIntent(appName: String, actionQuery: String? = null, context: Context? = null): Intent? {
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null }
+        val clean = appName.trim().lowercase(Locale.ROOT)
+        val curated = CURATED_CATALOG.find {
+            it.appName.equals(clean, ignoreCase = true) || it.aliases.any { a -> a.equals(clean, ignoreCase = true) }
+        }
+
+        if (!actionQuery.isNullOrBlank() && curated != null) {
+            val searchAction = curated.actions.find {
+                it.actionName.contains("search", ignoreCase = true) ||
+                it.uriTemplate?.contains("{query}") == true ||
+                it.uriTemplate?.contains("{text}") == true
+            }
+            if (searchAction != null) {
+                val intent = searchAction.buildIntent(mapOf("query" to actionQuery, "text" to actionQuery))
+                if (intent != null) return intent
+            }
+        }
+
+        val pkg = lookupPackage(appName, ctx) ?: return null
+        return ctx?.packageManager?.getLaunchIntentForPackage(pkg)
     }
 }

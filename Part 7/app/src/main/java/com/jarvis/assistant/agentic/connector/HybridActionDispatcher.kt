@@ -63,7 +63,7 @@ class HybridActionDispatcher private constructor(
         )
 
         // Tier 1: Try deep link or direct launch Intent
-        val launchIntent = appCatalog.resolveLaunchIntent(appName, actionQuery)
+        val launchIntent = appCatalog.resolveLaunchIntent(appName, actionQuery, context)
         if (launchIntent != null) {
             try {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -96,29 +96,39 @@ class HybridActionDispatcher private constructor(
         // Tier 2: Try Accessibility Service UI Click / Search
         val accessibilityService = JarvisAccessibilityService.instance
         if (accessibilityService != null) {
-            val rootNode = accessibilityService.rootInActiveWindow
-            if (rootNode != null) {
-                val targetNode = accessibilityParser.findNodeByTextOrDesc(rootNode, appName)
-                if (targetNode != null && targetNode.click()) {
-                    agentSoulManager.postStepLog(
-                        agentName = agentName,
-                        action = "Tier2AccessibilitySuccess",
-                        detail = "Clicked '$appName' on screen using Accessibility Node Tree.",
-                        level = StepLogLevel.SUCCESS,
-                        taskId = taskId
-                    )
-                    return@withContext HybridActionResult(
-                        isSuccess = true,
-                        executedTier = ExecutionTier.TIER2_ACCESSIBILITY,
-                        message = "Clicked $appName using Accessibility Service."
-                    )
+            try {
+                val rootNode = accessibilityService.getActiveRootNode() ?: accessibilityService.rootInActiveWindow
+                if (rootNode != null) {
+                    val targetNode = accessibilityParser.findNodeByTextOrDesc(rootNode, appName)
+                    if (targetNode != null && (accessibilityService.clickNodeAndTap(targetNode) || targetNode.click())) {
+                        agentSoulManager.postStepLog(
+                            agentName = agentName,
+                            action = "Tier2AccessibilitySuccess",
+                            detail = "Clicked '$appName' on screen using Accessibility Node Tree.",
+                            level = StepLogLevel.SUCCESS,
+                            taskId = taskId
+                        )
+                        return@withContext HybridActionResult(
+                            isSuccess = true,
+                            executedTier = ExecutionTier.TIER2_ACCESSIBILITY,
+                            message = "Clicked $appName using Accessibility Service."
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                agentSoulManager.postStepLog(
+                    agentName = agentName,
+                    action = "Tier2AccessibilityError",
+                    detail = "Accessibility click error: ${e.message}",
+                    level = StepLogLevel.WARNING,
+                    taskId = taskId
+                )
             }
         }
 
         // Tier 3: Try Shizuku elevated shell if available
-        if (shizukuBridge.isAvailable()) {
-            val pkg = appCatalog.lookupPackage(appName)
+        if (shizukuBridge.isAvailable(context)) {
+            val pkg = appCatalog.lookupPackage(appName, context)
             if (pkg != null) {
                 val result = shizukuBridge.executeShellCommand("monkey -p $pkg -c android.intent.category.LAUNCHER 1")
                 if (result.isSuccessful) {
@@ -139,17 +149,24 @@ class HybridActionDispatcher private constructor(
         }
 
         // Fallback: Web search or Play store
-        val fallbackUrl = "https://www.google.com/search?q=" + Uri.encode(appName)
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl)).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return@withContext try {
+            val fallbackUrl = "https://www.google.com/search?q=" + Uri.encode(appName)
+            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(browserIntent)
+            HybridActionResult(
+                isSuccess = true,
+                executedTier = ExecutionTier.TIER1_INTENT,
+                message = "App not locally installed. Opened web alternative for $appName."
+            )
+        } catch (e: Exception) {
+            HybridActionResult(
+                isSuccess = false,
+                executedTier = ExecutionTier.FAILED,
+                message = "Could not open $appName or web fallback: ${e.message}"
+            )
         }
-        context.startActivity(browserIntent)
-
-        HybridActionResult(
-            isSuccess = true,
-            executedTier = ExecutionTier.TIER1_INTENT,
-            message = "App not locally installed. Opened web alternative for $appName."
-        )
     }
 
     /**
@@ -160,44 +177,277 @@ class HybridActionDispatcher private constructor(
         taskId: String? = null,
         agentName: String = "AppConnector"
     ): HybridActionResult = withContext(Dispatchers.Default) {
-        val service = JarvisAccessibilityService.instance
-        if (service != null) {
-            val root = service.rootInActiveWindow
-            if (root != null) {
-                val node = accessibilityParser.findNodeByTextOrDesc(root, targetIdentifier)
-                if (node != null && node.click()) {
-                    agentSoulManager.postStepLog(
-                        agentName = agentName,
-                        action = "NodeClickSuccess",
-                        detail = "Clicked node '$targetIdentifier' via Accessibility.",
-                        level = StepLogLevel.SUCCESS,
-                        taskId = taskId
-                    )
-                    return@withContext HybridActionResult(
-                        isSuccess = true,
-                        executedTier = ExecutionTier.TIER2_ACCESSIBILITY,
-                        message = "Clicked '$targetIdentifier' via Accessibility."
-                    )
-                }
+        // If coordinate format "x,y" or "x, y"
+        val coordMatch = Regex("""^\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*$""").find(targetIdentifier)
+        if (coordMatch != null) {
+            val x = coordMatch.groupValues[1].toFloatOrNull()
+            val y = coordMatch.groupValues[2].toFloatOrNull()
+            if (x != null && y != null) {
+                return@withContext tapCoordinates(x, y, taskId, agentName)
             }
         }
 
-        // Fallback to Shizuku tap if available and coordinates are known
-        if (shizukuBridge.isAvailable()) {
-            // Can tap by center screen or fallback
+        // Tier 2: Accessibility
+        val service = JarvisAccessibilityService.instance
+        if (service != null) {
+            try {
+                val root = service.getActiveRootNode() ?: service.rootInActiveWindow
+                if (root != null) {
+                    val node = accessibilityParser.findNodeByTextOrDesc(root, targetIdentifier)
+                    if (node != null && (service.clickNodeAndTap(node) || node.click())) {
+                        agentSoulManager.postStepLog(
+                            agentName = agentName,
+                            action = "NodeClickSuccess",
+                            detail = "Clicked node '$targetIdentifier' via Accessibility.",
+                            level = StepLogLevel.SUCCESS,
+                            taskId = taskId
+                        )
+                        return@withContext HybridActionResult(
+                            isSuccess = true,
+                            executedTier = ExecutionTier.TIER2_ACCESSIBILITY,
+                            message = "Clicked '$targetIdentifier' via Accessibility."
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                agentSoulManager.postStepLog(
+                    agentName = agentName,
+                    action = "AccessibilityClickError",
+                    detail = "Error clicking node: ${e.message}",
+                    level = StepLogLevel.WARNING,
+                    taskId = taskId
+                )
+            }
+        }
+
+        // Tier 3: Shizuku coordinate tap fallback if node bounds can be located
+        if (shizukuBridge.isAvailable(context)) {
+            try {
+                val root = service?.getActiveRootNode() ?: service?.rootInActiveWindow
+                val node = root?.let { accessibilityParser.findNodeByTextOrDesc(it, targetIdentifier) }
+                if (node != null) {
+                    val bounds = android.graphics.Rect()
+                    node.getBoundsInScreen(bounds)
+                    if (bounds.width() > 0 && bounds.height() > 0) {
+                        val cx = bounds.centerX().toFloat()
+                        val cy = bounds.centerY().toFloat()
+                        if (shizukuBridge.tap(cx, cy, context)) {
+                            agentSoulManager.postStepLog(
+                                agentName = agentName,
+                                action = "Tier3ShizukuTapSuccess",
+                                detail = "Tapped element '$targetIdentifier' at ($cx, $cy) via Shizuku.",
+                                level = StepLogLevel.SUCCESS,
+                                taskId = taskId
+                            )
+                            return@withContext HybridActionResult(
+                                isSuccess = true,
+                                executedTier = ExecutionTier.TIER3_SHIZUKU,
+                                message = "Tapped element '$targetIdentifier' at ($cx, $cy) via Shizuku."
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                agentSoulManager.postStepLog(
+                    agentName = agentName,
+                    action = "ShizukuClickError",
+                    detail = "Shizuku tap error: ${e.message}",
+                    level = StepLogLevel.WARNING,
+                    taskId = taskId
+                )
+            }
+        }
+
+        agentSoulManager.postStepLog(
+            agentName = agentName,
+            action = "ClickElementFailed",
+            detail = "Could not locate or click '$targetIdentifier'.",
+            level = StepLogLevel.WARNING,
+            taskId = taskId
+        )
+
+        HybridActionResult(
+            isSuccess = false,
+            executedTier = ExecutionTier.FAILED,
+            message = "Could not locate clickable element for '$targetIdentifier'."
+        )
+    }
+
+    /**
+     * Taps at specific screen coordinates (x, y).
+     */
+    suspend fun tapCoordinates(
+        x: Float,
+        y: Float,
+        taskId: String? = null,
+        agentName: String = "AppConnector"
+    ): HybridActionResult = withContext(Dispatchers.Default) {
+        val service = JarvisAccessibilityService.instance
+        if (service != null && service.clickAt(x, y)) {
             agentSoulManager.postStepLog(
                 agentName = agentName,
-                action = "ShizukuClickFallback",
-                detail = "Attempting Shizuku input tap fallback for '$targetIdentifier'.",
-                level = StepLogLevel.INFO,
+                action = "CoordinateClickSuccess",
+                detail = "Tapped at ($x, $y) via Accessibility.",
+                level = StepLogLevel.SUCCESS,
                 taskId = taskId
+            )
+            return@withContext HybridActionResult(
+                isSuccess = true,
+                executedTier = ExecutionTier.TIER2_ACCESSIBILITY,
+                message = "Tapped at ($x, $y) via Accessibility."
+            )
+        }
+
+        if (shizukuBridge.isAvailable(context) && shizukuBridge.tap(x, y, context)) {
+            agentSoulManager.postStepLog(
+                agentName = agentName,
+                action = "ShizukuTapSuccess",
+                detail = "Tapped at ($x, $y) via Shizuku shell.",
+                level = StepLogLevel.SUCCESS,
+                taskId = taskId
+            )
+            return@withContext HybridActionResult(
+                isSuccess = true,
+                executedTier = ExecutionTier.TIER3_SHIZUKU,
+                message = "Tapped at ($x, $y) via Shizuku."
             )
         }
 
         HybridActionResult(
             isSuccess = false,
             executedTier = ExecutionTier.FAILED,
-            message = "Could not locate clickable element for '$targetIdentifier'."
+            message = "Failed to tap at coordinates ($x, $y). Accessibility and Shizuku were unavailable."
+        )
+    }
+
+    /**
+     * Types text into the focused field or target element.
+     */
+    suspend fun typeText(
+        text: String,
+        targetIdentifier: String? = null,
+        taskId: String? = null,
+        agentName: String = "AppConnector"
+    ): HybridActionResult = withContext(Dispatchers.Default) {
+        val service = JarvisAccessibilityService.instance
+
+        if (targetIdentifier != null && service != null) {
+            val root = service.getActiveRootNode() ?: service.rootInActiveWindow
+            val target = root?.let { accessibilityParser.findNodeByTextOrDesc(it, targetIdentifier) }
+            target?.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_FOCUS)
+        }
+
+        if (service != null && service.smartTypeText(text)) {
+            agentSoulManager.postStepLog(
+                agentName = agentName,
+                action = "AccessibilityTypeTextSuccess",
+                detail = "Typed text '$text' via Accessibility.",
+                level = StepLogLevel.SUCCESS,
+                taskId = taskId
+            )
+            return@withContext HybridActionResult(
+                isSuccess = true,
+                executedTier = ExecutionTier.TIER2_ACCESSIBILITY,
+                message = "Typed '$text' via Accessibility."
+            )
+        }
+
+        if (shizukuBridge.isAvailable(context) && shizukuBridge.inputText(text, context)) {
+            agentSoulManager.postStepLog(
+                agentName = agentName,
+                action = "ShizukuTypeTextSuccess",
+                detail = "Typed text via Shizuku shell.",
+                level = StepLogLevel.SUCCESS,
+                taskId = taskId
+            )
+            return@withContext HybridActionResult(
+                isSuccess = true,
+                executedTier = ExecutionTier.TIER3_SHIZUKU,
+                message = "Typed '$text' via Shizuku."
+            )
+        }
+
+        HybridActionResult(
+            isSuccess = false,
+            executedTier = ExecutionTier.FAILED,
+            message = "Failed to type text. Neither Accessibility nor Shizuku available."
+        )
+    }
+
+    /**
+     * Performs a scroll in the specified direction ("up", "down", "left", "right").
+     */
+    suspend fun performScroll(
+        direction: String,
+        distance: String = "medium",
+        taskId: String? = null,
+        agentName: String = "AppConnector"
+    ): HybridActionResult = withContext(Dispatchers.Default) {
+        val service = JarvisAccessibilityService.instance
+        if (service != null && service.performSmartScroll(direction, distance)) {
+            return@withContext HybridActionResult(
+                isSuccess = true,
+                executedTier = ExecutionTier.TIER2_ACCESSIBILITY,
+                message = "Scrolled $direction ($distance) via Accessibility."
+            )
+        }
+
+        if (shizukuBridge.isAvailable(context)) {
+            val startY = if (direction.equals("down", ignoreCase = true)) 1200f else 600f
+            val endY = if (direction.equals("down", ignoreCase = true)) 600f else 1200f
+            if (shizukuBridge.swipe(540f, startY, 540f, endY, 300L, context)) {
+                return@withContext HybridActionResult(
+                    isSuccess = true,
+                    executedTier = ExecutionTier.TIER3_SHIZUKU,
+                    message = "Scrolled $direction via Shizuku swipe."
+                )
+            }
+        }
+
+        HybridActionResult(
+            isSuccess = false,
+            executedTier = ExecutionTier.FAILED,
+            message = "Could not perform scroll $direction."
+        )
+    }
+
+    /**
+     * Presses an Android hardware / system key (e.g. Back=4, Home=3, Recents=187).
+     */
+    suspend fun pressKey(
+        keyCode: Int,
+        taskId: String? = null,
+        agentName: String = "AppConnector"
+    ): HybridActionResult = withContext(Dispatchers.Default) {
+        if (shizukuBridge.isAvailable(context) && shizukuBridge.pressKey(keyCode, context)) {
+            return@withContext HybridActionResult(
+                isSuccess = true,
+                executedTier = ExecutionTier.TIER3_SHIZUKU,
+                message = "Pressed keycode $keyCode via Shizuku."
+            )
+        }
+
+        val service = JarvisAccessibilityService.instance
+        if (service != null) {
+            val actionSuccess = when (keyCode) {
+                4 -> service.performSystemGesture("back")
+                3 -> service.performSystemGesture("home")
+                187 -> service.performSystemGesture("recents")
+                else -> false
+            }
+            if (actionSuccess) {
+                return@withContext HybridActionResult(
+                    isSuccess = true,
+                    executedTier = ExecutionTier.TIER2_ACCESSIBILITY,
+                    message = "Dispatched system action for keycode $keyCode via Accessibility."
+                )
+            }
+        }
+
+        HybridActionResult(
+            isSuccess = false,
+            executedTier = ExecutionTier.FAILED,
+            message = "Could not press keycode $keyCode."
         )
     }
 

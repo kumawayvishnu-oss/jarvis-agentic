@@ -123,8 +123,19 @@ object AccessibilityNodeParser {
 
     fun getInstance(context: Context? = null): AccessibilityNodeParser = this
 
-    fun findNodeByTextOrDesc(root: AccessibilityNodeInfo, textQuery: String): AccessibilityNodeInfo? {
+    fun findNodeByTextOrDesc(root: AccessibilityNodeInfo?, textQuery: String): AccessibilityNodeInfo? {
+        if (root == null || textQuery.isBlank()) return null
         return findByQuery(root, textQuery)
+    }
+
+    fun parseNodeHierarchy(root: AccessibilityNodeInfo?, maxNodes: Int = 120): List<SemanticNode> {
+        if (root == null) return emptyList()
+        return parseTree(root, maxNodes).nodes
+    }
+
+    fun formatForPrompt(root: AccessibilityNodeInfo?, maxNodes: Int = 80): String {
+        if (root == null) return "Screen is empty or inaccessible"
+        return parseTree(root, maxNodes).toFormattedLlmTree(maxNodes)
     }
 
     /**
@@ -215,11 +226,12 @@ object AccessibilityNodeParser {
      * Locates all accessibility nodes matching the specified text.
      */
     fun findByText(
-        root: AccessibilityNodeInfo,
+        root: AccessibilityNodeInfo?,
         text: String,
         exactMatch: Boolean = false
     ): List<AccessibilityNodeInfo> {
         val results = mutableListOf<AccessibilityNodeInfo>()
+        if (root == null) return results
         val target = text.trim().lowercase(Locale.ROOT)
         if (target.isEmpty()) return results
 
@@ -244,11 +256,12 @@ object AccessibilityNodeParser {
      * Locates all accessibility nodes matching the content description.
      */
     fun findByContentDescription(
-        root: AccessibilityNodeInfo,
+        root: AccessibilityNodeInfo?,
         desc: String,
         exactMatch: Boolean = false
     ): List<AccessibilityNodeInfo> {
         val results = mutableListOf<AccessibilityNodeInfo>()
+        if (root == null) return results
         val target = desc.trim().lowercase(Locale.ROOT)
         if (target.isEmpty()) return results
 
@@ -273,9 +286,10 @@ object AccessibilityNodeParser {
      * Locates all accessibility nodes matching the specified view-id resource name.
      */
     fun findByViewId(
-        root: AccessibilityNodeInfo,
+        root: AccessibilityNodeInfo?,
         viewId: String
     ): List<AccessibilityNodeInfo> {
+        if (root == null) return emptyList()
         return try {
             // First attempt Android's built-in fast indexed query
             val list = root.findAccessibilityNodeInfosByViewId(viewId)
@@ -308,10 +322,11 @@ object AccessibilityNodeParser {
      * Locates all accessibility nodes matching a specific UI role (e.g. Button, EditText).
      */
     fun findByRole(
-        root: AccessibilityNodeInfo,
+        root: AccessibilityNodeInfo?,
         role: String
     ): List<AccessibilityNodeInfo> {
         val results = mutableListOf<AccessibilityNodeInfo>()
+        if (root == null) return results
         val targetRole = role.trim().lowercase(Locale.ROOT)
 
         fun search(node: AccessibilityNodeInfo) {
@@ -334,9 +349,10 @@ object AccessibilityNodeParser {
      * Returns the best candidate node for execution.
      */
     fun findByQuery(
-        root: AccessibilityNodeInfo,
+        root: AccessibilityNodeInfo?,
         query: String
     ): AccessibilityNodeInfo? {
+        if (root == null) return null
         val clean = query.trim().lowercase(Locale.ROOT)
         if (clean.isEmpty()) return null
 
@@ -379,8 +395,9 @@ object AccessibilityNodeParser {
     /**
      * Finds all clickable nodes in the subtree.
      */
-    fun findClickableNodes(root: AccessibilityNodeInfo): List<AccessibilityNodeInfo> {
+    fun findClickableNodes(root: AccessibilityNodeInfo?): List<AccessibilityNodeInfo> {
         val list = mutableListOf<AccessibilityNodeInfo>()
+        if (root == null) return list
         fun search(node: AccessibilityNodeInfo) {
             if (node.isClickable) list.add(node)
             for (i in 0 until node.childCount) {
@@ -395,8 +412,9 @@ object AccessibilityNodeParser {
     /**
      * Finds all editable (input text) nodes in the subtree.
      */
-    fun findEditableNodes(root: AccessibilityNodeInfo): List<AccessibilityNodeInfo> {
+    fun findEditableNodes(root: AccessibilityNodeInfo?): List<AccessibilityNodeInfo> {
         val list = mutableListOf<AccessibilityNodeInfo>()
+        if (root == null) return list
         fun search(node: AccessibilityNodeInfo) {
             if (node.isEditable || node.className?.toString()?.contains("EditText", ignoreCase = true) == true) {
                 list.add(node)
@@ -413,8 +431,9 @@ object AccessibilityNodeParser {
     /**
      * Finds all scrollable container nodes in the subtree.
      */
-    fun findScrollableNodes(root: AccessibilityNodeInfo): List<AccessibilityNodeInfo> {
+    fun findScrollableNodes(root: AccessibilityNodeInfo?): List<AccessibilityNodeInfo> {
         val list = mutableListOf<AccessibilityNodeInfo>()
+        if (root == null) return list
         fun search(node: AccessibilityNodeInfo) {
             if (node.isScrollable) list.add(node)
             for (i in 0 until node.childCount) {
@@ -461,15 +480,13 @@ fun AccessibilityNodeInfo.click(): Boolean {
         return this.performAction(AccessibilityNodeInfo.ACTION_CLICK)
     }
     var current: AccessibilityNodeInfo? = this.parent
-    while (current != null) {
+    var depth = 0
+    while (current != null && depth < 5) {
         if (current.isClickable) {
-            val result = current.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-            current.recycle()
-            return result
+            return current.performAction(AccessibilityNodeInfo.ACTION_CLICK)
         }
-        val next = current.parent
-        current.recycle()
-        current = next
+        current = current.parent
+        depth++
     }
     return false
 }

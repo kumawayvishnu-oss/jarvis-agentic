@@ -47,7 +47,7 @@ object ShizukuBridge {
     fun getInstance(context: Context? = null): ShizukuBridge = this
 
     fun isAvailable(context: Context? = null): Boolean {
-        val ctx = context ?: com.jarvis.assistant.JarvisApp.instance
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null } ?: return false
         return isRunning(ctx) && hasPermission(ctx)
     }
 
@@ -77,7 +77,7 @@ object ShizukuBridge {
                 String::class.java
             )
             Log.d(TAG, "Shizuku reflection initialized successfully.")
-        } catch (_: ClassNotFoundException) {
+        } catch (e: ClassNotFoundException) {
             Log.d(TAG, "Shizuku SDK library not bundled in classpath; using ContentProvider and shell fallback.")
         } catch (e: Exception) {
             Log.w(TAG, "Shizuku reflection initialization error: ${e.message}")
@@ -99,7 +99,7 @@ object ShizukuBridge {
                 pm.getPackageInfo(SHIZUKU_PACKAGE, 0)
             }
             true
-        } catch (_: PackageManager.NameNotFoundException) {
+        } catch (e: PackageManager.NameNotFoundException) {
             false
         } catch (e: Exception) {
             Log.d(TAG, "Error checking Shizuku installation: ${e.message}")
@@ -245,7 +245,8 @@ object ShizukuBridge {
      * Uses Shizuku shell 'input tap' if available; otherwise falls back to AccessibilityService.clickAt.
      */
     fun tap(x: Float, y: Float, context: Context? = null): Boolean {
-        if (context != null && hasPermission(context)) {
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null }
+        if (ctx != null && hasPermission(ctx)) {
             val res = executeShell("input tap ${x.toInt()} ${y.toInt()}")
             if (res.isSuccessful) return true
         }
@@ -267,7 +268,8 @@ object ShizukuBridge {
         durationMs: Long = 300L,
         context: Context? = null
     ): Boolean {
-        if (context != null && hasPermission(context)) {
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null }
+        if (ctx != null && hasPermission(ctx)) {
             val res = executeShell("input swipe ${startX.toInt()} ${startY.toInt()} ${endX.toInt()} ${endY.toInt()} $durationMs")
             if (res.isSuccessful) return true
         }
@@ -287,7 +289,8 @@ object ShizukuBridge {
      * Uses Shizuku shell 'input keyevent' if available; otherwise falls back to AccessibilityService global actions.
      */
     fun pressKey(keyCode: Int, context: Context? = null): Boolean {
-        if (context != null && hasPermission(context)) {
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null }
+        if (ctx != null && hasPermission(ctx)) {
             val res = executeShell("input keyevent $keyCode")
             if (res.isSuccessful) return true
         }
@@ -308,7 +311,8 @@ object ShizukuBridge {
     fun inputText(text: String, context: Context? = null): Boolean {
         if (text.isBlank()) return false
 
-        if (context != null && hasPermission(context)) {
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null }
+        if (ctx != null && hasPermission(ctx)) {
             // Escape special shell characters
             val escaped = text.replace(" ", "%s")
                 .replace("&", "\\&")
@@ -331,7 +335,8 @@ object ShizukuBridge {
     fun forceStopApp(packageName: String, context: Context? = null): Boolean {
         if (packageName.isBlank()) return false
 
-        if (context != null && hasPermission(context)) {
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null }
+        if (ctx != null && hasPermission(ctx)) {
             val res = executeShell("am force-stop $packageName")
             if (res.isSuccessful) {
                 Log.i(TAG, "Force stopped $packageName via Shizuku")
@@ -348,7 +353,8 @@ object ShizukuBridge {
      * Grants a runtime permission to an application via 'pm grant'.
      */
     fun grantRuntimePermission(packageName: String, permission: String, context: Context? = null): Boolean {
-        if (context != null && hasPermission(context)) {
+        val ctx = context ?: try { com.jarvis.assistant.JarvisApp.instance } catch (e: Exception) { null }
+        if (ctx != null && hasPermission(ctx)) {
             val res = executeShell("pm grant $packageName $permission")
             return res.isSuccessful
         }
