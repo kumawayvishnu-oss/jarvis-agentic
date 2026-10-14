@@ -1443,6 +1443,30 @@ class JarvisAccessibilityService : AccessibilityService() {
         return getActiveRootNode()
     }
 
+    /**
+     * Parses the active screen into a semantic node tree using AccessibilityNodeParser.
+     */
+    fun getSemanticScreenTree(): List<com.jarvis.assistant.agentic.connector.SemanticNode> {
+        val root = getActiveRootNode() ?: return emptyList()
+        return com.jarvis.assistant.agentic.connector.AccessibilityNodeParser.getInstance(this).parseNodeHierarchy(root)
+    }
+
+    /**
+     * Finds an accessible element matching text or content description using AccessibilityNodeParser.
+     */
+    fun findSemanticNode(targetText: String): AccessibilityNodeInfo? {
+        val root = getActiveRootNode() ?: return null
+        return com.jarvis.assistant.agentic.connector.AccessibilityNodeParser.getInstance(this).findNodeByTextOrDesc(root, targetText)
+    }
+
+    /**
+     * Formats the screen into a compact prompt string for LLM reasoning.
+     */
+    fun getSemanticScreenPrompt(): String {
+        val root = getActiveRootNode() ?: return "Screen is empty or inaccessible"
+        return com.jarvis.assistant.agentic.connector.AccessibilityNodeParser.getInstance(this).formatForPrompt(root)
+    }
+
     fun performClickAtRect(rect: Rect): Boolean {
         if (rect.width() <= 0 || rect.height() <= 0) return false
         val cx = rect.exactCenterX()
