@@ -18,6 +18,8 @@ data class AgentExecutionResult(
 
 /**
  * BaseSpecialistAgent: Abstract contract for all specialized sub-agents in JARVIS.
+ * Provides unified access to Agent SOUL blackboard, Inter-Agent Communication (InterCom),
+ * and structured step reporting.
  */
 abstract class BaseSpecialistAgent(
     val id: String,
@@ -28,6 +30,8 @@ abstract class BaseSpecialistAgent(
     protected val context: Context,
     protected val agentSoulManager: AgentSoulManager = AgentSoulManager.getInstance(context)
 ) {
+    protected val interCom: AgentInterCom by lazy { AgentInterCom.getInstance(context) }
+
     /**
      * Executes an assigned task asynchronously.
      */
@@ -53,5 +57,37 @@ abstract class BaseSpecialistAgent(
             level = level,
             taskId = taskId
         )
+    }
+
+    /**
+     * Sends an inter-agent message to a peer or manager agent via InterCom.
+     */
+    protected suspend fun sendPeerMessage(
+        targetAgent: String,
+        topic: String,
+        payload: String,
+        taskId: String? = null
+    ) {
+        interCom.sendMessage(
+            sender = name,
+            target = targetAgent,
+            topic = topic,
+            payload = payload,
+            taskId = taskId
+        )
+    }
+
+    /**
+     * Writes an artifact or variable to the mission blackboard.
+     */
+    protected fun writeBlackboard(taskId: String, key: String, value: Any) {
+        agentSoulManager.postToBlackboard(taskId, key, value)
+    }
+
+    /**
+     * Reads a variable or artifact from the mission blackboard.
+     */
+    protected fun <T> readBlackboard(taskId: String, key: String, clazz: Class<T>): T? {
+        return agentSoulManager.getFromBlackboard(taskId, key, clazz)
     }
 }

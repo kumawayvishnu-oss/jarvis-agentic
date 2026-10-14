@@ -50,12 +50,20 @@ class DynamicSpecialistAgent(
             )
         }
 
+        // Incorporate Agent SOUL blackboard state into prompt so agent has shared awareness
+        val blackboardContext = agentSoulManager.buildAgentSoulPromptContext()
+        val enrichedPrompt = buildString {
+            append(systemPrompt)
+            append("\n\n")
+            append(blackboardContext)
+        }
+
         val request = UnifiedPromptRequest(
-            systemInstruction = systemPrompt,
+            systemInstruction = enrichedPrompt,
             messages = listOf(
                 UnifiedMessage(role = MessageRole.USER, content = taskGoal)
             ),
-            temperature = 0.5f,
+            temperature = 0.4f,
             maxTokens = 1500
         )
 
@@ -63,6 +71,8 @@ class DynamicSpecialistAgent(
 
         if (response.isSuccess) {
             reportStep("DynamicAgentSuccess", "Completed task execution.", StepLogLevel.SUCCESS, taskId)
+            writeBlackboard(taskId, "result_${id}", response.content)
+            sendPeerMessage("ManagerAgent", "TaskCompletion", response.content, taskId)
             AgentExecutionResult(
                 agentId = id,
                 agentName = name,
@@ -134,6 +144,41 @@ class DynamicAgentFactory private constructor(
 
         agentPool.registerAgent(dynamicAgent)
         return dynamicAgent
+    }
+
+    /**
+     * Reuses an existing agent if registered for the given role, or creates a new one.
+     */
+    fun getOrCreateAgent(
+        roleName: String,
+        goalDescription: String,
+        customInstructions: String? = null
+    ): DynamicSpecialistAgent {
+        val cleanName = roleName.replace(Regex("[^a-zA-Z0-9]"), "") + "Agent"
+        val existing = agentPool.getAllAgents().filterIsInstance<DynamicSpecialistAgent>().firstOrNull {
+            it.name.equals(cleanName, ignoreCase = true) || it.role.equals(roleName, ignoreCase = true)
+        }
+        return existing ?: createAgent(roleName, goalDescription, customInstructions)
+    }
+
+    /**
+     * Infers role and synthesizes a specialist agent on-demand for an arbitrary task goal.
+     */
+    fun synthesizeAgentForGoal(goalDescription: String): DynamicSpecialistAgent {
+        val lower = goalDescription.lowercase()
+        val (role, instructions) = when {
+            lower.contains("code") || lower.contains("debug") || lower.contains("script") || lower.contains("kotlin") ->
+                "CodeEngineer" to "Focus on clean, optimal, error-free code design and debugging."
+            lower.contains("calc") || lower.contains("math") || lower.contains("percentage") || lower.contains("formula") ->
+                "MathCalculator" to "Perform rigorous numerical and logical calculations with step-by-step verification."
+            lower.contains("translate") || lower.contains("meaning in") ->
+                "LanguageTranslator" to "Translate with cultural precision, natural tone, and contextual idioms."
+            lower.contains("email") || lower.contains("draft") || lower.contains("letter") ->
+                "CorrespondenceWriter" to "Draft polished, articulate, and appropriately toned communications."
+            else ->
+                "AutonomousProblemSolver" to "Deconstruct the goal, verify constraints, and execute the solution methodically."
+        }
+        return getOrCreateAgent(role, goalDescription, instructions)
     }
 
     companion object {
