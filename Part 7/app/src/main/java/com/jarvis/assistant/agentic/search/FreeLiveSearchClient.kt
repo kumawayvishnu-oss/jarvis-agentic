@@ -82,7 +82,7 @@ class FreeLiveSearchClient(
                     }
                 }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             // Fallback continues below
         }
 
@@ -101,7 +101,7 @@ class FreeLiveSearchClient(
                         parseDuckDuckGoHtml(html, maxResults, results)
                     }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 // Return whatever was collected
             }
         }
