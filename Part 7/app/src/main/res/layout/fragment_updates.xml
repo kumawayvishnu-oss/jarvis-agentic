@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/themeBg"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp"
-    android:paddingTop="20dp"
-    android:paddingBottom="100dp">
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="16dp"
+    android:paddingBottom="90dp">
 
     <!-- Header -->
     <LinearLayout
@@ -21,26 +21,78 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Updates"
+            android:text="Mission Control"
             android:textColor="?attr/themeTextPrimary"
-            android:textSize="24sp"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Jarvis updates &amp; announcements"
+            android:text="Dual-SOUL Matrix &amp; Autonomous Swarm"
             android:textColor="?attr/themeTextMuted"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:fontFamily="sans-serif"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="2dp" />
+
+        <!-- Segmented Tab Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_jarvis_card"
+            android:padding="3dp">
+
+            <TextView
+                android:id="@+id/tabMissionControl"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="MISSION CONTROL"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="?attr/themeAccent"
+                android:background="?attr/themeBgSecondary" />
+
+            <TextView
+                android:id="@+id/tabAnnouncements"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="UPDATES &amp; CREDITS"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="?attr/themeTextMuted" />
+        </LinearLayout>
     </LinearLayout>
 
+    <!-- Mission Control Section -->
     <ScrollView
+        android:id="@+id/scrollMissionControl"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintTop_toBottomOf="@id/layoutUpdatesHeader"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/missionControlContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+    <!-- System Updates & Announcements Section (100% Preserved) -->
+    <ScrollView
+        android:id="@+id/scrollAnnouncements"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/layoutUpdatesHeader"
         app:layout_constraintBottom_toBottomOf="parent">
 
