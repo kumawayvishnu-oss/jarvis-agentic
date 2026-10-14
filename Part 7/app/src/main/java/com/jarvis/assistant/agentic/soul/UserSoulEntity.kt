@@ -1,6 +1,8 @@
 package com.jarvis.assistant.agentic.soul
 
 import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -10,7 +12,13 @@ import java.util.Locale
  * Represents a persistent personality trait, habit, preference, or behavioral pattern
  * learned dynamically about the user through conversational observation (Hermes-style).
  */
-@Entity(tableName = "user_soul_attributes")
+@Entity(
+    tableName = "user_soul_attributes",
+    indices = [
+        Index(value = ["traitKey"], unique = true),
+        Index(value = ["category"])
+    ]
+)
 data class UserSoulEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -47,4 +55,12 @@ data class UserSoulEntity(
             val sdf = SimpleDateFormat("MMM dd, yyyy • HH:mm", Locale.getDefault())
             return sdf.format(Date(updatedAt))
         }
+
+    val key: String
+        @Ignore
+        get() = traitKey
+
+    val value: String
+        @Ignore
+        get() = traitValue
 }

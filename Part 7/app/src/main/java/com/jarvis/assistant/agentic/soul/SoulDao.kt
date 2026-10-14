@@ -69,6 +69,15 @@ interface SoulDao {
     @Query("UPDATE agent_soul_missions SET blackboardStateJson = :blackboardJson, updatedAt = :timestamp WHERE missionId = :missionId")
     suspend fun updateMissionBlackboard(missionId: String, blackboardJson: String, timestamp: Long = System.currentTimeMillis())
 
+    @Query("SELECT * FROM agent_soul_missions WHERE status IN ('PLANNING', 'RUNNING', 'PAUSED', 'RECOVERING') ORDER BY updatedAt DESC")
+    suspend fun getAllActiveMissions(): List<AgentSoulEntity>
+
+    @Query("SELECT * FROM agent_soul_missions ORDER BY startedAt DESC LIMIT :limit")
+    suspend fun getRecentMissions(limit: Int = 30): List<AgentSoulEntity>
+
+    @Query("DELETE FROM user_soul_attributes")
+    suspend fun clearAllUserSoul()
+
     // ==========================================
     // 📋 STEP LOGS & AUDIT TRAILS
     // ==========================================
@@ -78,6 +87,12 @@ interface SoulDao {
 
     @Query("SELECT * FROM agent_soul_step_logs WHERE missionId = :missionId ORDER BY timestamp ASC")
     suspend fun getMissionStepLogs(missionId: String): List<AgentStepLogEntity>
+
+    @Query("SELECT * FROM agent_soul_step_logs ORDER BY timestamp DESC LIMIT :limit")
+    fun getRecentLogsFlow(limit: Int = 30): Flow<List<AgentStepLogEntity>>
+
+    @Query("SELECT * FROM agent_soul_step_logs ORDER BY timestamp DESC LIMIT :limit")
+    suspend fun getRecentLogs(limit: Int = 30): List<AgentStepLogEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStepLog(log: AgentStepLogEntity): Long

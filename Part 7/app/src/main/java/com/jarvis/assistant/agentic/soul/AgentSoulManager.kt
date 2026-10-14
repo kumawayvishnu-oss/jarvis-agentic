@@ -75,6 +75,65 @@ class AgentSoulManager(
                 }
             }
         }
+
+        // Restore recent persistent step logs into live reactive flow
+        scope.launch {
+            try {
+                val recentLogs = soulDao.getRecentLogs(25)
+                val mapped = recentLogs.map { entity ->
+                    val lvl = try {
+                        StepLogLevel.valueOf(entity.status)
+                    } catch (e: Exception) {
+                        StepLogLevel.INFO
+                    }
+                    SoulStepLog(
+                        logId = entity.logId,
+                        agentName = entity.agentName,
+                        action = entity.actionName,
+                        detail = entity.target.ifBlank { entity.inputPayload },
+                        level = lvl,
+                        timestamp = entity.timestamp
+                    )
+                }
+                _recentLogsFlow.value = mapped
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to preload recent step logs: ${e.message}")
+            }
+        }
+
+        // Restore active missions into live task flow
+        scope.launch {
+            try {
+                val activeMissions = soulDao.getAllActiveMissions()
+                val tasks = activeMissions.map { m ->
+                    val status = try {
+                        TaskStatus.valueOf(m.status)
+                    } catch (e: Exception) {
+                        TaskStatus.IN_PROGRESS
+                    }
+                    val agents = try {
+                        val type = object : TypeToken<List<String>>() {}.type
+                        val list: List<String>? = gson.fromJson(m.assignedAgentsJson, type)
+                        list?.firstOrNull() ?: "ManagerAgent"
+                    } catch (e: Exception) {
+                        "ManagerAgent"
+                    }
+                    SoulTask(
+                        taskId = m.missionId,
+                        title = m.goal.take(50),
+                        description = m.goal,
+                        initiator = "System",
+                        assignedTo = agents,
+                        priority = TaskPriority.NORMAL,
+                        status = status,
+                        createdAt = m.startedAt
+                    )
+                }
+                _tasksFlow.value = tasks
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to preload active missions: ${e.message}")
+            }
+        }
     }
 
     /**
@@ -319,6 +378,32 @@ class AgentSoulManager(
     }
 
     suspend fun createTask(
+        title: String,
+        description: String,
+        initiator: String = "User",
+        assignedTo: String = "ManagerAgent",
+        priority: TaskPriority = TaskPriority.NORMAL
+    ): String {
+        val mission = startMission(
+            goal = description,
+            assignedAgents = listOf(assignedTo)
+        )
+        val task = SoulTask(
+            taskId = mission.missionId,
+            title = title,
+            description = description,
+            initiator = initiator,
+            assignedTo = assignedTo,
+            priority = priority,
+            status = TaskStatus.IN_PROGRESS
+        )
+        val currentTasks = _tasksFlow.value.toMutableList()
+        currentTasks.add(0, task)
+        _tasksFlow.value = currentTasks
+        return mission.missionId
+    }
+
+    suspend fun createMissionTask(
         title: String,
         description: String,
         initiator: String = "User",

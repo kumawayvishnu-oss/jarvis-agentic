@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
 /**
  * Manages the "User SOUL" — continuous, self-learning user memory (Hermes-style).
  * Automatically extracts user traits, preferences, habits, and communication expectations,
@@ -40,11 +43,21 @@ class UserSoulManager(
     }
 
     private val gson = Gson()
+    private val traitMutex = Mutex()
     private val _cachedUserSoul = MutableStateFlow<List<UserSoulEntity>>(emptyList())
     val cachedUserSoul: StateFlow<List<UserSoulEntity>> = _cachedUserSoul.asStateFlow()
 
     init {
         refreshCache()
+        scope.launch {
+            try {
+                soulDao.getAllUserSoulAttributesFlow().collect { list ->
+                    _cachedUserSoul.value = list
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error collecting user soul flow", e)
+            }
+        }
     }
 
     fun refreshCache() {
@@ -63,32 +76,44 @@ class UserSoulManager(
 
     /**
      * Ingests legacy memories from MemoryDatabase into the Hermes User SOUL matrix.
+     * Checks for existing keys to prevent duplicate auto-increment rows on app startup.
      */
     fun importLegacyMemories(legacyMemories: List<com.jarvis.assistant.data.memory.MemoryEntity>) {
         scope.launch {
-            try {
-                legacyMemories.forEach { mem ->
-                    val key = mem.key ?: "legacy_mem_${mem.id}"
-                    val value = mem.value ?: mem.rawText
-                    val cat = when (mem.category.lowercase()) {
-                        "user", "profile", "identity" -> UserSoulEntity.CAT_PERSONALITY
-                        "preference", "habit" -> UserSoulEntity.CAT_PREFERENCES
-                        "routine", "schedule" -> UserSoulEntity.CAT_ROUTINES
-                        else -> UserSoulEntity.CAT_HABITS
-                    }
-                    soulDao.insertOrUpdateUserSoul(
-                        UserSoulEntity(
+            traitMutex.withLock {
+                try {
+                    val now = System.currentTimeMillis()
+                    legacyMemories.forEach { mem ->
+                        val key = mem.key.ifBlank { "legacy_mem_${mem.id}" }
+                        val value = mem.value.ifBlank { mem.rawText }
+                        val cat = when (mem.category.lowercase()) {
+                            "user", "profile", "identity" -> UserSoulEntity.CAT_PERSONALITY
+                            "preference", "habit" -> UserSoulEntity.CAT_PREFERENCES
+                            "routine", "schedule" -> UserSoulEntity.CAT_ROUTINES
+                            else -> UserSoulEntity.CAT_HABITS
+                        }
+                        val existing = soulDao.getUserSoulByKey(key)
+                        val entity = existing?.copy(
+                            category = cat,
+                            traitValue = value,
+                            confidence = 0.95f,
+                            evidenceSummary = "LegacyMemoryDB import",
+                            updatedAt = now
+                        ) ?: UserSoulEntity(
                             category = cat,
                             traitKey = key,
                             traitValue = value,
                             confidence = 0.95f,
-                            evidenceSummary = "LegacyMemoryDB import"
+                            evidenceSummary = "LegacyMemoryDB import",
+                            createdAt = now,
+                            updatedAt = now
                         )
-                    )
+                        soulDao.insertOrUpdateUserSoul(entity)
+                    }
+                    refreshCache()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error importing legacy memories: ${e.message}")
                 }
-                refreshCache()
-            } catch (e: Exception) {
-                Log.e(TAG, "Error importing legacy memories: ${e.message}")
             }
         }
     }
@@ -104,7 +129,7 @@ class UserSoulManager(
      * Analyzes an ongoing conversational turn (Hermes-style heuristic reflection).
      * Extracts traits, habits, tone, and checks if a new dynamic skill should be synthesized.
      */
-    fun observeTurn(userText: String, assistantReply: String) {
+    fun observeTurn(userText: String, assistantReply: String = "") {
         val query = userText.trim()
         if (query.isBlank()) return
 
@@ -125,7 +150,7 @@ class UserSoulManager(
         traitKey: String,
         traitValue: String,
         evidence: String
-    ) {
+    ) = traitMutex.withLock {
         val existing = soulDao.getUserSoulByKey(traitKey)
         val now = System.currentTimeMillis()
 
@@ -272,4 +297,6 @@ class UserSoulManager(
         sb.append("Treat this User SOUL as authoritative. Align tone, pacing, and actions accordingly.")
         return sb.toString()
     }
+
+    fun buildPromptContext(): String = buildUserSoulPromptContext()
 }
