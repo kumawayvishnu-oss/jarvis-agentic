@@ -264,7 +264,7 @@ class SettingsFragment : Fragment() {
         try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             Toast.makeText(requireContext(), "Unable to open link", Toast.LENGTH_SHORT).show()
         }
     }

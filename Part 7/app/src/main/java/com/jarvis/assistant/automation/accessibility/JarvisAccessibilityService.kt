@@ -1662,7 +1662,7 @@ class JarvisAccessibilityService : AccessibilityService() {
                 val fresh = currentTarget() ?: target
                 val currentText = fresh.text?.toString().orEmpty()
                 if (currentText.isNotBlank()) {
-                    val cleared = try { setValue(fresh, "") } catch (_: Exception) { false }
+                    val cleared = try { setValue(fresh, "") } catch (e: Exception) { false }
                     Thread.sleep(120)
                     target = currentTarget()
                     if (!cleared || !target?.text?.toString().isNullOrBlank()) {
@@ -1721,7 +1721,7 @@ class JarvisAccessibilityService : AccessibilityService() {
         val startTime = System.currentTimeMillis()
         var pasteNode: AccessibilityNodeInfo? = null
         while (System.currentTimeMillis() - startTime < 800L) {
-            try { Thread.sleep(60) } catch (_: Exception) {}
+            try { Thread.sleep(60) } catch (e: Exception) {}
             pasteNode = findPasteButtonAcrossWindows()
             if (pasteNode != null) break
         }
@@ -1871,7 +1871,7 @@ class JarvisAccessibilityService : AccessibilityService() {
             } catch (e: Exception) {
                 Log.d(TAG, "verifyTextVisibleAnywhere error: ${e.message}")
             }
-            try { Thread.sleep(300) } catch (_: Exception) {}
+            try { Thread.sleep(300) } catch (e: Exception) {}
         }
         return false
     }

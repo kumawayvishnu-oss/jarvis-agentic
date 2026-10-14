@@ -43,7 +43,7 @@ class PrivacyShieldActivity : AppCompatActivity() {
         try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
         }
     }
 }

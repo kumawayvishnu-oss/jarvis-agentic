@@ -105,7 +105,7 @@ object LocationWeatherHelper {
                         override fun onLocationChanged(loc: Location) {
                             try {
                                 LocationManagerCompat.removeUpdates(locationManager, this)
-                            } catch (_: Exception) {}
+                            } catch (e: Exception) {}
                             cont.resume(loc)
                         }
                     }

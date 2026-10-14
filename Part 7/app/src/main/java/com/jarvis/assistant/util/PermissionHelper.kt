@@ -72,7 +72,7 @@ object PermissionHelper {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             val fallback = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
@@ -114,7 +114,7 @@ object PermissionHelper {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             val fallbackIntent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
@@ -140,13 +140,13 @@ object PermissionHelper {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(intent)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 try {
                     val fallback = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     context.startActivity(fallback)
-                } catch (_: Exception) {}
+                } catch (e: Exception) {}
             }
         }
     }
@@ -158,7 +158,7 @@ object PermissionHelper {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
     }
 }
 

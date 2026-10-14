@@ -155,7 +155,7 @@ class HeadsetAudioRouter(private val context: Context) {
                     try {
                         audioManager.stopBluetoothSco()
                         audioManager.isBluetoothScoOn = false
-                    } catch (_: Exception) {}
+                    } catch (e: Exception) {}
                     isScoStarted = false
                 }
 
@@ -173,12 +173,12 @@ class HeadsetAudioRouter(private val context: Context) {
             if (isRegistered) {
                 try {
                     context.unregisterReceiver(headsetReceiver)
-                } catch (_: Exception) {}
+                } catch (e: Exception) {}
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && audioDeviceCallback != null) {
                     try {
                         audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
-                    } catch (_: Exception) {}
+                    } catch (e: Exception) {}
                 }
 
                 isRegistered = false
@@ -192,7 +192,7 @@ class HeadsetAudioRouter(private val context: Context) {
                 try {
                     audioManager.stopBluetoothSco()
                     audioManager.isBluetoothScoOn = false
-                } catch (_: Exception) {}
+                } catch (e: Exception) {}
                 isScoStarted = false
             }
 

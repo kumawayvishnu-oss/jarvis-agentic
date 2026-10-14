@@ -157,7 +157,7 @@ class GeminiLiveWebSocket(
 
                 override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                     val code = response?.code ?: 0
-                    val responseBody = try { response?.body?.string() } catch (_: Exception) { null }
+                    val responseBody = try { response?.body?.string() } catch (e: Exception) { null }
                     val errorMsg = t.message ?: "WebSocket connection failure"
                     Log.e(TAG, "WebSocket failure: code=$code, errorMsg=$errorMsg, body=$responseBody", t)
                     isConnected.set(false)

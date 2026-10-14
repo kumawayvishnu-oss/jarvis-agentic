@@ -368,7 +368,7 @@ class VoiceEnrollmentActivity : AppCompatActivity() {
                 try {
                     audioRecord?.stop()
                     audioRecord?.release()
-                } catch (_: Exception) {}
+                } catch (e: Exception) {}
                 audioRecord = null
             }
         }
@@ -380,7 +380,7 @@ class VoiceEnrollmentActivity : AppCompatActivity() {
         try {
             audioRecord?.stop()
             audioRecord?.release()
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
         audioRecord = null
     }
 

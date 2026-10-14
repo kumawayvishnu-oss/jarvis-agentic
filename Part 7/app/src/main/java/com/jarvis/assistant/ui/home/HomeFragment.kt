@@ -572,7 +572,7 @@ class HomeFragment : Fragment() {
                         android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         android.net.Uri.parse("package:${requireContext().packageName}")
                     ))
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     android.widget.Toast.makeText(requireContext(), "Open Android Settings → Apps → JARVIS → Display over other apps.", android.widget.Toast.LENGTH_LONG).show()
                 }
             }

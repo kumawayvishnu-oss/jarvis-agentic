@@ -9,7 +9,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.jarvis.assistant.JarvisApp
 import com.jarvis.assistant.R
 import com.jarvis.assistant.agentic.soul.TaskStatus
@@ -150,79 +152,89 @@ class UpdatesFragment : Fragment() {
     private fun observeLiveState() {
         val app = JarvisApp.instance
 
-        // Observe User SOUL attributes
         viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                app.userSoulManager.cachedUserSoul.collectLatest { list ->
-                    dynamicSoulLayout?.removeAllViews()
-                    if (list.isEmpty()) {
-                        dynamicSoulLayout?.addView(TextView(requireContext()).apply {
-                            text = "Listening and learning user habits, personality, and recurring skills..."
-                            textSize = 12f
-                            setTextColor(themeColor(R.attr.themeTextMuted))
-                        })
-                    } else {
-                        list.take(4).forEach { item ->
-                            dynamicSoulLayout?.addView(TextView(requireContext()).apply {
-                                text = "• [${item.category}] ${item.key}: ${item.value.take(60)}"
-                                textSize = 12f
-                                setTextColor(themeColor(R.attr.themeTextPrimary))
-                                setPadding(0, dp(2), 0, dp(2))
-                            })
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // 1. Observe User SOUL attributes
+                launch {
+                    try {
+                        app.userSoulManager.userSoulFlow.collectLatest { list ->
+                            val ctx = context ?: return@collectLatest
+                            val layout = dynamicSoulLayout ?: return@collectLatest
+                            layout.removeAllViews()
+                            if (list.isEmpty()) {
+                                layout.addView(TextView(ctx).apply {
+                                    text = "Listening and learning user habits, personality, and recurring skills..."
+                                    textSize = 12f
+                                    setTextColor(themeColor(R.attr.themeTextMuted))
+                                })
+                            } else {
+                                list.take(4).forEach { item ->
+                                    layout.addView(TextView(ctx).apply {
+                                        text = "• [${item.category}] ${item.traitKey}: ${item.traitValue.take(60)}"
+                                        textSize = 12f
+                                        setTextColor(themeColor(R.attr.themeTextPrimary))
+                                        setPadding(0, dp(2), 0, dp(2))
+                                    })
+                                }
+                            }
                         }
-                    }
+                    } catch (e: Exception) {}
                 }
-            } catch (e: Exception) {}
-        }
 
-        // Observe active tasks from AgentSoulManager
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                app.agentSoulManager.observeTasksByStatus(com.jarvis.assistant.agentic.soul.TaskStatus.IN_PROGRESS).collectLatest { tasks ->
-                    dynamicTasksLayout?.removeAllViews()
-                    if (tasks.isEmpty()) {
-                        dynamicTasksLayout?.addView(TextView(requireContext()).apply {
-                            text = "No active swarm tasks running. Ready for autonomous goals."
-                            textSize = 12f
-                            setTextColor(themeColor(R.attr.themeTextMuted))
-                        })
-                    } else {
-                        tasks.forEach { task ->
-                            dynamicTasksLayout?.addView(TextView(requireContext()).apply {
-                                text = "▶ [${task.assignedTo}] ${task.title} (${task.priority})"
-                                textSize = 12f
-                                setTextColor(themeColor(R.attr.themeAccent))
-                                setPadding(0, dp(3), 0, dp(3))
-                            })
+                // 2. Observe active tasks from AgentSoulManager
+                launch {
+                    try {
+                        app.agentSoulManager.observeTasksByStatus(com.jarvis.assistant.agentic.soul.TaskStatus.IN_PROGRESS).collectLatest { tasks ->
+                            val ctx = context ?: return@collectLatest
+                            val layout = dynamicTasksLayout ?: return@collectLatest
+                            layout.removeAllViews()
+                            if (tasks.isEmpty()) {
+                                layout.addView(TextView(ctx).apply {
+                                    text = "No active swarm tasks running. Ready for autonomous goals."
+                                    textSize = 12f
+                                    setTextColor(themeColor(R.attr.themeTextMuted))
+                                })
+                            } else {
+                                tasks.forEach { task ->
+                                    layout.addView(TextView(ctx).apply {
+                                        text = "▶ [${task.assignedTo}] ${task.title} (${task.priority})"
+                                        textSize = 12f
+                                        setTextColor(themeColor(R.attr.themeAccent))
+                                        setPadding(0, dp(3), 0, dp(3))
+                                    })
+                                }
+                            }
                         }
-                    }
+                    } catch (e: Exception) {}
                 }
-            } catch (e: Exception) {}
-        }
 
-        // Observe recent step logs
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                app.agentSoulManager.observeRecentLogs(4).collectLatest { logs ->
-                    dynamicLogsLayout?.removeAllViews()
-                    if (logs.isEmpty()) {
-                        dynamicLogsLayout?.addView(TextView(requireContext()).apply {
-                            text = "Blackboard standby."
-                            textSize = 12f
-                            setTextColor(themeColor(R.attr.themeTextMuted))
-                        })
-                    } else {
-                        logs.forEach { log ->
-                            dynamicLogsLayout?.addView(TextView(requireContext()).apply {
-                                text = "[${log.agentName}] ${log.action}: ${log.detail.take(50)}"
-                                textSize = 11f
-                                setTextColor(themeColor(R.attr.themeTextMuted))
-                                setPadding(0, dp(1), 0, dp(1))
-                            })
+                // 3. Observe recent step logs
+                launch {
+                    try {
+                        app.agentSoulManager.observeRecentLogs(4).collectLatest { logs ->
+                            val ctx = context ?: return@collectLatest
+                            val layout = dynamicLogsLayout ?: return@collectLatest
+                            layout.removeAllViews()
+                            if (logs.isEmpty()) {
+                                layout.addView(TextView(ctx).apply {
+                                    text = "Blackboard standby."
+                                    textSize = 12f
+                                    setTextColor(themeColor(R.attr.themeTextMuted))
+                                })
+                            } else {
+                                logs.forEach { log ->
+                                    layout.addView(TextView(ctx).apply {
+                                        text = "[${log.agentName}] ${log.action}: ${log.detail.take(50)}"
+                                        textSize = 11f
+                                        setTextColor(themeColor(R.attr.themeTextMuted))
+                                        setPadding(0, dp(1), 0, dp(1))
+                                    })
+                                }
+                            }
                         }
-                    }
+                    } catch (e: Exception) {}
                 }
-            } catch (e: Exception) {}
+            }
         }
     }
 

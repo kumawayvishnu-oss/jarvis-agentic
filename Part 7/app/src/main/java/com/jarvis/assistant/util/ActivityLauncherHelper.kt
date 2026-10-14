@@ -110,7 +110,7 @@ object ActivityLauncherHelper {
 
                 nm.notify(LAUNCHER_NOTIFICATION_ID, notif)
                 Handler(Looper.getMainLooper()).postDelayed({
-                    try { nm.cancel(LAUNCHER_NOTIFICATION_ID) } catch (_: Exception) {}
+                    try { nm.cancel(LAUNCHER_NOTIFICATION_ID) } catch (e: Exception) {}
                 }, 1500)
                 Log.d(TAG, "Triggered activity launch via FullScreenIntent notification")
                 return true

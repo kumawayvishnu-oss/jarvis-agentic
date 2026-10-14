@@ -63,7 +63,7 @@ object JarvisSoundEffects {
                 try {
                     track.stop()
                     track.release()
-                } catch (_: Exception) {}
+                } catch (e: Exception) {}
             } catch (e: Exception) {
                 Log.e(TAG, "Error playing sound effect: ${e.message}")
             }

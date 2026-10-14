@@ -609,10 +609,10 @@ class JarvisConversationService : Service() {
                 Log.w("JarvisService", "startForeground with combined types failed: ${e.message}")
                 try {
                     startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     try {
                         startForeground(NOTIFICATION_ID, notification)
-                    } catch (_: Exception) {}
+                    } catch (e: Exception) {}
                 }
             }
         } else {
@@ -1370,7 +1370,7 @@ class JarvisConversationService : Service() {
                             if (consecutiveVoicedFrames >= 4) {
                                 Log.i("JarvisService", "Headset voice barge-in: user spoke over assistant (amp=$amplitude)")
                                 audioPlayer?.flush()
-                                try { tts?.stop() } catch (_: Exception) {}
+                                try { tts?.stop() } catch (e: Exception) {}
                                 setConversationState(ConversationState.LISTENING)
                                 lastUserSpeechDetectedTime = now
                                 hasSpeechInCurrentUtterance = true
@@ -3046,7 +3046,7 @@ class JarvisConversationService : Service() {
             Log.e("JarvisService", "Failed to start Vosk SpeechService: ${e.message}", e)
             try {
                 voskSpeechService?.stop()
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
             voskSpeechService = null
             serviceScope.launch { _events.emit("Mic error: ${e.message}") }
         }
@@ -3241,7 +3241,7 @@ class JarvisConversationService : Service() {
                 @Suppress("DEPRECATION")
                 audioManager.abandonAudioFocus(null)
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
     }
 
     private fun onWakeWordDetected() {
@@ -3273,7 +3273,7 @@ class JarvisConversationService : Service() {
                 @Suppress("DEPRECATION")
                 vibrator?.vibrate(40)
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
     }
 
     // ---------------------------------------------------------------------
@@ -3325,11 +3325,11 @@ class JarvisConversationService : Service() {
         try {
             tts?.stop()
             tts?.shutdown()
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
         tts = null
         try {
             voskSpeechService?.stop()
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
         voskSpeechService = null
         releaseWakeLock()
         serviceScope.cancel()
@@ -3384,7 +3384,7 @@ class JarvisConversationService : Service() {
             if (telephonyManager != null && telephonyManager.callState != android.telephony.TelephonyManager.CALL_STATE_IDLE) {
                 return true
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
         return false
     }
 

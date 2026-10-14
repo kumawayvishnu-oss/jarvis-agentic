@@ -155,7 +155,7 @@ class TaskProgressOverlay(private val context: Context) {
                 }
                 windowManager.addView(root, params)
                 attached = true
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 attached = false
                 return false
             }
@@ -168,7 +168,7 @@ class TaskProgressOverlay(private val context: Context) {
 
     fun remove() {
         if (attached) {
-            try { windowManager.removeView(root) } catch (_: Exception) {}
+            try { windowManager.removeView(root) } catch (e: Exception) {}
             attached = false
         }
     }
@@ -206,7 +206,7 @@ class TaskProgressOverlay(private val context: Context) {
             }, LinearLayout.LayoutParams(0, dp(14), 1f))
             stepRows.addView(row, LinearLayout.LayoutParams(-1, dp(15)))
         }
-        try { windowManager.updateViewLayout(root, params) } catch (_: Exception) {}
+        try { windowManager.updateViewLayout(root, params) } catch (e: Exception) {}
     }
 
     private fun renderIdle() {
@@ -215,7 +215,7 @@ class TaskProgressOverlay(private val context: Context) {
         stepRows.addView(label(9f, false).apply { text = "Ready · Double-tap for task status" }, matchWrap())
         progress.visibility = View.GONE
         progressText.text = "Double-tap for status"
-        try { windowManager.updateViewLayout(root, params) } catch (_: Exception) {}
+        try { windowManager.updateViewLayout(root, params) } catch (e: Exception) {}
     }
 
     private fun handleOverlayTouch(event: MotionEvent): Boolean {
@@ -239,7 +239,7 @@ class TaskProgressOverlay(private val context: Context) {
                     params.x = startX + dx.toInt()
                     params.y = startY + dy.toInt()
                     clampPosition()
-                    try { windowManager.updateViewLayout(root, params) } catch (_: Exception) {}
+                    try { windowManager.updateViewLayout(root, params) } catch (e: Exception) {}
                     return true
                 }
                 return false
@@ -279,7 +279,7 @@ class TaskProgressOverlay(private val context: Context) {
             "bottom" -> { params.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL; params.x = 0; params.y = dp(90) }
             else -> { params.gravity = Gravity.RIGHT or Gravity.CENTER_VERTICAL; params.x = dp(8); params.y = 0 }
         }
-        try { if (attached) windowManager.updateViewLayout(root, params) } catch (_: Exception) {}
+        try { if (attached) windowManager.updateViewLayout(root, params) } catch (e: Exception) {}
     }
 
     private fun toggleAvatarMode() {
@@ -293,7 +293,7 @@ class TaskProgressOverlay(private val context: Context) {
         params.width = if (avatarMode) dp(88) else minOf(dp(236), context.resources.displayMetrics.widthPixels - dp(16))
         params.height = if (avatarMode) dp(88) else WindowManager.LayoutParams.WRAP_CONTENT
         if (JarvisApp.instance.preferences.taskOverlayFreePosition) clampPosition()
-        try { windowManager.updateViewLayout(root, params) } catch (_: Exception) {}
+        try { windowManager.updateViewLayout(root, params) } catch (e: Exception) {}
     }
 
     private fun clampPosition() {

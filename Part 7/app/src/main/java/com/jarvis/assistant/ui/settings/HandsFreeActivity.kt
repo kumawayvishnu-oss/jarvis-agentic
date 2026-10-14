@@ -97,7 +97,7 @@ class HandsFreeActivity : AppCompatActivity() {
         try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             Toast.makeText(this, "Unable to open link", Toast.LENGTH_SHORT).show()
         }
     }

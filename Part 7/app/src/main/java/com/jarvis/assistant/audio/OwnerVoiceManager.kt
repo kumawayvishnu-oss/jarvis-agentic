@@ -146,7 +146,7 @@ object OwnerVoiceManager {
         } finally {
             try {
                 rec?.close()
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
         }
     }
 

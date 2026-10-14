@@ -23,13 +23,13 @@ object ThemeManager {
             "dark" -> Color.parseColor("#070914")
             "red" -> Color.parseColor("#0E0307")
             "sunset" -> Color.parseColor("#FFF0EA")
-            "custom" -> try { Color.parseColor(customHex ?: "#FFFFFF") } catch (_: Exception) { Color.WHITE }
+            "custom" -> try { Color.parseColor(customHex ?: "#FFFFFF") } catch (e: Exception) { Color.WHITE }
             else -> Color.parseColor("#EEF2F9")
         }
     }
 
     fun applyTheme(activity: Activity) {
-        val prefs = try { JarvisApp.instance.preferences } catch (_: Exception) { null }
+        val prefs = try { JarvisApp.instance.preferences } catch (e: Exception) { null }
         val themeKey = prefs?.appTheme ?: "sunset"
 
         val (themeRes, isLightStatusBar, bgColor) = when (themeKey) {
@@ -38,7 +38,7 @@ object ThemeManager {
             "sunset" -> Triple(R.style.Theme_JarvisAssistant_Sunset, true, Color.parseColor("#FFF0EA"))
             "custom" -> {
                 val customHex = prefs?.customThemeColor ?: "#FFFFFF"
-                val parsedColor = try { Color.parseColor(customHex) } catch (_: Exception) { Color.WHITE }
+                val parsedColor = try { Color.parseColor(customHex) } catch (e: Exception) { Color.WHITE }
                 val light = isLight(parsedColor)
                 val res = if (light) R.style.Theme_JarvisAssistant_CustomLight else R.style.Theme_JarvisAssistant_CustomDark
                 Triple(res, light, parsedColor)
@@ -58,16 +58,16 @@ object ThemeManager {
 
         try {
             activity.findViewById<View>(android.R.id.content)?.setBackgroundColor(bgColor)
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
         activity.window.decorView.post {
             try {
                 activity.findViewById<View>(android.R.id.content)?.setBackgroundColor(bgColor)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
         }
     }
 
     fun applyDynamicBackground(view: View) {
-        val prefs = try { JarvisApp.instance.preferences } catch (_: Exception) { null }
+        val prefs = try { JarvisApp.instance.preferences } catch (e: Exception) { null }
         val themeKey = prefs?.appTheme ?: "sunset"
         val customHex = prefs?.customThemeColor ?: "#FFFFFF"
         val color = getThemeBgColor(themeKey, customHex)

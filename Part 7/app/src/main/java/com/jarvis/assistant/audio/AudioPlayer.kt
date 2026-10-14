@@ -73,7 +73,7 @@ class AudioPlayer(
         playbackThread = Thread {
             try {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
             var silenceCounter = 0
             while (isRunning.get()) {
                 try {
@@ -159,9 +159,9 @@ class AudioPlayer(
             try {
                 audioTrack?.let {
                     if (it.state == AudioTrack.STATE_INITIALIZED) {
-                        try { it.pause() } catch (_: Exception) {}
-                        try { it.flush() } catch (_: Exception) {}
-                        try { it.stop() } catch (_: Exception) {}
+                        try { it.pause() } catch (e: Exception) {}
+                        try { it.flush() } catch (e: Exception) {}
+                        try { it.stop() } catch (e: Exception) {}
                     }
                 }
             } catch (e: Exception) {
@@ -207,12 +207,12 @@ class AudioPlayer(
             }
             track?.let { t ->
                 if (t.state == AudioTrack.STATE_INITIALIZED && t.playState != AudioTrack.PLAYSTATE_PLAYING) {
-                    try { t.play() } catch (_: Exception) {}
+                    try { t.play() } catch (e: Exception) {}
                 }
                 val written = t.write(chunk, 0, chunk.size)
                 if (written < 0) {
                     Log.w(TAG, "AudioTrack write failed ($written). Reinitializing AudioTrack...")
-                    try { t.release() } catch (_: Exception) {}
+                    try { t.release() } catch (e: Exception) {}
                     initAudioTrack()
                     audioTrack?.let { reloaded ->
                         try {

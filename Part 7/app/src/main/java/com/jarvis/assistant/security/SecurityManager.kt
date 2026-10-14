@@ -89,7 +89,7 @@ object SecurityManager {
                 .setCancelable(false)
                 .setPositiveButton("OK") { _, _ -> exitProcess(1) }
                 .show()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             exitProcess(1)
         }
     }

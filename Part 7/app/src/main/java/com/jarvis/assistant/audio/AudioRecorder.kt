@@ -104,7 +104,7 @@ class AudioRecorder(
             recordingJob = scope.launch(Dispatchers.IO) {
                 try {
                     android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
-                } catch (_: Exception) {}
+                } catch (e: Exception) {}
                 val buffer = ByteArray(CHUNK_SIZE_BYTES)
                 var currentRecord: AudioRecord? = record
                 while (isActive && isRecording.get()) {
@@ -141,7 +141,7 @@ class AudioRecorder(
                         delay(400)
                         try {
                             currentRecord?.release()
-                        } catch (_: Exception) {}
+                        } catch (e: Exception) {}
                         try {
                             val newRecord = AudioRecord(
                                 MediaRecorder.AudioSource.VOICE_COMMUNICATION,

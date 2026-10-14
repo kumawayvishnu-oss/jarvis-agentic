@@ -176,7 +176,7 @@ class WhatsAppAssistant(
     private fun isPackageInstalled(pkgName: String): Boolean {
         return try {
             context.packageManager.getPackageInfo(pkgName, 0) != null
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             false
         }
     }

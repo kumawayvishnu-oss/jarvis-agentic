@@ -592,7 +592,7 @@ object AgentTaskEngine {
                 statusEnum,
                 context.finalVerificationResult
             )
-        } catch (_: Exception) {
+        } catch (e: Exception) {
         }
     }
 

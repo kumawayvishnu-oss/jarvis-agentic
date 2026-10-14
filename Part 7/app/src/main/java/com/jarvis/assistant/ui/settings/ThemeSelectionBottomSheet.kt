@@ -36,7 +36,7 @@ class ThemeSelectionBottomSheet : BottomSheetDialogFragment() {
         binding.etCustomHex.setText(customHex)
         try {
             binding.viewCustomPreview.backgroundTintList = android.content.res.ColorStateList.valueOf(Color.parseColor(customHex))
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
 
         binding.cardThemeLight.setOnClickListener { selectTheme("light", "Light") }
         binding.cardThemeDark.setOnClickListener { selectTheme("dark", "Dark") }

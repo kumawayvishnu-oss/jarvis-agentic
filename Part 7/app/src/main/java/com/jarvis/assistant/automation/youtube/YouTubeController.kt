@@ -53,13 +53,13 @@ object YouTubeController {
         if (cleanQ.isBlank() || cleanQ.equals("video", ignoreCase = true) || cleanQ.equals("song", ignoreCase = true) ||
             cleanQ.equals("a video", ignoreCase = true) || cleanQ.equals("a song", ignoreCase = true) ||
             cleanQ.equals("music", ignoreCase = true) || cleanQ.equals("songs", ignoreCase = true)) {
-            val fav = try { JarvisApp.instance.memoryManager.resolveSongQuery("my favorite song") } catch (_: Exception) { "Arijit Singh top hits" }
+            val fav = try { JarvisApp.instance.memoryManager.resolveSongQuery("my favorite song") } catch (e: Exception) { "Arijit Singh top hits" }
             cleanQ = fav.ifBlank { "Trending music" }
         }
 
         val apiKey = explicitApiKey ?: try {
             JarvisApp.instance.youTubePreferences.youtubeApiKey
-        } catch (_: Exception) { "" }
+        } catch (e: Exception) { "" }
         android.util.Log.i("YouTubeController", "searchAndPlay STRICT PLAY requested for: \"$query\" -> clean: \"$cleanQ\" (apiKey present: ${apiKey.isNotBlank()})")
 
         // 1. Try search via YouTubeApiClient (Data API if key present, else zero-quota direct scraper)

@@ -216,7 +216,7 @@ class PhoneControlManager(
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 ActivityLauncherHelper.startActivitySafely(context, intent)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
             return "Please grant System Settings permission in Settings to allow brightness control."
         }
 
@@ -268,16 +268,16 @@ class PhoneControlManager(
                 Settings.System.SCREEN_BRIGHTNESS_MODE,
                 Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
             )
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
 
         // Read current brightness from float first, fallback to integer
         val currentPercent = try {
             val floatVal = Settings.System.getFloat(context.contentResolver, "screen_brightness_float")
             (floatVal * 100).roundToInt()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             val intVal = try {
                 Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 128
             }
             ((intVal / 255.0) * 100).roundToInt()
@@ -306,7 +306,7 @@ class PhoneControlManager(
                 if (clamped == 0) {
                     audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0)
                 }
-            } catch (_: Exception) {}
+            } catch (e: Exception) {}
 
             if (clamped == 0) {
                 "Media volume muted."
@@ -701,7 +701,7 @@ class PhoneControlManager(
             val gpayPkg = "com.google.android.apps.nbu.paisa.user"
             val hasGPay = try {
                 context.packageManager.getPackageInfo(gpayPkg, 0) != null
-            } catch (_: Exception) { false }
+            } catch (e: Exception) { false }
             targetPackage = if (hasGPay) gpayPkg else "com.android.vending"
         } else {
             // Step 1: Try exact match from smart aliases map
@@ -810,7 +810,7 @@ class PhoneControlManager(
                     }
                 }
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {}
 
         return null
     }
