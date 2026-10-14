@@ -32,3 +32,21 @@ data class AgentStepLogEntity(
             return sdf.format(Date(timestamp))
         }
 }
+
+enum class StepLogLevel {
+    DEBUG,
+    INFO,
+    WARNING,
+    ERROR,
+    SUCCESS
+}
+
+data class SoulStepLog(
+    val logId: Long = 0,
+    val agentName: String,
+    val action: String,
+    val detail: String,
+    val level: StepLogLevel = StepLogLevel.INFO,
+    val timestamp: Long = System.currentTimeMillis()
+)
+

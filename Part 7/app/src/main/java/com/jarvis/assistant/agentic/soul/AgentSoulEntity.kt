@@ -53,3 +53,30 @@ data class AgentSoulEntity(
             return sdf.format(Date(startedAt))
         }
 }
+
+enum class TaskPriority {
+    LOW,
+    NORMAL,
+    HIGH,
+    URGENT
+}
+
+enum class TaskStatus {
+    PENDING,
+    IN_PROGRESS,
+    COMPLETED,
+    FAILED,
+    CANCELLED
+}
+
+data class SoulTask(
+    val taskId: String,
+    val title: String,
+    val description: String,
+    val initiator: String = "User",
+    val assignedTo: String = "ManagerAgent",
+    val priority: TaskPriority = TaskPriority.NORMAL,
+    val status: TaskStatus = TaskStatus.IN_PROGRESS,
+    val createdAt: Long = System.currentTimeMillis()
+)
+

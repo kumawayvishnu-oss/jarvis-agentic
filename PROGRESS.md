@@ -1,61 +1,72 @@
-# 📊 JARVIS Project Progress & Context Tracking
+# 📋 JARVIS Agentic System — Progress & Roadmap
 
-> **Last Updated:** October 14, 2026  
-> **Repository:** `kumawayvishnu-oss/jarvis-agentic`  
+> **Target Platform:** Android 8.0+ (API 26-34) | **Language:** Kotlin 2.0.20 | **Target Module:** Part 7  
 > **Active Branch:** `feature/dual-soul`  
-> **Main Codebase:** `Part 7` in `/root/Playlist-main`  
-> **Original Project:** Tech GPTx JARVIS Android AI Assistant (Part 1-7, Kotlin)  
+> **CI/CD:** GitHub Actions (`.github/workflows/build.yml`) on `jarvis-agentic` repo  
+> **Last Updated:** 2026-10-14
 
 ---
 
-## 🧭 1. Executive Summary & Context
-
-यह प्रोजेक्ट Tech GPTx के 7-पार्ट वाले JARVIS Android AI Assistant का अपग्रेडेड और ऑटोनॉमस मल्टी-एजेंट सुपर-सिस्टम है।
-मूल आर्किटेक्चर में बिना किसी रिग्रेशन (Zero Regression) के 6 नए एजंटिक फेज जोड़े गए हैं:
-1. **Phase 1: Dual-SOUL Memory Matrix** (`UserSoulManager`, `AgentSoulManager`, `SoulDatabase`, `SoulDao`)
-2. **Phase 2: Multi-Provider Smart Router & Encrypted Vault** (`SmartProviderRouter`, `ProviderVault`, `OpenAICompatibleClient`, `GeminiRestClient`)
-3. **Phase 3: Multi-Agent Swarm Engine** (`ManagerAgent`, `SpecialistAgentPool`, `DynamicAgentFactory`, `AgentInterCom`)
-4. **Phase 4: 1500+ App Hybrid Connector** (`AccessibilityNodeParser`, `HybridActionDispatcher`, `ShizukuBridge`, `AppCategoryCatalog`)
-5. **Phase 5: Self-Healing & Free Live Search** (`FreeLiveSearchClient`, `SelfHealingEngine`)
-6. **Phase 6: Mission Control UI** (Tab 4 in `UpdatesFragment.kt` with live state flows)
-
----
-
-## 🔗 2. Legacy Wiring Status
-
-मूल JARVIS के साथ इंटीग्रेशन पूरा किया जा चुका है:
-- **`JarvisConversationService.kt`**:
-  - `UserSoulManager` को conversational turn learning से जोड़ा गया।
-  - `AgentSoulManager` के साथ ऑटोमैटिक टास्क क्रिएशन और रियल-टाइम स्टेप लॉगिंग (`postStepLog`) इंटीग्रेटेड।
-  - `open_app` टूल में `HybridActionDispatcher` को फ़ॉलबैक बनाया गया।
-  - 22वाँ टूल `autonomous_agent_workflow` को `ManagerAgent.executeGoal()` से जोड़ा गया।
-- **`GeminiLiveWebSocket.kt`**:
-  - 22वें टूल `autonomous_agent_workflow` का BidiSetup JSON स्कीमा रजिस्टर किया गया।
-- **`JarvisAccessibilityService.kt`**:
-  - `AccessibilityNodeParser` के ज़रिए `getSemanticScreenTree()`, `findSemanticNode()`, और `getSemanticScreenPrompt()` जोड़े गए।
-- **`MemoryDatabase.kt` & `JarvisApp.kt`**:
-  - सेफ़ माइग्रेशन `MIGRATION_1_2` लागू किया गया।
-  - `JarvisApp` के स्टार्टअप पर पुराने रूम डेटाबेस से मेमोरीज को ऑटोमैटिक `UserSoulManager` में इम्पोर्ट किया गया।
-- **`UpdatesFragment.kt`**:
-  - 100% ओरिजिनल फीचर अपडेट्स कार्ड्स सुरक्षित रखते हुए लाइव Mission Control, SOUL स्टेटस, और Swarm एक्टिविटी को Flow कलेक्टर्स से जोड़ा गया।
+## 🔍 Architecture & Context Overview
+Based on `ARCHITECTURE.md` and `git log`:
+- Master Production Codebase is in **`Part 7`** (`com.jarvis.assistant`).
+- Built upon a hybrid architecture:
+  1. Google Gemini Live Bidi WebSocket API (audio-to-audio streaming, barge-in, 21 tools).
+  2. Offline Vosk Speech Engine ("Hey Jarvis", speaker voiceprint `model-spk`).
+  3. Android Accessibility Engine (clicks, gestures, 21 tools).
+  4. Real-time Screen Vision (MediaProjection).
+  5. 3D Particle Orb (WebGL/Three.js) + 17 Floating Overlays.
+  6. Dual Persona Core (JARVIS & NAIRA).
+  7. Room Database Persistent Memory.
 
 ---
 
-## 🚧 3. Current Blocker & GitHub Actions Status
-
-- **Environment Constraint:** Termux / Local ARM environment में AAPT2 उपलब्ध न होने के कारण APK बिल्ड GitHub Actions (`.github/workflows/build.yml`) पर होता है।
-- **Recent Build Run:** Run ID `38515584028` (commit `592bb9e`) 27 सेकंड में फेल हुआ।
-- **Root Cause:**
-  `.github/workflows/build.yml` में `android-actions/setup-android@v3` का इस्तेमाल हुआ है, जो आंतरिक रूप से `sdkmanager tools` चलाता है। आधुनिक Android SDK रिपॉजिटरी में `tools` पैकेज हटा दिया गया है, जिससे एक्शन क्रैश हो जाता है।
-  GitHub-hosted `ubuntu-latest` रनर में Android SDK पहले से ही `/usr/local/lib/android/sdk` पर मौजूद है और $ANDROID_HOME सेट है।
+## 🚀 6 New Agentic Phases Added (on `feature/dual-soul`)
+1. **Dual-SOUL Memory Core:**
+   - `UserSoulManager.kt` & `UserSoulEntity.kt`: Self-learning Hermes-style cognitive user memory and dynamic skill synthesis.
+   - `AgentSoulManager.kt` & `AgentSoulEntity.kt`: Multi-agent shared blackboard, mission status, and step logs.
+   - Integrated into `JarvisConversationService.kt` and `MemoryDatabase.kt`.
+2. **Multi-Provider Smart Router & Vault:**
+   - `SmartProviderRouter.kt`, `ProviderVault.kt`, `ModelProvider.kt`, `GeminiRestClient.kt`, `OpenAICompatibleClient.kt`.
+3. **Multi-Agent Swarm Engine:**
+   - `ManagerAgent.kt`, `SpecialistAgentPool.kt`, `DynamicAgentFactory.kt`, `BaseSpecialistAgent.kt`, `AgentInterCom.kt`.
+4. **1500+ App Hybrid Connector & Accessibility Parser:**
+   - `AccessibilityNodeParser.kt`, `HybridActionDispatcher.kt`, `ShizukuBridge.kt`, `AppCategoryCatalog.kt`.
+5. **Zero-Cost Live Search & Self-Healing:**
+   - `FreeLiveSearchClient.kt` (DuckDuckGo instant answers + HTML parsing fallback).
+   - `SelfHealingEngine.kt` (Dynamic error recovery and fallback strategies).
+6. **Mission Control UI:**
+   - `UpdatesFragment.kt` (Tab 3/4) converted to live visual dashboard showing SOUL traits, active swarm missions, and provider health.
 
 ---
 
-## 🎯 4. Action Plan & Roadmap
+## ⚠️ Known Compile Errors & Issues (From 7-Agent Audit & GitHub CI)
 
-- [ ] **Step 1:** `.github/workflows/build.yml` को ठीक करना (deprecated setup-android एक्शन हटाना या आधुनिक कॉन्फ़िगरेशन देना) और commit/push करना।
-- [ ] **Step 2:** GitHub Actions रन मॉनिटर करना (`gh run list`, `gh run view --log-failed`)।
-- [ ] **Step 3:** यदि कंपाइल या कोड लेवल एरर्स आती हैं, तो डोमेन के अनुसार अलग-अलग कमिट्स के साथ उन्हें ठीक करना।
-- [ ] **Step 4:** बिल्ड को 100% ग्रीन (हरा) करके Debug APK सफलतापूर्वक जनरेट करना।
-- [ ] **Step 5:** सभी जोड़े गए फीचर्स का एंड-टू-एंड वेरिफिकेशन करना और अपूर्ण/स्केलेटन भागों को पूर्ण करना।
-- [ ] **Step 6:** ज़ीरो रिग्रेशन सुनिश्चित करना (ऑर्ब, वॉयस, 21 टूल्स, थीम्स, ओवरले, मेमोरी सब सुरक्षित रहें)।
+1. **GitHub Actions CI (`.github/workflows/build.yml`):**
+   - **Root Cause:** Uses deprecated `android-actions/setup-android@v3` which fails with `sdkmanager tools` exit code 1.
+   - **Status:** [IN PROGRESS] Need to remove `android-actions/setup-android@v3` as Android SDK is pre-installed on `ubuntu-latest`.
+
+2. **Dual-SOUL Memory (`UserSoulManager.kt`):**
+   - **Root Cause:** Calls non-existent `soulDao.upsertUserSoul(...)` and non-existent enum `SoulCategory`, mismatches `UserSoulEntity` constructor fields (`key`/`value`/`source` vs `traitKey`/`traitValue`/`evidenceSummary`).
+   - **Status:** [PENDING FIX] Align `UserSoulManager.kt` to `SoulDao` (`insertOrUpdateUserSoul`) and `UserSoulEntity` (`traitKey`, `traitValue`, `category`).
+
+3. **Hybrid Connector & Accessibility (`HybridActionDispatcher.kt` / `AccessibilityNodeParser.kt`):**
+   - **Root Cause:** `HybridActionDispatcher` calls `AccessibilityNodeParser.getInstance(context)` (parser is an `object`), calls `findNodeByTextOrDesc` (method is `findByQuery`), and calls `.click()` on `AccessibilityNodeInfo` (missing extension function).
+   - **Status:** [PENDING FIX] Add `getInstance()`, `findNodeByTextOrDesc()`, and `click()` extension function.
+
+4. **Zero-Cost Search Client (`FreeLiveSearchClient.kt`):**
+   - **Status:** Fixed unnamed catch variables in commit `34a4cbf`. Verify during CI build.
+
+5. **Legacy 7-Part Code Alignment:**
+   - Ensure `JarvisApp.kt`, `JarvisConversationService.kt`, `UpdatesFragment.kt` compile cleanly with no broken references.
+
+---
+
+## 🎯 Plan & Workflow
+1. **Fix GitHub Actions CI Workflow:** Remove failing SDK action, verify runner executes `./gradlew assembleDebug`.
+2. **Fix Compile Errors Sequentially (Atomic Commits):**
+   - Commit 1: CI Workflow fix.
+   - Commit 2: `UserSoulManager.kt` DAO and Entity alignment.
+   - Commit 3: `AccessibilityNodeParser.kt` / `HybridActionDispatcher.kt` API compatibility.
+3. **Verify Build Green in GitHub Actions:** Use `gh run list` and `gh run view --log-failed` (max 15 attempts).
+4. **Feature Integration & Polish:** Complete skeleton implementations, preserve all original JARVIS features (orb, voice, wake-word, 21 tools, overlays).

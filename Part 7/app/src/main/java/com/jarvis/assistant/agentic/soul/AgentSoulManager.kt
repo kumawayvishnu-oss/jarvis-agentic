@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
@@ -49,6 +50,21 @@ class AgentSoulManager(
     val activeMission: StateFlow<AgentSoulEntity?> = _activeMission.asStateFlow()
 
     val recentMissionsFlow: Flow<List<AgentSoulEntity>> = soulDao.getRecentMissionsFlow()
+
+    private val _tasksFlow = MutableStateFlow<List<SoulTask>>(emptyList())
+    private val _recentLogsFlow = MutableStateFlow<List<SoulStepLog>>(emptyList())
+
+    fun observeTasksByStatus(status: TaskStatus): Flow<List<SoulTask>> {
+        return _tasksFlow.map { tasks ->
+            tasks.filter { it.status == status }
+        }
+    }
+
+    fun observeRecentLogs(limit: Int = 10): Flow<List<SoulStepLog>> {
+        return _recentLogsFlow.map { logs ->
+            logs.take(limit)
+        }
+    }
 
     init {
         scope.launch {
@@ -257,4 +273,108 @@ class AgentSoulManager(
             Log.w(TAG, "Failed to restore blackboard JSON for $missionId", e)
         }
     }
+
+    fun postStepLog(
+        agentName: String,
+        action: String,
+        detail: String,
+        level: StepLogLevel = StepLogLevel.INFO,
+        taskId: String? = null
+    ) {
+        val mission = _activeMission.value
+        val missionId = taskId ?: mission?.missionId ?: "ad-hoc"
+        Log.i(TAG, "[$level][$agentName][$action] $detail")
+        scope.launch {
+            try {
+                recordStepLog(
+                    missionId = missionId,
+                    stepIndex = mission?.completedStepsCount ?: 0,
+                    agentName = agentName,
+                    actionName = action,
+                    target = detail.take(120),
+                    inputPayload = detail,
+                    outputPayload = null,
+                    verified = level == StepLogLevel.SUCCESS,
+                    status = level.name,
+                    errorMessage = if (level == StepLogLevel.ERROR) detail else null
+                )
+                val newLog = SoulStepLog(
+                    agentName = agentName,
+                    action = action,
+                    detail = detail,
+                    level = level,
+                    timestamp = System.currentTimeMillis()
+                )
+                val currentLogs = _recentLogsFlow.value.toMutableList()
+                currentLogs.add(0, newLog)
+                if (currentLogs.size > 25) {
+                    _recentLogsFlow.value = currentLogs.take(25)
+                } else {
+                    _recentLogsFlow.value = currentLogs
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Error posting step log: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun createTask(
+        title: String,
+        description: String,
+        initiator: String = "User",
+        assignedTo: String = "ManagerAgent",
+        priority: TaskPriority = TaskPriority.NORMAL
+    ): AgentSoulEntity {
+        val mission = startMission(
+            goal = description,
+            assignedAgents = listOf(assignedTo)
+        )
+        val task = SoulTask(
+            taskId = mission.missionId,
+            title = title,
+            description = description,
+            initiator = initiator,
+            assignedTo = assignedTo,
+            priority = priority,
+            status = TaskStatus.IN_PROGRESS
+        )
+        val currentTasks = _tasksFlow.value.toMutableList()
+        currentTasks.add(0, task)
+        _tasksFlow.value = currentTasks
+        return mission
+    }
+
+    fun updateTaskStatus(
+        taskId: String,
+        status: TaskStatus,
+        resultSummary: String? = null
+    ) {
+        scope.launch {
+            try {
+                when (status) {
+                    TaskStatus.COMPLETED -> completeMission(taskId, resultSummary ?: "Task completed")
+                    TaskStatus.FAILED -> failMission(taskId, resultSummary ?: "Task failed")
+                    else -> {
+                        val current = soulDao.getMissionById(taskId)
+                        if (current != null) {
+                            val updated = current.copy(
+                                status = status.name,
+                                currentStepSummary = resultSummary ?: current.currentStepSummary,
+                                updatedAt = System.currentTimeMillis()
+                            )
+                            soulDao.insertOrUpdateMission(updated)
+                            _activeMission.value = updated
+                        }
+                    }
+                }
+                val updatedTasks = _tasksFlow.value.map {
+                    if (it.taskId == taskId) it.copy(status = status) else it
+                }
+                _tasksFlow.value = updatedTasks
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to update task status: ${e.message}")
+            }
+        }
+    }
 }
+
