@@ -5,10 +5,16 @@ build/
 
 # Local configuration file (sdk.dir, secrets)
 local.properties
+**/local.properties
 secrets.properties
 keys.properties
 *.key
 *.secret
+*.jks
+*.keystore
+*.p12
+*.pem
+*.pk8
 .env
 .env.*
 !.env.example
