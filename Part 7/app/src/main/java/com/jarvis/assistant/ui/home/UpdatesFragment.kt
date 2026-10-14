@@ -22,6 +22,10 @@ class UpdatesFragment : Fragment() {
     private var _binding: FragmentUpdatesBinding? = null
     private val binding get() = _binding!!
 
+    private var dynamicTasksLayout: LinearLayout? = null
+    private var dynamicSoulLayout: LinearLayout? = null
+    private var dynamicLogsLayout: LinearLayout? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -31,6 +35,7 @@ class UpdatesFragment : Fragment() {
         setupTabs()
         renderMissionControl()
         renderFeatureUpdates()
+        observeLiveState()
         return binding.root
     }
 
@@ -73,11 +78,10 @@ class UpdatesFragment : Fragment() {
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 setPadding(0, dp(6), 0, dp(4))
             })
-            addView(TextView(requireContext()).apply {
-                text = "Autonomous habit profiling, preference mapping, and skill synthesis running 24/7 in background."
-                textSize = 12sp()
-                setTextColor(themeColor(R.attr.themeTextMuted))
-            })
+            dynamicSoulLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+            addView(dynamicSoulLayout)
         }
         container.addView(soulCard)
 
@@ -97,7 +101,7 @@ class UpdatesFragment : Fragment() {
                 setPadding(0, dp(6), 0, dp(4))
             })
             addView(TextView(requireContext()).apply {
-                text = "Cascade: Gemini 1.5 ➔ DeepSeek V3 ➔ Groq LPU ➔ OpenRouter ➔ Local Ollama\nRPM Protection: Active | Zero Hardcoded Keys"
+                text = "Primary: Gemini 1.5 Live/Flash\nFallback 1: DeepSeek V3/R1\nFallback 2: Groq LPU (Ultra-Fast)\nFallback 3: OpenRouter Free Matrix\nFallback 4: Local Ollama\nProtection: RPM 429 Circuit Breakers Active"
                 textSize = 12sp()
                 setTextColor(themeColor(R.attr.themeTextMuted))
             })
@@ -113,29 +117,112 @@ class UpdatesFragment : Fragment() {
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
-                text = "Manager Agent & Specialist Pool"
+                text = "Active Swarm Tasks"
                 textSize = 14sp()
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 setPadding(0, dp(6), 0, dp(4))
             })
-            addView(TextView(requireContext()).apply {
-                text = "Live sub-agents: DeviceSpecialist, SearchSpecialist, NavigatorSpecialist, DynamicAgentFactory.\nShared blackboard synchronizing goals across all specialists."
-                textSize = 12sp()
-                setTextColor(themeColor(R.attr.themeTextMuted))
-            })
+            dynamicTasksLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+            }
+            addView(dynamicTasksLayout)
         }
         container.addView(swarmCard)
 
-        // 4. Observe live tasks from AgentSoulManager
+        // 4. Live Step Logs Card
+        val logsCard = createCard().apply {
+            addView(TextView(requireContext()).apply {
+                text = "📜 REAL-TIME STEP LOGS"
+                textSize = 11sp()
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeAccent))
+            })
+            dynamicLogsLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(0, dp(6), 0, 0)
+            }
+            addView(dynamicLogsLayout)
+        }
+        container.addView(logsCard)
+    }
+
+    private fun observeLiveState() {
+        val app = JarvisApp.instance
+
+        // Observe User SOUL attributes
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                JarvisApp.instance.agentSoulManager.observeTasksByStatus(TaskStatus.IN_PROGRESS)
-                    .collectLatest { tasks ->
-                        // Dynamically update status
+                app.userSoulManager.cachedUserSoul.collectLatest { list ->
+                    dynamicSoulLayout?.removeAllViews()
+                    if (list.isEmpty()) {
+                        dynamicSoulLayout?.addView(TextView(requireContext()).apply {
+                            text = "Listening and learning user habits, personality, and recurring skills..."
+                            textSize = 12sp()
+                            setTextColor(themeColor(R.attr.themeTextMuted))
+                        })
+                    } else {
+                        list.take(4).forEach { item ->
+                            dynamicSoulLayout?.addView(TextView(requireContext()).apply {
+                                text = "• [${item.category}] ${item.key}: ${item.value.take(60)}"
+                                textSize = 12sp()
+                                setTextColor(themeColor(R.attr.themeTextPrimary))
+                                setPadding(0, dp(2), 0, dp(2))
+                            })
+                        }
                     }
-            } catch (_: Exception) {
-            }
+                }
+            } catch (_: Exception) {}
+        }
+
+        // Observe active tasks from AgentSoulManager
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                app.agentSoulManager.observeTasksByStatus(TaskStatus.IN_PROGRESS).collectLatest { tasks ->
+                    dynamicTasksLayout?.removeAllViews()
+                    if (tasks.isEmpty()) {
+                        dynamicTasksLayout?.addView(TextView(requireContext()).apply {
+                            text = "No active swarm tasks running. Ready for autonomous goals."
+                            textSize = 12sp()
+                            setTextColor(themeColor(R.attr.themeTextMuted))
+                        })
+                    } else {
+                        tasks.forEach { task ->
+                            dynamicTasksLayout?.addView(TextView(requireContext()).apply {
+                                text = "▶ [${task.assignedTo}] ${task.title} (${task.priority})"
+                                textSize = 12sp()
+                                setTextColor(themeColor(R.attr.themeAccent))
+                                setPadding(0, dp(3), 0, dp(3))
+                            })
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+
+        // Observe recent step logs
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                app.agentSoulManager.observeRecentLogs(4).collectLatest { logs ->
+                    dynamicLogsLayout?.removeAllViews()
+                    if (logs.isEmpty()) {
+                        dynamicLogsLayout?.addView(TextView(requireContext()).apply {
+                            text = "Blackboard standby."
+                            textSize = 12sp()
+                            setTextColor(themeColor(R.attr.themeTextMuted))
+                        })
+                    } else {
+                        logs.forEach { log ->
+                            dynamicLogsLayout?.addView(TextView(requireContext()).apply {
+                                text = "[${log.agentName}] ${log.action}: ${log.detail.take(50)}"
+                                textSize = 11sp()
+                                setTextColor(themeColor(R.attr.themeTextMuted))
+                                setPadding(0, dp(1), 0, dp(1))
+                            })
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
         }
     }
 
