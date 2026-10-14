@@ -44,6 +44,15 @@ object ShizukuBridge {
     const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"
     private const val SHIZUKU_PROVIDER_URI = "content://moe.shizuku.privileged.api.provider"
 
+    fun getInstance(context: Context? = null): ShizukuBridge = this
+
+    fun isAvailable(context: Context? = null): Boolean {
+        val ctx = context ?: com.jarvis.assistant.JarvisApp.instance
+        return isRunning(ctx) && hasPermission(ctx)
+    }
+
+    fun executeShellCommand(command: String): ShellResult = executeShell(command)
+
     // Cached reflection references
     private var shizukuClass: Class<*>? = null
     private var pingBinderMethod: Method? = null
