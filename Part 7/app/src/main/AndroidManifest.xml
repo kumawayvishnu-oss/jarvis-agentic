@@ -51,6 +51,11 @@
         </activity>
 
         <activity
+            android:name=".ui.diagnostic.LiveDebugActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".ui.diagnostic.DiagnosticActivity"
             android:exported="false"
             android:screenOrientation="portrait"

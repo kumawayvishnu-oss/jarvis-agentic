@@ -43,6 +43,7 @@ class AudioRecorder(
         val minBufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT)
         if (minBufferSize == AudioRecord.ERROR || minBufferSize == AudioRecord.ERROR_BAD_VALUE) {
             Log.e(TAG, "Unable to get valid min buffer size")
+            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MIC_RECORDER, false, "getMinBufferSize failed ($minBufferSize)")
             return false
         }
 
@@ -59,6 +60,8 @@ class AudioRecorder(
 
             if (record.state != AudioRecord.STATE_INITIALIZED) {
                 Log.e(TAG, "AudioRecord initialization failed")
+                com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MIC_RECORDER, false, "AudioRecord not initialized (mic busy or permission denied)")
+                com.jarvis.assistant.util.LiveDebug.log(TAG, "AudioRecord init FAILED", isError = true)
                 record.release()
                 return false
             }
@@ -99,6 +102,9 @@ class AudioRecorder(
 
             record.startRecording()
             audioRecord = record
+            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MIC_RECORDER, record.recordingState == AudioRecord.RECORDING_STATE_RECORDING,
+                "AudioRecord 16kHz mono, recordingState=${record.recordingState}")
+            com.jarvis.assistant.util.LiveDebug.log(TAG, "AudioRecord started state=${record.recordingState}")
             isRecording.set(true)
 
             recordingJob = scope.launch(Dispatchers.IO) {
@@ -114,6 +120,7 @@ class AudioRecorder(
                             val readBytes = currentRecord.read(buffer, 0, buffer.size)
                             if (readBytes > 0) {
                                 consecutiveErrors = 0
+                                com.jarvis.assistant.util.LiveDebug.micFramesRead.incrementAndGet()
                                 val freq = AudioUtils.analyzeFrequency(buffer, readBytes, SAMPLE_RATE)
                                 if (!isMuted.get()) {
                                     val chunkCopy = buffer.copyOf(readBytes)
@@ -124,6 +131,7 @@ class AudioRecorder(
                             } else if (readBytes < 0) {
                                 consecutiveErrors++
                                 Log.w(TAG, "AudioRecord read error code: $readBytes (error count: $consecutiveErrors)")
+                                com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MIC_RECORDER, false, "read error $readBytes")
                                 delay(40)
                                 if (consecutiveErrors > 10 && isRecording.get()) {
                                     Log.e(TAG, "Consecutive AudioRecord read errors exceeded limit. Attempting auto-recovery...")
@@ -169,6 +177,8 @@ class AudioRecorder(
             true
         } catch (e: Exception) {
             Log.e(TAG, "Error starting AudioRecord: ${e.message}", e)
+            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MIC_RECORDER, false, "start exception: ${e.message}")
+            com.jarvis.assistant.util.LiveDebug.log(TAG, "AudioRecord start exception: ${e.message}", isError = true)
             false
         }
     }

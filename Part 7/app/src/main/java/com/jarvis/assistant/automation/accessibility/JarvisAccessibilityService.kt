@@ -205,6 +205,8 @@ class JarvisAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         instance = this
         Log.i(TAG, "JarvisAccessibilityService connected and active")
+        com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.ACCESSIBILITY, true, "onServiceConnected() called - service bound by system")
+        com.jarvis.assistant.util.LiveDebug.log(TAG, "Accessibility service CONNECTED")
         ensureJarvisServiceActive()
     }
 
@@ -308,10 +310,13 @@ class JarvisAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {
         Log.w(TAG, "JarvisAccessibilityService interrupted")
+        com.jarvis.assistant.util.LiveDebug.log(TAG, "Accessibility onInterrupt()", isError = true)
     }
 
     override fun onDestroy() {
         if (instance === this) instance = null
+        com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.ACCESSIBILITY, false, "service destroyed (disabled or killed)")
+        com.jarvis.assistant.util.LiveDebug.log(TAG, "Accessibility service DESTROYED", isError = true)
         super.onDestroy()
     }
 
@@ -1069,9 +1074,24 @@ class JarvisAccessibilityService : AccessibilityService() {
                 val gesture = GestureDescription.Builder()
                     .addStroke(GestureDescription.StrokeDescription(path, 0, 50))
                     .build()
-                return dispatchGesture(gesture, null, null)
+                val accepted = dispatchGesture(gesture, object : GestureResultCallback() {
+                    override fun onCompleted(gestureDescription: GestureDescription?) {
+                        com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.ACCESSIBILITY_ACTION, true, "tap ($x,$y) completed")
+                        com.jarvis.assistant.util.LiveDebug.log(TAG, "gesture tap ($x,$y) COMPLETED")
+                    }
+                    override fun onCancelled(gestureDescription: GestureDescription?) {
+                        com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.ACCESSIBILITY_ACTION, false, "tap ($x,$y) CANCELLED by system")
+                        com.jarvis.assistant.util.LiveDebug.log(TAG, "gesture tap ($x,$y) CANCELLED", isError = true)
+                    }
+                }, null)
+                if (!accepted) {
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.ACCESSIBILITY_ACTION, false, "dispatchGesture rejected tap ($x,$y)")
+                    com.jarvis.assistant.util.LiveDebug.log(TAG, "dispatchGesture returned false for ($x,$y)", isError = true)
+                }
+                return accepted
             } catch (e: Exception) {
                 Log.d(TAG, "Gesture click at ($x, $y) failed: ${e.message}")
+                com.jarvis.assistant.util.LiveDebug.log(TAG, "gesture tap exception: ${e.message}", isError = true)
             }
         }
         return false

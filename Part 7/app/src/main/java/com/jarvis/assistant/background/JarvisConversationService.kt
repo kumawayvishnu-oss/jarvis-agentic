@@ -1296,6 +1296,8 @@ class JarvisConversationService : Service() {
 
                         override fun onError(message: String, isFatal: Boolean, errorCode: String?) {
                             Log.e("JarvisService", "GeminiLive onError: fatal=$isFatal, code=$errorCode, msg=$message")
+                            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.API_ERROR, false, "[$errorCode] $message")
+                            com.jarvis.assistant.util.LiveDebug.log("JarvisService", "onError fatal=$isFatal code=$errorCode msg=$message", isError = true)
                             updateNotification()
                             serviceScope.launch { _events.emit(message) }
                             when (errorCode) {

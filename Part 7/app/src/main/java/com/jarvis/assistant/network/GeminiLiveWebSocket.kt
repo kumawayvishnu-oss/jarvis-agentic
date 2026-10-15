@@ -70,6 +70,7 @@ class GeminiLiveWebSocket(
     private fun initiateConnection() {
         if (apiKey.isBlank()) {
             Log.e(TAG, "Gemini API Key is empty. Aborting connection.")
+            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_STATE, false, "API key empty - not connecting")
             listener.onError("Gemini API Key is missing. Please configure it in Settings.", isFatal = true, errorCode = "API_KEY_MISSING")
             listener.onConnectionStateChanged("OFFLINE")
             return
@@ -86,6 +87,9 @@ class GeminiLiveWebSocket(
             webSocket = client.newWebSocket(request, object : WebSocketListener() {
                 override fun onOpen(webSocket: WebSocket, response: Response) {
                     Log.d(TAG, "WebSocket connected to Gemini Live. Sending BidiSetup...")
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_STATE, true, "OPEN (HTTP ${response.code})")
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_CLOSE, null, "-")
+                    com.jarvis.assistant.util.LiveDebug.log(TAG, "WS open HTTP ${response.code}")
                     isConnected.set(true)
                     isSetupComplete.set(false)
                     listener.onConnectionStateChanged("CONFIGURING...")
@@ -103,11 +107,16 @@ class GeminiLiveWebSocket(
 
                 override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                     Log.d(TAG, "WebSocket closing: $code / $reason")
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_CLOSE, code == 1000, "closing code=$code reason=${reason.ifBlank { "(empty)" }}")
+                    com.jarvis.assistant.util.LiveDebug.log(TAG, "WS closing code=$code reason=$reason", isError = code != 1000)
                     webSocket.close(1000, null)
                 }
 
                 override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                     Log.d(TAG, "WebSocket closed: $code / $reason")
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_STATE, false, "CLOSED")
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_CLOSE, code == 1000, "code=$code reason=${reason.ifBlank { "(empty)" }}")
+                    com.jarvis.assistant.util.LiveDebug.log(TAG, "WS closed code=$code reason=$reason model=$activeModel", isError = code != 1000)
                     isConnected.set(false)
                     isSetupComplete.set(false)
                     stopTimers()
@@ -160,6 +169,9 @@ class GeminiLiveWebSocket(
                     val responseBody = try { response?.body?.string() } catch (e: Exception) { null }
                     val errorMsg = t.message ?: "WebSocket connection failure"
                     Log.e(TAG, "WebSocket failure: code=$code, errorMsg=$errorMsg, body=$responseBody", t)
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_STATE, false, "FAILURE HTTP $code: $errorMsg")
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_CLOSE, false, "HTTP $code ${t.javaClass.simpleName}: $errorMsg ${responseBody?.take(300) ?: ""}")
+                    com.jarvis.assistant.util.LiveDebug.log(TAG, "WS failure HTTP $code ${t.javaClass.simpleName}: $errorMsg body=${responseBody?.take(300)}", isError = true)
                     isConnected.set(false)
                     isSetupComplete.set(false)
                     stopTimers()
@@ -201,6 +213,7 @@ class GeminiLiveWebSocket(
             })
         } catch (e: Exception) {
             Log.e(TAG, "Error initiating WebSocket connection: ${e.message}", e)
+            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_STATE, false, "connect exception: ${e.message}")
             listener.onError("Connection failed: ${e.message}", isFatal = true, errorCode = "CONNECTION_FAILED")
             listener.onConnectionStateChanged("OFFLINE")
         }
@@ -666,12 +679,25 @@ class GeminiLiveWebSocket(
         }
         val json = setup.toString()
         Log.d(TAG, "Sending BidiSetup payload to Gemini Live with tools")
-        ws.send(json)
+        val queued = ws.send(json)
+        com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MODEL, null, activeModel)
+        com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_SETUP, if (queued) null else false, if (queued) "setup sent (${json.length} bytes), waiting for setupComplete" else "setup send() rejected by socket")
+        com.jarvis.assistant.util.LiveDebug.log(TAG, "Setup sent model=$activeModel bytes=${json.length} queued=$queued")
     }
 
     private fun handleIncomingMessage(jsonText: String) {
         try {
             val json = JSONObject(jsonText)
+            val msgNo = com.jarvis.assistant.util.LiveDebug.serverMessages.incrementAndGet()
+            // Log raw head of early / unusual server messages so failures are never silent
+            val knownKeys = setOf("serverContent", "toolCall", "setupComplete", "usageMetadata", "sessionResumptionUpdate")
+            val keys = json.keys().asSequence().toList()
+            if (msgNo <= 3 || keys.none { it in knownKeys }) {
+                com.jarvis.assistant.util.LiveDebug.log(TAG, "server msg #$msgNo keys=$keys head=${jsonText.take(300)}")
+            }
+            if (json.has("goAway")) {
+                com.jarvis.assistant.util.LiveDebug.log(TAG, "server goAway: ${json.optJSONObject("goAway")}", isError = true)
+            }
 
             // Check if server returned an error payload
             if (json.has("error")) {
@@ -679,6 +705,8 @@ class GeminiLiveWebSocket(
                 val errMsg = errObj?.optString("message", "") ?: json.optString("error", "Unknown error")
                 val errCode = errObj?.optInt("code", 0) ?: 0
                 Log.e(TAG, "Server returned error: code=$errCode, message=$errMsg")
+                com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.API_ERROR, false, "server error $errCode: $errMsg")
+                com.jarvis.assistant.util.LiveDebug.log(TAG, "Server error code=$errCode msg=$errMsg", isError = true)
                 val isApiKey = errMsg.contains("API_KEY_INVALID", ignoreCase = true) ||
                                errMsg.contains("API key not valid", ignoreCase = true) ||
                                errCode == 400 || errCode == 403
@@ -700,6 +728,9 @@ class GeminiLiveWebSocket(
             // 0. Server setupComplete handshake acknowledgment
             if (json.has("setupComplete")) {
                 Log.i(TAG, "Server acknowledged setup: setupComplete received. Session is now LIVE!")
+                com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.WS_SETUP, true, "setupComplete received")
+                com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MODEL, true, activeModel)
+                com.jarvis.assistant.util.LiveDebug.log(TAG, "setupComplete received (model=$activeModel)")
                 if (!isSetupComplete.getAndSet(true)) {
                     listener.onConnectionStateChanged("LIVE")
                     startSessionRenewal()
@@ -726,6 +757,9 @@ class GeminiLiveWebSocket(
                         val args = call.optJSONObject("args") ?: JSONObject()
                         if (name.isNotEmpty()) {
                             Log.i(TAG, "Gemini invoked toolCall: $name (id=$id)")
+                            com.jarvis.assistant.util.LiveDebug.toolCalls.incrementAndGet()
+                            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.TOOL_CALL, true, "$name args=${args.toString().take(120)}")
+                            com.jarvis.assistant.util.LiveDebug.log(TAG, "toolCall $name args=${args.toString().take(200)}")
                             listener.onToolCall(id, name, args)
                         }
                     }
@@ -747,6 +781,9 @@ class GeminiLiveWebSocket(
                             val args = call.optJSONObject("args") ?: JSONObject()
                             if (name.isNotEmpty()) {
                                 Log.i(TAG, "Gemini invoked toolCall (serverContent): $name (id=$id)")
+                                com.jarvis.assistant.util.LiveDebug.toolCalls.incrementAndGet()
+                                com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.TOOL_CALL, true, "$name args=${args.toString().take(120)}")
+                                com.jarvis.assistant.util.LiveDebug.log(TAG, "toolCall(sc) $name args=${args.toString().take(200)}")
                                 listener.onToolCall(id, name, args)
                             }
                         }
@@ -831,6 +868,10 @@ class GeminiLiveWebSocket(
                                     if (pcmBytes.size >= 16) {
                                         val validLen = pcmBytes.size and 1.inv()
                                         val aligned = if (validLen == pcmBytes.size) pcmBytes else pcmBytes.copyOf(validLen)
+                                        val n = com.jarvis.assistant.util.LiveDebug.audioChunksReceived.incrementAndGet()
+                                        val total = com.jarvis.assistant.util.LiveDebug.audioBytesReceived.addAndGet(aligned.size.toLong())
+                                        com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.AUDIO_IN, true, "$n chunks, ${total / 1024} KB (mime=${inlineData.optString("mimeType")})")
+                                        if (n == 1L || n % 50 == 0L) com.jarvis.assistant.util.LiveDebug.log(TAG, "audio from Gemini chunk #$n mime=${inlineData.optString("mimeType")}")
                                         listener.onAudioDataReceived(aligned)
                                     }
                                 }
@@ -849,6 +890,7 @@ class GeminiLiveWebSocket(
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing incoming server JSON: ${e.message}", e)
+            com.jarvis.assistant.util.LiveDebug.log(TAG, "parse error: ${e.message} head=${jsonText.take(200)}", isError = true)
         }
     }
 
@@ -871,14 +913,27 @@ class GeminiLiveWebSocket(
     }
 
     fun sendAudioChunk(pcm16k: ByteArray) {
-        if (!isConnected.get() || !isSetupComplete.get() || pcm16k.isEmpty()) return
+        if (!isConnected.get() || !isSetupComplete.get() || pcm16k.isEmpty()) {
+            com.jarvis.assistant.util.LiveDebug.audioFramesDropped.incrementAndGet()
+            com.jarvis.assistant.util.LiveDebug.lastDropReason = when {
+                pcm16k.isEmpty() -> "empty/muted frame"
+                !isConnected.get() -> "socket not connected"
+                else -> "setupComplete not received"
+            }
+            return
+        }
 
         try {
             val base64Audio = Base64.encodeToString(pcm16k, Base64.NO_WRAP)
             val json = "{\"realtimeInput\":{\"audio\":{\"mimeType\":\"audio/pcm;rate=16000\",\"data\":\"$base64Audio\"}}}"
-            webSocket?.send(json)
+            val ok = webSocket?.send(json) == true
+            if (ok) com.jarvis.assistant.util.LiveDebug.audioFramesSent.incrementAndGet() else {
+                com.jarvis.assistant.util.LiveDebug.audioFramesDropped.incrementAndGet()
+                com.jarvis.assistant.util.LiveDebug.lastDropReason = "webSocket.send() returned false"
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error sending audio chunk: ${e.message}")
+            com.jarvis.assistant.util.LiveDebug.log(TAG, "audio send exception: ${e.message}", isError = true)
         }
     }
 

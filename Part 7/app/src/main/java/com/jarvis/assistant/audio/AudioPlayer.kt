@@ -94,6 +94,7 @@ class AudioPlayer(
                                             track.play()
                                         } catch (e: Exception) {
                                             Log.e(TAG, "Error calling play(): ${e.message}")
+                                            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.PLAYBACK, false, "play() failed: ${e.message}")
                                         }
                                     }
                                 }
@@ -133,6 +134,7 @@ class AudioPlayer(
                     break
                 } catch (e: Exception) {
                     Log.e(TAG, "Error in playback worker: ${e.message}")
+                    com.jarvis.assistant.util.LiveDebug.log(TAG, "playback worker error: ${e.message}", isError = true)
                 }
             }
         }.apply {
@@ -210,7 +212,14 @@ class AudioPlayer(
                     try { t.play() } catch (e: Exception) {}
                 }
                 val written = t.write(chunk, 0, chunk.size)
+                if (written >= 0) {
+                    val n = com.jarvis.assistant.util.LiveDebug.playbackWrites.incrementAndGet()
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.PLAYBACK, true, "$n writes to AudioTrack 24kHz, playState=${t.playState}")
+                }
                 if (written < 0) {
+                    com.jarvis.assistant.util.LiveDebug.playbackWriteErrors.incrementAndGet()
+                    com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.PLAYBACK, false, "AudioTrack.write error $written")
+                    com.jarvis.assistant.util.LiveDebug.log(TAG, "AudioTrack write error $written", isError = true)
                     Log.w(TAG, "AudioTrack write failed ($written). Reinitializing AudioTrack...")
                     try { t.release() } catch (e: Exception) {}
                     initAudioTrack()

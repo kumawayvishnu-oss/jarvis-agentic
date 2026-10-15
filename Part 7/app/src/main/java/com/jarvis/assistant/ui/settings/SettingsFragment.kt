@@ -165,6 +165,9 @@ class SettingsFragment : Fragment() {
             startActivity(Intent(requireContext(), PermissionActivity::class.java))
         }
 
+        binding.rowLiveDebug.setOnClickListener {
+            startActivity(Intent(requireContext(), com.jarvis.assistant.ui.diagnostic.LiveDebugActivity::class.java))
+        }
         binding.rowSelfDiagnostic.setOnClickListener {
             startActivity(Intent(requireContext(), com.jarvis.assistant.ui.diagnostic.DiagnosticActivity::class.java))
         }
