@@ -102,7 +102,7 @@ class AudioRecorder(
 
             record.startRecording()
             audioRecord = record
-            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MIC_RECORDER, record.recordingState == AudioRecord.RECORDING_STATE_RECORDING,
+            com.jarvis.assistant.util.LiveDebug.set(com.jarvis.assistant.util.LiveDebug.MIC_RECORDER, record.recordingState == AudioRecord.RECORDSTATE_RECORDING,
                 "AudioRecord 16kHz mono, recordingState=${record.recordingState}")
             com.jarvis.assistant.util.LiveDebug.log(TAG, "AudioRecord started state=${record.recordingState}")
             isRecording.set(true)
