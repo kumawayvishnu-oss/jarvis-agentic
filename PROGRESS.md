@@ -52,6 +52,11 @@
    - GitHub Actions Run ID: [38564652517](https://github.com/kumawayvishnu-oss/jarvis-agentic/actions/runs/38564652517) -> **`✓ SUCCESS in 3m7s`**.
    - Artifact: `jarvis-debug-apk`.
 
+## 🔧 Stabilization (before Wave 2 continues) — user-reported: no voice reply, taps fail, permission loop
+- [x] Step 1: `LiveDebugActivity` (Settings → Live Debug) + `util/LiveDebug.kt` instrumentation in WebSocket/AudioRecorder/AudioPlayer/AccessibilityService. CI green run 38747646943.
+- [ ] Step 2: fix from user's Live Debug screenshot. Lead: `GeminiConstants` maps to `gemini-2.0-flash-exp`/`gemini-1.5-*` (not Live-capable); official docs (2026-10) list `models/gemini-3.8-live` as default Live model.
+- [ ] Step 3: cleanup. [ ] Step 4: Wave 2 (note: commits e2e8f59/4ea09fa already added partial Wave 2).
+
 ---
 
 ## 📊 Verification & Artifacts
