@@ -72,9 +72,18 @@
 - [x] **Step 6 — Modern Dark Neon UI/UX & Bundled Fonts:**
   - Bundled `orbitron_bold.ttf`, `rajdhani_regular.ttf`, and `rajdhani_semibold.ttf` inside `res/font/` (zero network dependency).
   - Updated `AppPreferences.kt` and `ThemeManager.kt` to default to Dark Neon (`#05080F`) and automatically apply bundled typography and smooth 60fps entrance animations.
+- [x] **Step 7 — Phase 1 Cleanup, APK Size Reduction (~20MB), 9 Audited Skills & 8-Provider Router (Commits `36fc562`, `c6cab12`):**
+  - Removed dead assets (`settings/settings.html`, `ghost-avatar-v2.html`), dead `DeveloperInfo.kt`, 20 unused drawables, and fake `btnAssistantPlay` Toast button.
+  - Added `abiFilters += listOf("arm64-v8a", "armeabi-v7a")` and `META-INF` packaging exclusions in `Part 7/app/build.gradle.kts` (~20 MB APK size reduction).
+  - Installed 9 audited skills in `.agent/skills` and `Part 7/app/src/main/assets/skills/` with `ExternalSkillLoader.auditSkillSafety()`.
+  - Expanded `ModelProvider.kt` and `SmartProviderRouter.kt` to 8 providers (`GEMINI`, `GROQ`, `CEREBRAS`, `MISTRAL`, `SAMBANOVA`, `DEEPSEEK`, `OPENROUTER`, `OLLAMA_LOCAL`).
+  - Documented 28 Phase-2 Unique Agentic Features & 8-Provider Free Limits in `PLAN.md` (Sections 10 & 11) and saved permanent auto-loaded session context in `GEMINI.md`.
 
 ---
 
 ## 📊 Verification & Artifacts
+- **Latest Verified Commit:** `c6cab12` (and cleanup commit `36fc562`)
+- **Latest GitHub Actions Run ID:** [38902247766](https://github.com/kumawayvishnu-oss/jarvis-agentic/actions/runs/38902247766) -> **`✓ SUCCESS in 3m 42s`** (`jarvis-debug-apk`)
 - **Zero-Regression Guarantee:** All 21 Tools, Vosk wake-word/speakerprint, 3D WebGL Orb, 17 Floating Overlays, and Dual Personas remain intact.
+
 
