@@ -122,6 +122,33 @@ class SmartProviderRouter private constructor(
                 health.consecutiveErrors = 0
                 health.lastErrorMessage = null
 
+                // If provider returned tool calls, execute them in parallel and synthesize final output
+                if (response.toolCalls.isNotEmpty()) {
+                    val toolRegistry = UnifiedToolRegistry.getInstance(context)
+                    val toolOutputs = toolRegistry.executeToolsParallel(response.toolCalls)
+                    val updatedMessages = request.messages.toMutableList()
+                    toolOutputs.forEach { (call, out) ->
+                        updatedMessages.add(
+                            UnifiedMessage(
+                                role = MessageRole.TOOL,
+                                content = out,
+                                toolCallId = call.id,
+                                name = call.functionName
+                            )
+                        )
+                    }
+                    val followUpReq = request.copy(messages = updatedMessages, tools = emptyList())
+                    val followUpResp = when (provider) {
+                        ModelProvider.GEMINI -> GeminiRestClient(apiKey = apiKey, baseUrl = baseUrl).execute(followUpReq)
+                        else -> OpenAICompatibleClient(provider = provider, apiKey = apiKey, baseUrl = baseUrl).execute(followUpReq)
+                    }
+                    if (followUpResp.isSuccess && followUpResp.content.isNotBlank()) {
+                        return@withContext followUpResp
+                    }
+                    val joinedTools = toolOutputs.joinToString("\n") { (c, o) -> "[${c.functionName}]: $o" }
+                    return@withContext response.copy(content = if (response.content.isNotBlank()) "${response.content}\n$joinedTools" else joinedTools)
+                }
+
                 agentSoulManager.postStepLog(
                     agentName = agentName,
                     action = "ProviderSuccess",

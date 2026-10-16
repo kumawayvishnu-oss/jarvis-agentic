@@ -427,9 +427,17 @@ flowchart TD
 
 ---
 
-## 8. नई UI योजना: Dark Neon Wireframes व स्क्रीन्स का खाका
+## 8. नई UI योजना: Dark Neon Glassmorphism, Bundled Fonts व Animations
 
-मूल डार्क नियॉन स्टाइल (`#080C14` बैकग्राउंड, `#00E5FF` स्यान, `#FF4081` रोज़ गोल्ड, और `#121C2E` कार्ड्स) पूरी तरह सुरक्षित रहेगा।
+मूल JARVIS की पहचान (3D Particle Orb, Curved Dock, Dark Theme) को रखते हुए इसे आधुनिक बनाया गया है:
+- **बंडल्ड फॉन्ट्स (`res/font/` — बिना इंटरनेट के):**
+  - हेडर्स व HUD डिस्प्ले: `@font/orbitron_bold` (`orbitron_bold.ttf`)
+  - बॉडी व टेलीमेट्री टेक्स्ट: `@font/rajdhani_semibold` और `@font/rajdhani_regular`
+- **रंग व ग्लासमॉर्फ़िज्म टोकन्स:**
+  - डीप स्पेस कैनवास: `#05080F`, एलिवेटेड ग्लास कार्ड: `#0D1522` (1dp `#1E293B` बॉर्डर के साथ)
+  - नियॉन एक्सेंट्स: JARVIS Cyan (`#00E5FF`), NAIRA Rose Gold (`#FF4081`), Live Emerald (`#10B981`)
+- **फ्लूइड एनिमेशन व स्किल्स (`.agent/skills/` व `assets/skills/`):**
+  - `android-ui-ux-glassmorphic`, `android-fluid-animations`, `agentic-tool-planner`, और `live-web-search` स्किल्स जोड़ी गई हैं।
 
 ### 8.1 बॉटम नेविगेशन डॉक (Curved Dock Layout)
 - **टैब 1 (Home):** 3D Particle Orb, वेदर कार्ड, लिसनिंग स्टेटस, त्वरित मेमोरी सारांश।

@@ -1,8 +1,10 @@
 package com.jarvis.assistant.agentic.swarm
 
 import android.content.Context
+import com.jarvis.assistant.agentic.soul.AgentContext
 import com.jarvis.assistant.agentic.soul.AgentSoulManager
 import com.jarvis.assistant.agentic.soul.StepLogLevel
+import com.jarvis.assistant.agentic.soul.UserSoulManager
 
 /**
  * Result returned by an agent upon task execution.
@@ -18,8 +20,8 @@ data class AgentExecutionResult(
 
 /**
  * BaseSpecialistAgent: Abstract contract for all specialized sub-agents in JARVIS.
- * Provides unified access to Agent SOUL blackboard, Inter-Agent Communication (InterCom),
- * and structured step reporting.
+ * Provides unified access to User SOUL, Agent SOUL blackboard, shared AgentContext,
+ * Inter-Agent Communication (InterCom), and structured step reporting.
  */
 abstract class BaseSpecialistAgent(
     override val id: String,
@@ -28,9 +30,15 @@ abstract class BaseSpecialistAgent(
     override val description: String,
     val systemPrompt: String,
     protected val context: Context,
-    protected val agentSoulManager: AgentSoulManager = AgentSoulManager.getInstance(context)
+    protected val agentSoulManager: AgentSoulManager = AgentSoulManager.getInstance(context),
+    protected val userSoulManager: UserSoulManager = UserSoulManager.getInstance(context),
+    protected val agentContext: AgentContext = AgentContext.getInstance(context)
 ) : Agent {
     protected val interCom: AgentInterCom by lazy { AgentInterCom.getInstance(context) }
+
+    suspend fun getDualSoulPromptContext(query: String): String {
+        return agentContext.buildSnapshot(query).toCompactPromptBlock()
+    }
 
     @Volatile
     var currentState: AgentState = AgentState.IDLE

@@ -112,8 +112,31 @@ class MemoryActivity : AppCompatActivity() {
     }
 
     private fun observeMemories() {
+        val soulManager = com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(this)
         lifecycleScope.launch {
-            memoryRepo.getAllMemoriesFlow().collectLatest { memories ->
+            kotlinx.coroutines.flow.combine(
+                memoryRepo.getAllMemoriesFlow(),
+                soulManager.userSoulFlow
+            ) { legacyList, soulList ->
+                val combined = mutableListOf<MemoryEntity>()
+                combined.addAll(legacyList)
+                val existingKeys = legacyList.map { it.key.lowercase() }.toSet()
+                soulList.forEach { soul ->
+                    if (!existingKeys.contains(soul.traitKey.lowercase())) {
+                        combined.add(
+                            MemoryEntity(
+                                id = -soul.id - 10000L, // Distinct negative ID for UserSoul traits
+                                category = soul.category,
+                                key = soul.traitKey,
+                                value = soul.traitValue,
+                                rawText = "[SOUL ${(soul.confidence * 100).toInt()}%] ${soul.traitKey}: ${soul.traitValue}",
+                                timestamp = soul.updatedAt
+                            )
+                        )
+                    }
+                }
+                combined.sortedByDescending { it.timestamp }
+            }.collectLatest { memories ->
                 allMemories = memories
                 filterAndDisplay()
             }
@@ -190,13 +213,16 @@ class MemoryActivity : AppCompatActivity() {
                 val category = spinner.selectedItem.toString()
                 if (fact.isNotBlank()) {
                     lifecycleScope.launch {
+                        val key = fact.take(30).trim()
                         memoryRepo.saveMemory(
                             rawText = fact,
                             category = category,
-                            key = fact.take(30).trim(),
+                            key = key,
                             value = fact
                         )
-                        Toast.makeText(this@MemoryActivity, "Memory saved", Toast.LENGTH_SHORT).show()
+                        com.jarvis.assistant.agentic.soul.AgentContext.getInstance(this@MemoryActivity)
+                            .storeFact(key, fact, category)
+                        Toast.makeText(this@MemoryActivity, "Memory saved to Dual-SOUL", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -210,7 +236,7 @@ class MemoryActivity : AppCompatActivity() {
         val textPrimaryColor = if (tvPrimary.data != 0) tvPrimary.data else ContextCompat.getColor(this@MemoryActivity, R.color.text_primary)
 
         val editText = EditText(this).apply {
-            setText(memory.rawText)
+            setText(memory.value.ifBlank { memory.rawText })
             setTextColor(textPrimaryColor)
             setBackgroundResource(R.drawable.bg_input_field)
             setPadding(24, 24, 24, 24)
@@ -228,13 +254,19 @@ class MemoryActivity : AppCompatActivity() {
                 val newFact = editText.text.toString().trim()
                 if (newFact.isNotBlank()) {
                     lifecycleScope.launch {
-                        memoryRepo.updateMemory(
-                            memory.copy(
-                                rawText = newFact,
-                                value = newFact,
-                                timestamp = System.currentTimeMillis()
+                        if (memory.id > 0) {
+                            memoryRepo.updateMemory(
+                                memory.copy(
+                                    rawText = newFact,
+                                    value = newFact,
+                                    timestamp = System.currentTimeMillis()
+                                )
                             )
-                        )
+                        }
+                        if (memory.key.isNotBlank()) {
+                            com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(this@MemoryActivity)
+                                .setExplicitTrait(memory.category, memory.key, newFact)
+                        }
                         Toast.makeText(this@MemoryActivity, "Memory updated", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -249,7 +281,13 @@ class MemoryActivity : AppCompatActivity() {
             .setMessage("Are you sure you want JARVIS to forget this fact?\n\n\"${memory.rawText}\"")
             .setPositiveButton("DELETE") { _, _ ->
                 lifecycleScope.launch {
-                    memoryRepo.deleteMemoryById(memory.id)
+                    if (memory.id > 0) {
+                        memoryRepo.deleteMemoryById(memory.id)
+                    }
+                    if (memory.key.isNotBlank()) {
+                        com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(this@MemoryActivity)
+                            .deleteTrait(memory.key)
+                    }
                     Toast.makeText(this@MemoryActivity, "Memory deleted", Toast.LENGTH_SHORT).show()
                 }
             }

@@ -50,12 +50,16 @@ class DynamicSpecialistAgent(
             )
         }
 
-        // Incorporate Agent SOUL blackboard state into prompt so agent has shared awareness
-        val blackboardContext = agentSoulManager.buildAgentSoulPromptContext()
+        // Incorporate both User SOUL and Agent SOUL blackboard state + live tool capabilities
+        val dualSoulContext = getDualSoulPromptContext(taskGoal)
+        val toolRegistry = com.jarvis.assistant.agentic.router.UnifiedToolRegistry.getInstance(context)
+        val relevantTools = toolRegistry.selectRelevantTools(taskGoal)
         val enrichedPrompt = buildString {
             append(systemPrompt)
             append("\n\n")
-            append(blackboardContext)
+            append(dualSoulContext)
+            append("\n")
+            append(toolRegistry.getLiveSystemCapabilitiesManifest())
         }
 
         val request = UnifiedPromptRequest(
@@ -63,6 +67,7 @@ class DynamicSpecialistAgent(
             messages = listOf(
                 UnifiedMessage(role = MessageRole.USER, content = taskGoal)
             ),
+            tools = relevantTools,
             temperature = 0.4f,
             maxTokens = 1500
         )

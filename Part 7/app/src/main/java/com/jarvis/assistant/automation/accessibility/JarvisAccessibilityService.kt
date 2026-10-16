@@ -1072,7 +1072,7 @@ class JarvisAccessibilityService : AccessibilityService() {
             try {
                 val path = Path().apply { moveTo(x, y) }
                 val gesture = GestureDescription.Builder()
-                    .addStroke(GestureDescription.StrokeDescription(path, 0, 50))
+                    .addStroke(GestureDescription.StrokeDescription(path, 0, 100))
                     .build()
                 val accepted = dispatchGesture(gesture, object : GestureResultCallback() {
                     override fun onCompleted(gestureDescription: GestureDescription?) {

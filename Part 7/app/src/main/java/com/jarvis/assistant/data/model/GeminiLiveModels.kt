@@ -3,19 +3,19 @@ package com.jarvis.assistant.data.model
 import com.google.gson.annotations.SerializedName
 
 object GeminiConstants {
+    const val MODEL_3_8_LIVE = "models/gemini-3.8-live"
     const val MODEL_3_1_FLASH = "models/gemini-2.0-flash-exp"
-    const val MODEL_3_8_LIVE = "models/gemini-1.5-flash"
     const val MODEL_3_1_FLASH_AGENT = "models/gemini-1.5-pro"
     const val MODEL_2_0_FLASH = MODEL_3_1_FLASH
-    const val MODEL_2_0_FLASH_REALTIME = MODEL_3_1_FLASH
+    const val MODEL_2_0_FLASH_REALTIME = MODEL_3_8_LIVE
 
     const val RELEASE_API_KEY = ""
 
-    const val DEFAULT_MODEL = MODEL_3_1_FLASH
+    const val DEFAULT_MODEL = MODEL_3_8_LIVE
 
     val SUPPORTED_MODELS = listOf(
-        MODEL_3_1_FLASH,
         MODEL_3_8_LIVE,
+        MODEL_3_1_FLASH,
         MODEL_3_1_FLASH_AGENT
     )
 

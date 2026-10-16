@@ -98,38 +98,41 @@ class ManagerAgent private constructor(
             taskId = taskId
         )
 
-        // 1. Enrich with User SOUL context (habits, preferences, tone)
-        val userContext = userSoulManager.buildPromptContext()
+        // 0. Strict Safety Confirmation Gate (if/else)
+        val resourceEngine = com.jarvis.assistant.agentic.healing.HardwareResourceAwareEngine.getInstance(context)
+        val safetyVerdict = resourceEngine.evaluateSafetyGate(userGoal)
+        if (!safetyVerdict.allowedImmediately && safetyVerdict.requiresConfirmation && !userGoal.contains("[CONFIRMED]", ignoreCase = true)) {
+            val confirmMsg = "⚠️ ${safetyVerdict.reason}\nLakshya: '$userGoal'\nKripya confirm karein ('Haan confirm' bolein ya likhein)."
+            agentSoulManager.updateTaskStatus(taskId, TaskStatus.PAUSED, confirmMsg)
+            currentState = AgentState.IDLE
+            return@withContext confirmMsg
+        }
 
-        // 2. Goal decomposition: Check if goal is a compound multi-step instruction
+        // 1. Build 4-tier Shared AgentContext (User SOUL + Agent SOUL + Episodic + Skills)
+        val agentCtx = com.jarvis.assistant.agentic.soul.AgentContext.getInstance(context)
+        val snapshot = agentCtx.buildSnapshot(userGoal)
+        val userContext = snapshot.toCompactPromptBlock()
+        val healingEngine = com.jarvis.assistant.agentic.healing.SelfHealingEngine.getInstance(context)
+
+        // 2. Pre-task Planning & Decomposition
         val subGoals = decomposeGoal(userGoal)
-        val stepOutputs = mutableListOf<String>()
+        val isParallelEligible = subGoals.size > 1 && !userGoal.contains(" then ", ignoreCase = true) && !userGoal.contains(" ke baad ", ignoreCase = true)
+        val stepOutputs = java.util.Collections.synchronizedList(mutableListOf<String>())
         var overallSuccess = true
 
         agentSoulManager.postStepLog(
             agentName = "ManagerAgent",
-            action = "GoalDecomposition",
-            detail = "Decomposed into ${subGoals.size} actionable stage(s).",
+            action = "PreExecutionPlan",
+            detail = "Plan (${if (isParallelEligible) "PARALLEL" else "SEQUENTIAL"}): ${subGoals.size} stage(s) | Tone=${snapshot.detectedQueryTone.name}",
             level = StepLogLevel.INFO,
             taskId = taskId
         )
 
-        for ((index, subGoal) in subGoals.withIndex()) {
-            val stageNum = index + 1
-            agentSoulManager.postStepLog(
-                agentName = "ManagerAgent",
-                action = "StageStart",
-                detail = "Executing stage $stageNum/${subGoals.size}: '$subGoal'",
-                level = StepLogLevel.INFO,
-                taskId = taskId
-            )
-
-            // Select matching specialist or synthesize dynamic agent on-demand
+        suspend fun runSingleSubGoal(stageNum: Int, subGoal: String): Boolean {
             val specialist = resolveSpecialist(subGoal)
-            lastActionSummary = "Stage $stageNum/${subGoals.size}: Delegating to ${specialist.name}"
+            lastActionSummary = "Stage $stageNum/${subGoals.size}: ${specialist.name}"
             lastActiveTime = System.currentTimeMillis()
 
-            // Announce task delegation on InterCom
             interCom.sendMessage(
                 sender = "ManagerAgent",
                 target = specialist.name,
@@ -138,38 +141,58 @@ class ManagerAgent private constructor(
                 taskId = taskId
             )
 
-            agentSoulManager.postStepLog(
-                agentName = "ManagerAgent",
-                action = "AssignSpecialist",
-                detail = "Delegated to ${specialist.name} (${specialist.role})",
-                level = StepLogLevel.INFO,
-                taskId = taskId
-            )
-
-            // Pass previous step results to subsequent specialists if any
-            val inputData = mutableMapOf<String, Any>()
+            val inputData = mutableMapOf<String, Any>("dualSoulContext" to userContext)
             if (stepOutputs.isNotEmpty()) {
                 inputData["previousOutputs"] = stepOutputs.toList()
             }
 
-            val stepResult = specialist.executeTask(subGoal, taskId, inputData)
-            stepOutputs.add("${specialist.name}: ${stepResult.output}")
+            // Self-healing execution (Max 3 tries)
+            val healedResult = healingEngine.executeWithHealing(
+                actionName = "Stage_${stageNum}_${specialist.name}",
+                agentName = specialist.name,
+                taskId = taskId,
+                maxRetries = 2
+            ) {
+                val res = specialist.executeTask(subGoal, taskId, inputData)
+                if (!res.isSuccess) throw RuntimeException(res.error ?: res.output)
+                res
+            }
 
-            if (!stepResult.isSuccess) {
-                overallSuccess = false
+            val finalStepResult = healedResult.getOrElse {
+                // Specialist failed after self-healing -> dynamically synthesize a new specialist agent!
                 agentSoulManager.postStepLog(
                     agentName = "ManagerAgent",
-                    action = "StageFailed",
-                    detail = "Stage $stageNum encountered an issue: ${stepResult.output}",
+                    action = "DynamicAgentFallback",
+                    detail = "${specialist.name} failed on '$subGoal'. Synthesizing new dynamic recovery agent...",
                     level = StepLogLevel.WARNING,
                     taskId = taskId
                 )
-                // If it's a critical single-step or first step failure, stop sequence
-                if (subGoals.size == 1) break
+                val dynamicRecoveryAgent = dynamicFactory.synthesizeAgentForGoal(subGoal)
+                dynamicRecoveryAgent.executeTask(subGoal, taskId, inputData)
+            }
+
+            stepOutputs.add("${finalStepResult.agentName}: ${finalStepResult.output}")
+            return finalStepResult.isSuccess
+        }
+
+        if (isParallelEligible) {
+            val results = kotlinx.coroutines.coroutineScope {
+                subGoals.mapIndexed { idx, sg ->
+                    kotlinx.coroutines.async { runSingleSubGoal(idx + 1, sg) }
+                }.map { it.await() }
+            }
+            overallSuccess = results.all { it }
+        } else {
+            for ((index, subGoal) in subGoals.withIndex()) {
+                val ok = runSingleSubGoal(index + 1, subGoal)
+                if (!ok) {
+                    overallSuccess = false
+                    if (subGoals.size == 1) break
+                }
             }
         }
 
-        // 3. Synthesize unified response taking into account User SOUL context
+        // 3. Synthesize unified response adapted to user's query tone & User SOUL
         lastActionSummary = "Synthesizing multi-agent outputs"
         lastActiveTime = System.currentTimeMillis()
         val accumulatedOutput = stepOutputs.joinToString("\n")
@@ -177,27 +200,32 @@ class ManagerAgent private constructor(
             val synthesisPrompt = buildString {
                 append("User requested: $userGoal\n\n")
                 append("Execution Results from Swarm:\n$accumulatedOutput\n\n")
-                if (userContext.isNotBlank()) {
-                    append("User Profile Context:\n$userContext\n\n")
-                }
-                append("Synthesize a concise, polite, JARVIS-style response confirming what was done.")
+                append("$userContext\n\n")
+                append("Response Style Instruction: ${snapshot.detectedQueryTone.instruction}\n")
+                append("Synthesize a response confirming what was done matching the user's language and tone.")
             }
 
             val request = UnifiedPromptRequest(
-                systemInstruction = "You are JARVIS, Tony Stark's sophisticated AI assistant. Be direct, ultra-efficient, and courteous.",
+                systemInstruction = "You are JARVIS, Tony Stark's sophisticated AI assistant. Follow the detected tone strictly.",
                 messages = listOf(UnifiedMessage(role = MessageRole.USER, content = synthesisPrompt)),
                 temperature = 0.4f,
                 maxTokens = 350
             )
 
-            val synthResponse = router.executeWithFailover(request, taskId = taskId, agentName = "ManagerAgent")
+            val preferred = resourceEngine.recommendProvider()
+            val synthResponse = router.executeWithFailover(
+                request = request,
+                preferredProvider = preferred,
+                taskId = taskId,
+                agentName = "ManagerAgent"
+            )
             if (synthResponse.isSuccess && synthResponse.content.isNotBlank()) {
                 synthResponse.content
             } else {
                 accumulatedOutput
             }
         } else {
-            "I encountered a difficulty executing that request: $accumulatedOutput"
+            "I encountered a difficulty executing that request after 3 self-healing attempts: $accumulatedOutput"
         }
 
         currentState = if (overallSuccess) AgentState.IDLE else AgentState.ERROR

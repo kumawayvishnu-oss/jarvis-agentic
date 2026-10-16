@@ -72,6 +72,10 @@ class AgentSoulManager(
         }
     }
 
+    fun getRecentStepLogsSnapshot(limit: Int = 6): List<SoulStepLog> {
+        return _recentLogsFlow.value.take(limit)
+    }
+
     init {
         scope.launch {
             soulDao.getActiveMissionFlow().collect { mission ->

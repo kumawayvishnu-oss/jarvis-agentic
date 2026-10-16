@@ -110,6 +110,17 @@ class ProviderVault private constructor(context: Context) {
         securePrefs?.edit()?.putString(urlKey, trimmed)?.apply()
     }
 
+    fun encryptCustomSecret(key: String, secret: String) {
+        val k = "sec_${key.trim().lowercase()}"
+        memoryFallback[k] = secret
+        securePrefs?.edit()?.putString(k, secret)?.apply()
+    }
+
+    fun decryptCustomSecret(key: String): String? {
+        val k = "sec_${key.trim().lowercase()}"
+        return securePrefs?.getString(k, null) ?: memoryFallback[k]
+    }
+
     private fun keyForProvider(provider: ModelProvider): String {
         return "api_key_${provider.id}"
     }

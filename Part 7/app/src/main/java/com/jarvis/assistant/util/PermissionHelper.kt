@@ -103,8 +103,7 @@ object PermissionHelper {
 
     fun hasAllRequiredPermissions(context: Context): Boolean {
         return hasRecordAudioPermission(context) &&
-               hasNotificationPermission(context) &&
-               hasBatteryOptimizationPermission(context)
+               hasNotificationPermission(context)
     }
 
     fun requestBatteryOptimization(context: Context) {
