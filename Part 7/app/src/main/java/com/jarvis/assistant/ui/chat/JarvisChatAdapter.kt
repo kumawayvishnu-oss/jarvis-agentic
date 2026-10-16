@@ -66,10 +66,6 @@ class JarvisChatAdapter(
                 binding.btnAssistantCopy.setOnClickListener {
                     copyToClipboard(context, "Jarvis response", turn.jarvisResponse)
                 }
-
-                binding.btnAssistantPlay.setOnClickListener {
-                    Toast.makeText(context, "Playing response...", Toast.LENGTH_SHORT).show()
-                }
             } else {
                 binding.layoutAssistantContainer.visibility = View.GONE
             }

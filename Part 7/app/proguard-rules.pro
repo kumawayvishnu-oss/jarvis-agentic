@@ -16,14 +16,14 @@
 # JNA ships optional desktop AWT bridges that are not present on Android; app code does not use them.
 -dontwarn java.awt.**
 
-# Keep Room database models
+# Keep Room database & Agentic models
 -keep class androidx.room.** { *; }
 -keep class * extends androidx.room.RoomDatabase
-
+-keep class com.jarvis.assistant.agentic.** { *; }
+-keep class com.jarvis.assistant.data.memory.** { *; }
 
 # ── Tech GPTx Security Module — keep rules ───────────────────────────────────
 -keep class com.jarvis.assistant.security.SecurityManager { *; }
--keep class com.jarvis.assistant.security.DeveloperInfo { *; }
 -keep class com.jarvis.assistant.security.AppIdentityVerifier { *; }
 
 # Obfuscate everything else aggressively
