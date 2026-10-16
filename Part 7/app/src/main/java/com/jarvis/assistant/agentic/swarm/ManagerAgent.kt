@@ -11,6 +11,9 @@ import com.jarvis.assistant.agentic.soul.TaskPriority
 import com.jarvis.assistant.agentic.soul.TaskStatus
 import com.jarvis.assistant.agentic.soul.UserSoulManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
 /**
@@ -103,7 +106,7 @@ class ManagerAgent private constructor(
         val safetyVerdict = resourceEngine.evaluateSafetyGate(userGoal)
         if (!safetyVerdict.allowedImmediately && safetyVerdict.requiresConfirmation && !userGoal.contains("[CONFIRMED]", ignoreCase = true)) {
             val confirmMsg = "⚠️ ${safetyVerdict.reason}\nLakshya: '$userGoal'\nKripya confirm karein ('Haan confirm' bolein ya likhein)."
-            agentSoulManager.updateTaskStatus(taskId, TaskStatus.PAUSED, confirmMsg)
+            agentSoulManager.updateTaskStatus(taskId, TaskStatus.PENDING, confirmMsg)
             currentState = AgentState.IDLE
             return@withContext confirmMsg
         }
@@ -176,10 +179,10 @@ class ManagerAgent private constructor(
         }
 
         if (isParallelEligible) {
-            val results = kotlinx.coroutines.coroutineScope {
+            val results: List<Boolean> = coroutineScope {
                 subGoals.mapIndexed { idx, sg ->
-                    kotlinx.coroutines.async { runSingleSubGoal(idx + 1, sg) }
-                }.map { it.await() }
+                    async { runSingleSubGoal(idx + 1, sg) }
+                }.awaitAll()
             }
             overallSuccess = results.all { it }
         } else {

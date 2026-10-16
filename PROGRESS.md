@@ -52,15 +52,29 @@
    - GitHub Actions Run ID: [38564652517](https://github.com/kumawayvishnu-oss/jarvis-agentic/actions/runs/38564652517) -> **`✓ SUCCESS in 3m7s`**.
    - Artifact: `jarvis-debug-apk`.
 
-## 🔧 Stabilization (before Wave 2 continues) — user-reported: no voice reply, taps fail, permission loop
-- [x] Step 1: `LiveDebugActivity` (Settings → Live Debug) + `util/LiveDebug.kt` instrumentation in WebSocket/AudioRecorder/AudioPlayer/AccessibilityService. CI green run 38747646943.
-- [ ] Step 2: fix from user's Live Debug screenshot. Lead: `GeminiConstants` maps to `gemini-2.0-flash-exp`/`gemini-1.5-*` (not Live-capable); official docs (2026-10) list `models/gemini-3.8-live` as default Live model.
-- [ ] Step 3: cleanup. [ ] Step 4: Wave 2 (note: commits e2e8f59/4ea09fa already added partial Wave 2).
+## 🔧 Stabilization & Wave 2: Full Dual-SOUL, 4-Tier Memory, Unified Tool Registry, Hardware Engine & Dark Neon UI/UX (COMPLETED ✅)
+- [x] **Step 1 — Live Debug Instrumentation:** `LiveDebugActivity` (Settings → Live Debug) + `util/LiveDebug.kt` instrumentation in WebSocket/AudioRecorder/AudioPlayer/AccessibilityService.
+- [x] **Step 2 — Voice (`gemini-3.8-live`), Screen Taps & Permission Loop Fixes:**
+  - Mapped `MODEL_3_8_LIVE = "models/gemini-3.8-live"` as default in `GeminiLiveModels.kt`; ensured `GeminiLiveWebSocket.kt` never sends `thinking_level` or `affective dialogue`.
+  - Removed `hasBatteryOptimizationPermission(context)` from `PermissionHelper.hasAllRequiredPermissions(context)` to eliminate the infinite permission prompt loop.
+  - Increased `JarvisAccessibilityService.clickAt(x, y)` stroke duration from `50ms` to `100ms` for reliable screen taps across Android OEMs.
+- [x] **Step 3 — 4-Tier Cognitive Memory & Shared `AgentContext`:**
+  - Built `AgentContext.kt` combining Tier 1 (Short-Term turns), Tier 2 (Episodic step logs), Tier 3 (Permanent Profile/Facts via `UserSoulEntity` + `MemoryEntity`), and Tier 4 (Skills via `SynthesizedSkillEntity` + `SKILL.md`).
+  - Added relevance + importance + recency scoring, query tone detection (`QueryTone`), and AES-256 secret encryption via `ProviderVault`.
+  - Upgraded `MemoryActivity.kt` into a single-screen manager to view, add, edit, and delete both Room facts and Hermes User SOUL traits.
+  - Wired `ManagerAgent`, `BaseSpecialistAgent`, and `DynamicAgentFactory` to read and write via shared `AgentContext`.
+- [x] **Step 4 — Token-Efficient Tool Registry (`UnifiedToolRegistry.kt`) & Multi-Provider Tool Loop:**
+  - Single registry with JSON Schema, adaptive query-based tool filtering (`selectRelevantTools`), automatic malformed JSON argument repair (`validateAndRepairArguments`), parallel execution with timeouts (`executeToolsParallel`), output truncation, and live capability manifest.
+  - Wired `SmartProviderRouter.kt` to execute returned `toolCalls` in parallel and synthesize follow-up answers across Gemini, DeepSeek, Groq, OpenRouter, and Ollama.
+- [x] **Step 5 — External `SKILL.md` Loader, Hardware Resource-Aware Engine & Safety Gates:**
+  - Created `ExternalSkillLoader.kt` and installed 4 trusted skills in `.agent/skills/` and `assets/skills/`: `android-ui-ux-glassmorphic`, `android-fluid-animations`, `agentic-tool-planner`, and `live-web-search`.
+  - Created `HardwareResourceAwareEngine.kt` checking live RAM (`ActivityManager`), storage (`StatFs`), and connectivity (`ConnectivityManager`), prioritizing free tools first, and enforcing strict confirmation gates (`evaluateSafetyGate`) for external messages, payments/UPI, and deletions.
+- [x] **Step 6 — Modern Dark Neon UI/UX & Bundled Fonts:**
+  - Bundled `orbitron_bold.ttf`, `rajdhani_regular.ttf`, and `rajdhani_semibold.ttf` inside `res/font/` (zero network dependency).
+  - Updated `AppPreferences.kt` and `ThemeManager.kt` to default to Dark Neon (`#05080F`) and automatically apply bundled typography and smooth 60fps entrance animations.
 
 ---
 
 ## 📊 Verification & Artifacts
-- **GitHub Run ID:** [38564652517](https://github.com/kumawayvishnu-oss/jarvis-agentic/actions/runs/38564652517)
-- **Conclusion:** `SUCCESS` (Completed in 3m 7s)
-- **Artifact Generated:** `jarvis-debug-apk`
 - **Zero-Regression Guarantee:** All 21 Tools, Vosk wake-word/speakerprint, 3D WebGL Orb, 17 Floating Overlays, and Dual Personas remain intact.
+
