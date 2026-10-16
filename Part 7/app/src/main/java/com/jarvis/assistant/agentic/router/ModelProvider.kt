@@ -40,6 +40,27 @@ enum class ModelProvider(
         defaultModel = "meta-llama/llama-3.3-70b-instruct:free",
         defaultRpmLimit = 20
     ),
+    CEREBRAS(
+        id = "cerebras",
+        displayName = "Cerebras Wafer-Scale (Ultra-Fast)",
+        baseUrl = "https://api.cerebras.ai/v1",
+        defaultModel = "llama-3.3-70b",
+        defaultRpmLimit = 30
+    ),
+    MISTRAL(
+        id = "mistral",
+        displayName = "Mistral AI (La Plateforme)",
+        baseUrl = "https://api.mistral.ai/v1",
+        defaultModel = "mistral-small-latest",
+        defaultRpmLimit = 30
+    ),
+    SAMBANOVA(
+        id = "sambanova",
+        displayName = "SambaNova Cloud RDU",
+        baseUrl = "https://api.sambanova.ai/v1",
+        defaultModel = "Meta-Llama-3.3-70B-Instruct",
+        defaultRpmLimit = 20
+    ),
     OLLAMA_LOCAL(
         id = "ollama",
         displayName = "Local Ollama Engine",

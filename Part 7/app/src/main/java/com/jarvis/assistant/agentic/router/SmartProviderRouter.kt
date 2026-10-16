@@ -23,8 +23,11 @@ class SmartProviderRouter private constructor(
     // Default provider priority order
     private val defaultCascade = listOf(
         ModelProvider.GEMINI,
-        ModelProvider.DEEPSEEK,
         ModelProvider.GROQ,
+        ModelProvider.CEREBRAS,
+        ModelProvider.MISTRAL,
+        ModelProvider.SAMBANOVA,
+        ModelProvider.DEEPSEEK,
         ModelProvider.OPENROUTER,
         ModelProvider.OLLAMA_LOCAL
     )
