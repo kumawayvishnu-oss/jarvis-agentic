@@ -52,23 +52,11 @@ object GeminiConstants {
         "Zephyr"
     )
 
-    const val PERSONALITY_ASSISTANT = "Jarvis Pro"
-    const val PERSONALITY_GIRLFRIEND = "Girlfriend Mode"
-    const val PERSONALITY_BOYFRIEND = "Boyfriend Mode"
-    const val PERSONALITY_TECHGPT_X = "TechGPT X Mode"
-    const val PERSONALITY_COMPANION = "Companion Mode"
-    const val PERSONALITY_PROFESSIONAL = "Professional Mode"
-    const val PERSONALITY_FOCUS = "Focus Mode"
+    const val PERSONALITY_JARVIS = "JARVIS"
+    const val PERSONALITY_ASSISTANT = PERSONALITY_JARVIS
+    const val PERSONALITY_NAIRA = "NAIRA"
 
-    val SUPPORTED_PERSONALITIES = listOf(
-        PERSONALITY_ASSISTANT,
-        PERSONALITY_GIRLFRIEND,
-        PERSONALITY_BOYFRIEND,
-        PERSONALITY_TECHGPT_X,
-        PERSONALITY_COMPANION,
-        PERSONALITY_FOCUS,
-        PERSONALITY_PROFESSIONAL
-    )
+    val SUPPORTED_PERSONALITIES = listOf(PERSONALITY_JARVIS, PERSONALITY_NAIRA)
 
     const val WS_BASE_URL = "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent"
     const val SESSION_RENEWAL_MS = 9 * 60 * 1000L // 9 minutes

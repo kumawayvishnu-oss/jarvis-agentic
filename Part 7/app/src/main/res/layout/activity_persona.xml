@@ -103,7 +103,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="7dp"
-                        android:text="Jarvis Pro · Charon"
+                        android:text="JARVIS · Charon"
                         android:textColor="?attr/themeTextPrimary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -113,13 +113,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="3dp"
-                        android:text="Ready to help, TechGPT X."
+                        android:text="Ready to help, Operator."
                         android:textColor="?attr/themeTextMuted"
                         android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 1. Jarvis Pro (Default) -->
+            <!-- 1. JARVIS (Core Agent) -->
             <LinearLayout
                 android:id="@+id/cardPersonaJarvis"
                 android:layout_width="match_parent"
@@ -142,7 +142,7 @@
                         android:src="@drawable/ic_nav_home"
                         app:tint="@color/accent_sapphire"
                         android:padding="12dp"
-                        android:contentDescription="Jarvis" />
+                        android:contentDescription="JARVIS" />
                 </FrameLayout>
 
                 <LinearLayout
@@ -161,7 +161,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Jarvis Pro"
+                            android:text="JARVIS"
                             android:textColor="?attr/themeTextPrimary"
                             android:textSize="16sp"
                             android:fontFamily="sans-serif-medium"
@@ -170,7 +170,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="DEFAULT AI"
+                            android:text="CORE AGENT"
                             android:singleLine="true"
                             android:maxLines="1"
                             android:textColor="@color/accent_sapphire"
@@ -188,7 +188,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Intelligent, witty &amp; strategic assistant by TechGPT X"
+                        android:text="Strategic, direct &amp; autonomous male voice agent"
                         android:textColor="?attr/themeTextMuted"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif"
@@ -203,177 +203,9 @@
                     android:focusable="false" />
             </LinearLayout>
 
-            <!-- 2. Girlfriend Mode (Pari) -->
+            <!-- 2. NAIRA (Dual Soul) -->
             <LinearLayout
-                android:id="@+id/cardPersonaGirlfriend"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_jarvis_card"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginBottom="12dp">
-
-                <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_jarvis_avatar"
-                        android:src="@drawable/ic_nav_chat"
-                        app:tint="#EC4899"
-                        android:padding="12dp"
-                        android:contentDescription="Girlfriend" />
-                </FrameLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="14dp">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Girlfriend Mode (Pari)"
-                            android:textColor="?attr/themeTextPrimary"
-                            android:textSize="16sp"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="SWEET"
-                            android:singleLine="true"
-                            android:maxLines="1"
-                            android:textColor="#EC4899"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
-                            android:fontFamily="sans-serif-medium"
-                            android:background="@drawable/bg_jarvis_chip"
-                            android:paddingStart="6dp"
-                            android:paddingEnd="6dp"
-                            android:paddingTop="2dp"
-                            android:paddingBottom="2dp"
-                            android:layout_marginStart="8dp" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Caring, warm, affectionate Hinglish companion"
-                        android:textColor="?attr/themeTextMuted"
-                        android:textSize="12sp"
-                        android:fontFamily="sans-serif"
-                        android:layout_marginTop="2dp" />
-                </LinearLayout>
-
-                <RadioButton
-                    android:id="@+id/rbSelectGirlfriend"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="false"
-                    android:focusable="false" />
-            </LinearLayout>
-
-            <!-- 3. Boyfriend Mode (Kabir) -->
-            <LinearLayout
-                android:id="@+id/cardPersonaBoyfriend"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_jarvis_card"
-                android:padding="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginBottom="12dp">
-
-                <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_jarvis_avatar"
-                        android:src="@drawable/ic_settings_shield"
-                        app:tint="#3B82F6"
-                        android:padding="12dp"
-                        android:contentDescription="Boyfriend" />
-                </FrameLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginStart="14dp">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Boyfriend Mode (Kabir)"
-                            android:textColor="?attr/themeTextPrimary"
-                            android:textSize="16sp"
-                            android:fontFamily="sans-serif-medium"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="CHARMING"
-                            android:singleLine="true"
-                            android:maxLines="1"
-                            android:textColor="#3B82F6"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
-                            android:fontFamily="sans-serif-medium"
-                            android:background="@drawable/bg_jarvis_chip"
-                            android:paddingStart="6dp"
-                            android:paddingEnd="6dp"
-                            android:paddingTop="2dp"
-                            android:paddingBottom="2dp"
-                            android:layout_marginStart="8dp" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Charismatic, protective &amp; supportive partner"
-                        android:textColor="?attr/themeTextMuted"
-                        android:textSize="12sp"
-                        android:fontFamily="sans-serif"
-                        android:layout_marginTop="2dp" />
-                </LinearLayout>
-
-                <RadioButton
-                    android:id="@+id/rbSelectBoyfriend"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="false"
-                    android:focusable="false" />
-            </LinearLayout>
-
-            <!-- 4. TechGPT X Mode -->
-            <LinearLayout
-                android:id="@+id/cardPersonaTechGpt"
+                android:id="@+id/cardPersonaNaira"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -391,10 +223,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:background="@drawable/bg_jarvis_avatar"
-                        android:src="@drawable/ic_code_chip"
-                        app:tint="#10B981"
+                        android:src="@drawable/ic_nav_chat"
+                        app:tint="#FF4081"
                         android:padding="12dp"
-                        android:contentDescription="TechGPT X" />
+                        android:contentDescription="NAIRA" />
                 </FrameLayout>
 
                 <LinearLayout
@@ -413,7 +245,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TechGPT X Mode"
+                            android:text="NAIRA"
                             android:textColor="?attr/themeTextPrimary"
                             android:textSize="16sp"
                             android:fontFamily="sans-serif-medium"
@@ -422,10 +254,10 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="NEURAL CORE"
+                            android:text="DUAL SOUL"
                             android:singleLine="true"
                             android:maxLines="1"
-                            android:textColor="#10B981"
+                            android:textColor="#FF4081"
                             android:textSize="10sp"
                             android:textStyle="bold"
                             android:fontFamily="sans-serif-medium"
@@ -440,7 +272,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Ultra-fast code architecture, research &amp; deep reasoning"
+                        android:text="Natural, warm &amp; sharp female voice agent"
                         android:textColor="?attr/themeTextMuted"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif"
@@ -448,7 +280,7 @@
                 </LinearLayout>
 
                 <RadioButton
-                    android:id="@+id/rbSelectTechGpt"
+                    android:id="@+id/rbSelectNaira"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:clickable="false"
@@ -459,7 +291,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="User Name (Default: TechGPT X)"
+                android:text="User Name (Default: Operator)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -498,8 +330,8 @@
                         android:id="@+id/etUserName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="TechGPT X"
-                        android:text="TechGPT X"
+                        android:hint="Operator"
+                        android:text="Operator"
                         android:inputType="textPersonName"
                         android:textColor="?attr/themeTextPrimary"
                         android:textSize="14sp"

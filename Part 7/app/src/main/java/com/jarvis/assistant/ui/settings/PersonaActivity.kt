@@ -15,7 +15,7 @@ class PersonaActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPersonaBinding
     private val preferences by lazy { JarvisApp.instance.preferences }
 
-    private var currentSelectedPersona = GeminiConstants.PERSONALITY_ASSISTANT
+    private var currentSelectedPersona = GeminiConstants.PERSONALITY_JARVIS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeManager.applyTheme(this)
@@ -37,15 +37,14 @@ class PersonaActivity : AppCompatActivity() {
 
     private fun loadInitialState() {
         val current = preferences.personality
-        val initialPersona = when (current) {
-            GeminiConstants.PERSONALITY_GIRLFRIEND -> GeminiConstants.PERSONALITY_GIRLFRIEND
-            GeminiConstants.PERSONALITY_BOYFRIEND -> GeminiConstants.PERSONALITY_BOYFRIEND
-            GeminiConstants.PERSONALITY_TECHGPT_X -> GeminiConstants.PERSONALITY_TECHGPT_X
-            else -> GeminiConstants.PERSONALITY_ASSISTANT
+        val initialPersona = if (current.equals(GeminiConstants.PERSONALITY_NAIRA, ignoreCase = true)) {
+            GeminiConstants.PERSONALITY_NAIRA
+        } else {
+            GeminiConstants.PERSONALITY_JARVIS
         }
         selectPersona(initialPersona, updateVoiceDefault = false)
 
-        binding.etUserName.setText(preferences.userName.ifBlank { "TechGPT X" })
+        binding.etUserName.setText(preferences.userName.ifBlank { "Operator" })
 
         selectVoice(preferences.voice)
         updatePersonaPreview()
@@ -59,19 +58,11 @@ class PersonaActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) = Unit
         })
         binding.cardPersonaJarvis.setOnClickListener {
-            selectPersona(GeminiConstants.PERSONALITY_ASSISTANT, updateVoiceDefault = true)
+            selectPersona(GeminiConstants.PERSONALITY_JARVIS, updateVoiceDefault = true)
         }
 
-        binding.cardPersonaGirlfriend.setOnClickListener {
-            selectPersona(GeminiConstants.PERSONALITY_GIRLFRIEND, updateVoiceDefault = true)
-        }
-
-        binding.cardPersonaBoyfriend.setOnClickListener {
-            selectPersona(GeminiConstants.PERSONALITY_BOYFRIEND, updateVoiceDefault = true)
-        }
-
-        binding.cardPersonaTechGpt.setOnClickListener {
-            selectPersona(GeminiConstants.PERSONALITY_TECHGPT_X, updateVoiceDefault = true)
+        binding.cardPersonaNaira.setOnClickListener {
+            selectPersona(GeminiConstants.PERSONALITY_NAIRA, updateVoiceDefault = true)
         }
 
         binding.btnActivatePersona.setOnClickListener {
@@ -80,19 +71,17 @@ class PersonaActivity : AppCompatActivity() {
     }
 
     private fun selectPersona(personaKey: String, updateVoiceDefault: Boolean) {
-        currentSelectedPersona = personaKey
+        val isNaira = personaKey.equals(GeminiConstants.PERSONALITY_NAIRA, ignoreCase = true)
+        currentSelectedPersona = if (isNaira) GeminiConstants.PERSONALITY_NAIRA else GeminiConstants.PERSONALITY_JARVIS
 
-        binding.rbSelectJarvis.isChecked = (personaKey == GeminiConstants.PERSONALITY_ASSISTANT)
-        binding.rbSelectGirlfriend.isChecked = (personaKey == GeminiConstants.PERSONALITY_GIRLFRIEND)
-        binding.rbSelectBoyfriend.isChecked = (personaKey == GeminiConstants.PERSONALITY_BOYFRIEND)
-        binding.rbSelectTechGpt.isChecked = (personaKey == GeminiConstants.PERSONALITY_TECHGPT_X)
+        binding.rbSelectJarvis.isChecked = !isNaira
+        binding.rbSelectNaira.isChecked = isNaira
 
         if (updateVoiceDefault) {
-            when (personaKey) {
-                GeminiConstants.PERSONALITY_GIRLFRIEND -> selectVoice("Aoede")
-                GeminiConstants.PERSONALITY_BOYFRIEND -> selectVoice("Fenrir")
-                GeminiConstants.PERSONALITY_TECHGPT_X -> selectVoice("Puck")
-                else -> selectVoice("Charon")
+            if (isNaira) {
+                selectVoice("Aoede")
+            } else {
+                selectVoice("Charon")
             }
         }
         if (::binding.isInitialized) updatePersonaPreview()
@@ -100,13 +89,12 @@ class PersonaActivity : AppCompatActivity() {
 
     private fun updatePersonaPreview() {
         if (!::binding.isInitialized) return
-        val persona = when (currentSelectedPersona) {
-            GeminiConstants.PERSONALITY_GIRLFRIEND -> "Pari"
-            GeminiConstants.PERSONALITY_BOYFRIEND -> "Kabir"
-            GeminiConstants.PERSONALITY_TECHGPT_X -> "TechGPT X"
-            else -> "Jarvis Pro"
+        val persona = if (currentSelectedPersona.equals(GeminiConstants.PERSONALITY_NAIRA, ignoreCase = true)) {
+            "NAIRA"
+        } else {
+            "JARVIS"
         }
-        val operator = binding.etUserName.text?.toString()?.trim().takeUnless { it.isNullOrBlank() } ?: "TechGPT X"
+        val operator = binding.etUserName.text?.toString()?.trim().takeUnless { it.isNullOrBlank() } ?: "Operator"
         binding.tvPersonaPreview.text = "$persona · ${getSelectedVoice()}"
         binding.tvPersonaGreeting.text = "Ready to help, $operator."
     }
@@ -137,18 +125,17 @@ class PersonaActivity : AppCompatActivity() {
         if (!userName.isNullOrBlank()) {
             preferences.userName = userName
         } else {
-            preferences.userName = "TechGPT X"
+            preferences.userName = "Operator"
         }
 
         val voice = getSelectedVoice()
         preferences.voice = voice
         preferences.personality = currentSelectedPersona
 
-        val personaDisplayName = when (currentSelectedPersona) {
-            GeminiConstants.PERSONALITY_GIRLFRIEND -> "Pari (Girlfriend Mode)"
-            GeminiConstants.PERSONALITY_BOYFRIEND -> "Kabir (Boyfriend Mode)"
-            GeminiConstants.PERSONALITY_TECHGPT_X -> "TechGPT X Neural Core"
-            else -> "Jarvis Pro"
+        val personaDisplayName = if (currentSelectedPersona.equals(GeminiConstants.PERSONALITY_NAIRA, ignoreCase = true)) {
+            "NAIRA"
+        } else {
+            "JARVIS"
         }
 
         Toast.makeText(
