@@ -149,7 +149,8 @@
                 android:gravity="center"
                 android:background="@drawable/bg_jarvis_chip"
                 android:paddingStart="12dp"
-                android:paddingEnd="14dp">
+                android:paddingEnd="14dp"
+                android:layout_marginEnd="8dp">
 
                 <ImageView
                     android:layout_width="16dp"
@@ -164,6 +165,28 @@
                     android:layout_height="wrap_content"
                     android:text="Providers"
                     android:textColor="?attr/themeTextPrimary"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Chip 3: Autonomous AI Terminal Live Preview -->
+            <LinearLayout
+                android:id="@+id/chipAiPreview"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="@drawable/bg_jarvis_chip"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp">
+
+                <TextView
+                    android:id="@+id/tvChipPreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚡ Live Preview"
+                    android:textColor="?attr/themeAccent"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-medium"
                     android:textStyle="bold" />

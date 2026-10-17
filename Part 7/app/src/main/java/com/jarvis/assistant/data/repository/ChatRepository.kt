@@ -46,6 +46,28 @@ class ChatRepository(private val preferences: AppPreferences) {
     }
 
     @Synchronized
+    fun updateLastTurnReply(userText: String, jarvisText: String) {
+        val cleanUser = userText.trim()
+        val cleanJarvis = jarvisText.trim()
+        val currentList = _turns.value.toMutableList()
+
+        val matchIndex = currentList.indexOfLast {
+            it.userTranscript == cleanUser &&
+                (it.jarvisResponse.isBlank() || it.jarvisResponse.startsWith("⏳"))
+        }
+
+        if (matchIndex >= 0) {
+            currentList[matchIndex] = currentList[matchIndex].copy(
+                jarvisResponse = cleanJarvis
+            )
+            _turns.value = currentList
+            preferences.saveChatHistory(currentList)
+        } else {
+            addTurn(cleanUser, cleanJarvis)
+        }
+    }
+
+    @Synchronized
     fun clearHistory() {
         _turns.value = emptyList()
         preferences.clearChatHistory()

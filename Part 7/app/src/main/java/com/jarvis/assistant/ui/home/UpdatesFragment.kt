@@ -44,6 +44,9 @@ class UpdatesFragment : Fragment() {
     private var dynamicTasksLayout: LinearLayout? = null
     private var dynamicSoulLayout: LinearLayout? = null
     private var dynamicLogsLayout: LinearLayout? = null
+    private var dynamicTerminalStatusTv: TextView? = null
+    private var dynamicTerminalConsoleTv: TextView? = null
+    private var dynamicPreviewSummaryTv: TextView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -91,7 +94,7 @@ class UpdatesFragment : Fragment() {
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
-                text = "Direct Goal & Task Execution"
+                text = "Direct Goal & Multi-Agent Task Execution"
                 textSize = 14f
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
@@ -99,7 +102,7 @@ class UpdatesFragment : Fragment() {
             })
 
             val etGoal = EditText(requireContext()).apply {
-                hint = "Enter task (e.g. 'Turn on flashlight', 'Search AI news', 'Open WhatsApp')..."
+                hint = "Enter goal (e.g. 'Build neon calculator app', 'Search AI news', 'Turn on flashlight')..."
                 setHintTextColor(Color.parseColor("#64748B"))
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 textSize = 13f
@@ -124,10 +127,12 @@ class UpdatesFragment : Fragment() {
                 orientation = LinearLayout.HORIZONTAL
             }
             val quickGoals = listOf(
+                "🤖 Build Neon App" to "agy Build a futuristic neon scientific & EMI calculator web app",
+                "🖥️ Terminal SysInfo" to "r sysinfo",
                 "💡 Torch On" to "Turn on flashlight",
                 "🔍 Search News" to "Search latest tech news",
                 "📱 WhatsApp" to "Open WhatsApp",
-                "🧠 Complex Goal" to "Search Kotlin version and then turn on torch"
+                "🧠 Multi-Step" to "Search Kotlin version and then turn on torch"
             )
             quickGoals.forEach { (label, goalText) ->
                 val chip = TextView(requireContext()).apply {
@@ -193,6 +198,124 @@ class UpdatesFragment : Fragment() {
             addView(btnLaunch)
         }
         container.addView(dispatcherCard)
+
+        // 0.5 Autonomous AI-Only Linux Terminal Console & Antigravity Builder (READ-ONLY FOR USER)
+        val terminalCard = createCard().apply {
+            addView(TextView(requireContext()).apply {
+                text = "🖥️ AUTONOMOUS AI LINUX TERMINAL • READ-ONLY CONSOLE"
+                textSize = 11f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeAccent))
+            })
+            addView(TextView(requireContext()).apply {
+                text = "Controlled Exclusively by AI Agents (Termux + Embedded Linux + Antigravity)"
+                textSize = 13f
+                setTypeface(typeface, Typeface.BOLD)
+                setTextColor(themeColor(R.attr.themeTextPrimary))
+                setPadding(0, dp(3), 0, dp(4))
+            })
+
+            dynamicTerminalStatusTv = TextView(requireContext()).apply {
+                text = "● AGENT SHELL IDLE • WORKSPACE READY"
+                textSize = 11f
+                setTypeface( Typeface.MONOSPACE, Typeface.BOLD)
+                setTextColor(Color.parseColor("#10B981"))
+                setPadding(0, 0, 0, dp(6))
+            }
+            addView(dynamicTerminalStatusTv)
+
+            // Dark Neon Monospace Terminal Screen (Read-Only for User)
+            dynamicTerminalConsoleTv = TextView(requireContext()).apply {
+                typeface = Typeface.MONOSPACE
+                textSize = 11f
+                setTextColor(Color.parseColor("#A5F3FC"))
+                setBackgroundColor(Color.parseColor("#030712"))
+                setPadding(dp(12), dp(10), dp(12), dp(10))
+                setTextIsSelectable(true)
+                text = "agent@jarvis-linux:~/workspace$ r sysinfo\n[AI Terminal Ready — Waiting for ManagerAgent / ShellCodingSpecialist commands...]"
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = dp(8) }
+            }
+            addView(dynamicTerminalConsoleTv)
+
+            dynamicPreviewSummaryTv = TextView(requireContext()).apply {
+                text = "Live Preview: Tap [👁️ Live Preview] to view AI-built web apps & code"
+                textSize = 11.5f
+                setTextColor(Color.parseColor("#38BDF8"))
+                setPadding(0, 0, 0, dp(8))
+            }
+            addView(dynamicPreviewSummaryTv)
+
+            // AI-Delegated Terminal Action Buttons (User triggers AI Agent goals, never raw terminal input)
+            val termActionScroll = HorizontalScrollView(requireContext()).apply {
+                isHorizontalScrollBarEnabled = false
+            }
+            val termActionRow = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+            }
+
+            fun addTermActionChip(label: String, onClick: () -> Unit) {
+                val btn = TextView(requireContext()).apply {
+                    text = label
+                    textSize = 11.5f
+                    setTypeface(typeface, Typeface.BOLD)
+                    setTextColor(themeColor(R.attr.themeAccent))
+                    setBackgroundResource(R.drawable.bg_jarvis_chip)
+                    setPadding(dp(12), dp(6), dp(12), dp(6))
+                    layoutParams = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    ).apply { marginEnd = dp(8) }
+                    setOnClickListener { onClick() }
+                }
+                termActionRow.addView(btn)
+            }
+
+            addTermActionChip("👁️ Live Preview") {
+                com.jarvis.assistant.ui.preview.AgentPreviewDialog.show(
+                    context = requireContext(),
+                    scope = viewLifecycleOwner.lifecycleScope
+                )
+            }
+            addTermActionChip("⚡ AI Build App") {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
+                    val res = shell.autonomousBuildAndPreview(
+                        goal = "Interactive Jarvis Neon System HUD & Scientific Calculator",
+                        rawCommand = "agy \"Interactive Jarvis Neon System HUD & Scientific Calculator\"",
+                        caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST
+                    )
+                    withContext(Dispatchers.Main) {
+                        if (isAdded) {
+                            com.jarvis.assistant.ui.preview.AgentPreviewDialog.show(
+                                context = requireContext(),
+                                scope = viewLifecycleOwner.lifecycleScope,
+                                initialArtifact = res.previewArtifact
+                            )
+                        }
+                    }
+                }
+            }
+            addTermActionChip("🛠️ AI Setup CLI") {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
+                    shell.executeCommand("r install-agy", com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
+                    shell.executeCommand("r sysinfo", com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
+                }
+            }
+            addTermActionChip("🩺 Perm Doctor") {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
+                    shell.executeCommand("perm all", com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
+                }
+            }
+
+            termActionScroll.addView(termActionRow)
+            addView(termActionScroll)
+        }
+        container.addView(terminalCard)
 
         // 1. Active Swarm Agents Card (चलते agents की स्थिति)
         val agentsCard = createCard().apply {
@@ -281,16 +404,16 @@ class UpdatesFragment : Fragment() {
         }
         container.addView(soulCard)
 
-        // 5. Multi-Provider Router Card
+        // 5. Multi-Provider Router Card (All 8 Providers)
         val routerCard = createCard().apply {
             addView(TextView(requireContext()).apply {
-                text = "🌐 MULTI-PROVIDER SMART ROUTER"
+                text = "🌐 8-PROVIDER SMART LLM ROUTER"
                 textSize = 11f
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
-                text = "Auto-Failover Matrix Status"
+                text = "Auto-Failover Cascade Matrix Status"
                 textSize = 14f
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
@@ -299,16 +422,22 @@ class UpdatesFragment : Fragment() {
             val vault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(requireContext())
             val geminiReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.GEMINI)
             val groqReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.GROQ)
-            val openRouterReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.OPENROUTER)
+            val cerebrasReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.CEREBRAS)
+            val mistralReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.MISTRAL)
+            val sambaNovaReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.SAMBANOVA)
             val deepSeekReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.DEEPSEEK)
+            val openRouterReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.OPENROUTER)
 
             val statusText = buildString {
-                append("• Gemini: ${if (geminiReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• Groq LPU: ${if (groqReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• OpenRouter: ${if (openRouterReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• DeepSeek: ${if (deepSeekReady) "✅ Ready" else "⚪ Optional"}\n")
-                append("• Local Ollama: ⚡ Ready\n")
-                append("Failover Cascade: Active (RPM 429 Protected)")
+                append("• 1. Google Gemini : ${if (geminiReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• 2. Groq LPU      : ${if (groqReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• 3. Cerebras WSE  : ${if (cerebrasReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• 4. Mistral AI    : ${if (mistralReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• 5. SambaNova RDU : ${if (sambaNovaReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• 6. DeepSeek V3   : ${if (deepSeekReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• 7. OpenRouter    : ${if (openRouterReady) "✅ Ready" else "⚪ No Key"}\n")
+                append("• 8. Local Ollama  : ⚡ Ready (http://127.0.0.1:11434)\n")
+                append("Failover Cascade: Active (RPM 429 Circuit-Breaker Protected)")
             }
 
             addView(TextView(requireContext()).apply {
@@ -319,6 +448,8 @@ class UpdatesFragment : Fragment() {
             })
         }
         container.addView(routerCard)
+
+        com.jarvis.assistant.util.ThemeManager.animateStaggeredChildren(container)
     }
 
     private fun observeLiveState() {
@@ -486,6 +617,39 @@ class UpdatesFragment : Fragment() {
                         }
                     } catch (e: Exception) {}
                 }
+
+                // 5. Observe Autonomous AI Terminal Logs & Live Preview State
+                val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
+                launch {
+                    shell.activeStatus.collectLatest { status ->
+                        dynamicTerminalStatusTv?.text = "● $status"
+                    }
+                }
+                launch {
+                    shell.terminalLogs.collectLatest { entries ->
+                        val tv = dynamicTerminalConsoleTv ?: return@collectLatest
+                        if (entries.isEmpty()) {
+                            tv.text = "agent@jarvis-linux:~/workspace$ r sysinfo\n[AI Terminal Ready — Controlled by ManagerAgent & ShellCodingSpecialist]"
+                        } else {
+                            val recent = entries.takeLast(3)
+                            tv.text = recent.joinToString("\n\n") { e ->
+                                "[${e.timestamp}] (${e.caller} • ${e.backend.name} • exit=${e.exitCode})\n" +
+                                    "agent@jarvis-linux:~/workspace$ ${e.command}\n" +
+                                    e.output.lines().take(8).joinToString("\n")
+                            }
+                        }
+                    }
+                }
+                launch {
+                    shell.latestPreview.collectLatest { preview ->
+                        val tv = dynamicPreviewSummaryTv ?: return@collectLatest
+                        if (preview != null) {
+                            tv.text = "✅ Latest AI Preview: ${preview.title} (${preview.description}) — Tap [👁️ Live Preview]"
+                        } else {
+                            tv.text = "Live Preview: Tap [⚡ AI Build App] or ask JARVIS to code any web app/tool"
+                        }
+                    }
+                }
             }
         }
     }
@@ -642,6 +806,9 @@ class UpdatesFragment : Fragment() {
         dynamicSoulLayout = null
         dynamicTasksLayout = null
         dynamicLogsLayout = null
+        dynamicTerminalStatusTv = null
+        dynamicTerminalConsoleTv = null
+        dynamicPreviewSummaryTv = null
         _binding = null
     }
 }

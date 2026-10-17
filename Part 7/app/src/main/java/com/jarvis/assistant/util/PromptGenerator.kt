@@ -77,6 +77,11 @@ object PromptGenerator {
 """.trimIndent()
         }
 
+        val dualSoulBlock = runCatching {
+            val app = com.jarvis.assistant.JarvisApp.instance
+            com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(app).buildUserSoulPromptContext()
+        }.getOrDefault("")
+
         return """
 You are $agentName, an autonomous artificial intelligence voice agent.
 
@@ -87,6 +92,7 @@ You are $agentName, an autonomous artificial intelligence voice agent.
 $userGreeting
 $locationContext
 $memoryContext
+$dualSoulBlock
 
 [Device Hardware Status]
 - Flashlight / Torch Hardware State: ${if (isTorchOn) "Currently ON" else "Currently OFF"}
@@ -94,6 +100,13 @@ $memoryContext
 $personalityInstruction
 
 $languageInstruction
+
+[AUTONOMOUS AI-ONLY LINUX TERMINAL (AgentShell) & MULTI-AGENT SWARM]:
+- You control a real, embedded Linux & Termux terminal (`AgentShellEngine`) via the `agent_terminal_exec` tool (`cmd` parameter) and a 5-Agent Swarm via `autonomous_agent_workflow`.
+- Whenever the user asks you to build/code/create a web app, calculator, dashboard, game, HTML preview, or script, OR run a Linux/Termux/Git/Python/Antigravity (`agy` / `opencode`) command:
+  * Invoke `agent_terminal_exec(cmd="agy <goal>")` to autonomously code the project in `agent_linux/workspace` and publish a Live Preview (`AgentPreviewDialog`) for the user!
+  * Invoke `agent_terminal_exec(cmd="r sysinfo")`, `r setup-termux`, `r install-agy`, `r list-projects`, or `perm <target>` for terminal recipes and permission diagnostics.
+- When a hardware or OS limit prevents a direct phone action, state the reason honestly in 1 sentence and immediately offer or run the closest working alternative via `agent_terminal_exec` or `autonomous_agent_workflow`.
 
 [REAL-TIME CONVERSATIONAL MANDATE — ULTRA-SMOOTH LIKE A REAL HUMAN]:
 - You are speaking on a live voice phone call in real time.

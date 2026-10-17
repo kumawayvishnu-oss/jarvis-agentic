@@ -108,7 +108,7 @@
                     android:id="@+id/tvEndpointSummary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Failover Priority: Gemini 1.5 ➔ Groq LPU ➔ OpenRouter ➔ Local"
+                    android:text="8-Provider Cascade: Gemini ➔ Groq ➔ Cerebras ➔ Mistral ➔ SambaNova ➔ DeepSeek ➔ OpenRouter ➔ Ollama"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif"
@@ -119,7 +119,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Primary Provider: Google Gemini"
+                android:text="Primary Provider: Google Gemini (Voice + Agent)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -227,7 +227,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gemini Model Engine"
+                    android:text="Gemini Live Voice &amp; Agent Engine"
                     android:textColor="?attr/themeTextPrimary"
                     android:textSize="14sp"
                     android:textStyle="bold"
@@ -240,10 +240,18 @@
                     android:layout_height="wrap_content">
 
                     <RadioButton
+                        android:id="@+id/rbModelFlash20"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="gemini-2.5-flash-native-audio (Real-Time Bidi Live Voice)"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="13sp" />
+
+                    <RadioButton
                         android:id="@+id/rbModelFlash15"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="gemini-1.5-flash (Balanced &amp; Stable)"
+                        android:text="gemini-2.5-flash (Autonomous Agent &amp; Tool Planner)"
                         android:textColor="?attr/themeTextPrimary"
                         android:textSize="13sp" />
 
@@ -251,15 +259,7 @@
                         android:id="@+id/rbModelFlashThinking"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="gemini-2.0-flash (Ultra-Fast Live Preview)"
-                        android:textColor="?attr/themeTextPrimary"
-                        android:textSize="13sp" />
-
-                    <RadioButton
-                        android:id="@+id/rbModelFlash20"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="gemini-1.5-pro (Flagship Cognitive Reasoning)"
+                        android:text="gemini-2.5-pro-preview (Deep Cognitive Reasoning)"
                         android:textColor="?attr/themeTextPrimary"
                         android:textSize="13sp" />
                 </RadioGroup>
@@ -583,11 +583,329 @@
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
+            <!-- Card 5B: Cerebras Wafer-Scale (Fallback 4) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fallback 4: Cerebras Wafer-Scale (~2000 tok/s)"
+                android:textColor="?attr/themeTextMuted"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_jarvis_card"
+                android:padding="18dp"
+                android:layout_marginBottom="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cerebras API Key (csk-...)"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="?attr/themeAccent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCerebrasKey"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="csk-..."
+                        android:inputType="textPassword"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPasteCerebras"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Paste"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnClearCerebras"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeTextMuted"
+                        app:strokeWidth="1dp"
+                        android:text="Clear"
+                        android:textColor="?attr/themeTextMuted"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestCerebras"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Test Ping"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvCerebrasStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Not tested"
+                    android:textColor="?attr/themeTextMuted"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Card 5C: Mistral AI (Fallback 5) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fallback 5: Mistral AI (La Plateforme)"
+                android:textColor="?attr/themeTextMuted"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_jarvis_card"
+                android:padding="18dp"
+                android:layout_marginBottom="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mistral API Key"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="?attr/themeAccent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMistralKey"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Mistral Key..."
+                        android:inputType="textPassword"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPasteMistral"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Paste"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnClearMistral"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeTextMuted"
+                        app:strokeWidth="1dp"
+                        android:text="Clear"
+                        android:textColor="?attr/themeTextMuted"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestMistral"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Test Ping"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvMistralStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Not tested"
+                    android:textColor="?attr/themeTextMuted"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
+            <!-- Card 5D: SambaNova Cloud RDU (Fallback 6) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fallback 6: SambaNova Cloud RDU (Llama 3.3 70B)"
+                android:textColor="?attr/themeTextMuted"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_jarvis_card"
+                android:padding="18dp"
+                android:layout_marginBottom="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SambaNova API Key"
+                    android:textColor="?attr/themeTextPrimary"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxStrokeColor="?attr/themeAccent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSambaNovaKey"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="SambaNova UUID Key..."
+                        android:inputType="textPassword"
+                        android:textColor="?attr/themeTextPrimary"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="10dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPasteSambaNova"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Paste"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnClearSambaNova"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeTextMuted"
+                        app:strokeWidth="1dp"
+                        android:text="Clear"
+                        android:textColor="?attr/themeTextMuted"
+                        android:textSize="12sp"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestSambaNova"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="38dp"
+                        app:strokeColor="?attr/themeAccent"
+                        app:strokeWidth="1dp"
+                        android:text="Test Ping"
+                        android:textColor="?attr/themeAccent"
+                        android:textSize="12sp"
+                        android:textAllCaps="false" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvSambaNovaStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status: Not tested"
+                    android:textColor="?attr/themeTextMuted"
+                    android:textSize="12sp"
+                    android:layout_marginTop="6dp" />
+            </LinearLayout>
+
             <!-- Card 6: Local Ollama Engine -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fallback 4: Local Ollama (LAN / Termux Engine)"
+                android:text="Fallback 7: Local Ollama (LAN / Termux Engine)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"

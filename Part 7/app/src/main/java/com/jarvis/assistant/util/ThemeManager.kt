@@ -94,6 +94,9 @@ object ThemeManager {
             val rajdhaniReg = androidx.core.content.res.ResourcesCompat.getFont(ctx, R.font.rajdhani_regular)
 
             fun styleHierarchy(v: View) {
+                if (v is android.widget.Button || v is android.widget.ImageButton) {
+                    attachFluidPressEffect(v)
+                }
                 if (v is android.widget.TextView) {
                     val spSize = v.textSize / ctx.resources.displayMetrics.scaledDensity
                     when {
@@ -116,7 +119,56 @@ object ThemeManager {
                 .setDuration(220L)
                 .setInterpolator(android.view.animation.DecelerateInterpolator(1.5f))
                 .start()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+        }
+    }
+
+    /**
+     * Attaches a 60fps spring-like scale-down/scale-up tactile press animation with haptic feedback.
+     */
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
+    fun attachFluidPressEffect(view: View) {
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    v.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+                    v.animate()
+                        .scaleX(0.95f)
+                        .scaleY(0.95f)
+                        .setDuration(90L)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator())
+                        .start()
+                }
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    v.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(180L)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(1.4f))
+                        .start()
+                }
+            }
+            false
+        }
+    }
+
+    /**
+     * Animates children of a ViewGroup with a staggered 60fps slide-up + fade-in entrance.
+     */
+    fun animateStaggeredChildren(container: android.view.ViewGroup) {
+        val density = container.resources.displayMetrics.density
+        for (i in 0 until container.childCount) {
+            val child = container.getChildAt(i)
+            child.alpha = 0f
+            child.translationY = 18f * density
+            child.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay(i * 42L)
+                .setDuration(260L)
+                .setInterpolator(android.view.animation.DecelerateInterpolator(1.6f))
+                .start()
         }
     }
 }

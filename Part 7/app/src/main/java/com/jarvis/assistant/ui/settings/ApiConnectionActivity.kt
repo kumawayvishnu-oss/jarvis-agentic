@@ -69,7 +69,19 @@ class ApiConnectionActivity : AppCompatActivity() {
         val deepSeekKey = vault.getApiKey(ModelProvider.DEEPSEEK).orEmpty()
         binding.etDeepSeekKey.setText(deepSeekKey)
 
-        // 5. Ollama
+        // 5. Cerebras
+        val cerebrasKey = vault.getApiKey(ModelProvider.CEREBRAS).orEmpty()
+        binding.etCerebrasKey.setText(cerebrasKey)
+
+        // 6. Mistral
+        val mistralKey = vault.getApiKey(ModelProvider.MISTRAL).orEmpty()
+        binding.etMistralKey.setText(mistralKey)
+
+        // 7. SambaNova
+        val sambaNovaKey = vault.getApiKey(ModelProvider.SAMBANOVA).orEmpty()
+        binding.etSambaNovaKey.setText(sambaNovaKey)
+
+        // 8. Ollama
         val ollamaUrl = vault.getBaseUrl(ModelProvider.OLLAMA_LOCAL)
         binding.etOllamaUrl.setText(ollamaUrl)
 
@@ -77,12 +89,12 @@ class ApiConnectionActivity : AppCompatActivity() {
     }
 
     private fun updateOverallStatus() {
-        val hasGemini = !vault.getApiKey(ModelProvider.GEMINI).isNullOrBlank() || preferences.apiKey.isNotBlank()
-        val hasGroq = vault.hasApiKey(ModelProvider.GROQ)
-        val hasOpenRouter = vault.hasApiKey(ModelProvider.OPENROUTER)
+        val configuredCount = ModelProvider.entries.count { p ->
+            ! p.isLocal && vault.hasApiKey(p)
+        } + if (preferences.apiKey.isNotBlank() && !vault.hasApiKey(ModelProvider.GEMINI)) 1 else 0
 
-        if (hasGemini || hasGroq || hasOpenRouter) {
-            binding.tvLiveStatus.text = "VAULT ACTIVE • READY"
+        if (configuredCount > 0) {
+            binding.tvLiveStatus.text = "VAULT ACTIVE • $configuredCount/7 CLOUD KEYS + LOCAL READY"
             binding.viewStatusDot.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22C55E"))
         } else {
             binding.tvLiveStatus.text = "NO KEYS CONFIGURED • PLEASE ENTER KEYS"
@@ -159,6 +171,57 @@ class ApiConnectionActivity : AppCompatActivity() {
             testProvider(ModelProvider.DEEPSEEK, binding.btnTestDeepSeek, binding.tvDeepSeekStatus)
         }
 
+        // --- Cerebras ---
+        binding.btnPasteCerebras.setOnClickListener {
+            pasteToField(binding.etCerebrasKey, "Cerebras Key")
+        }
+        binding.btnClearCerebras.setOnClickListener {
+            binding.etCerebrasKey.setText("")
+        }
+        binding.btnTestCerebras.setOnClickListener {
+            val key = binding.etCerebrasKey.text?.toString()?.trim() ?: ""
+            if (key.isBlank()) {
+                binding.tvCerebrasStatus.text = "Status: ❌ Please enter Cerebras key"
+                return@setOnClickListener
+            }
+            vault.setApiKey(ModelProvider.CEREBRAS, key)
+            testProvider(ModelProvider.CEREBRAS, binding.btnTestCerebras, binding.tvCerebrasStatus)
+        }
+
+        // --- Mistral ---
+        binding.btnPasteMistral.setOnClickListener {
+            pasteToField(binding.etMistralKey, "Mistral Key")
+        }
+        binding.btnClearMistral.setOnClickListener {
+            binding.etMistralKey.setText("")
+        }
+        binding.btnTestMistral.setOnClickListener {
+            val key = binding.etMistralKey.text?.toString()?.trim() ?: ""
+            if (key.isBlank()) {
+                binding.tvMistralStatus.text = "Status: ❌ Please enter Mistral key"
+                return@setOnClickListener
+            }
+            vault.setApiKey(ModelProvider.MISTRAL, key)
+            testProvider(ModelProvider.MISTRAL, binding.btnTestMistral, binding.tvMistralStatus)
+        }
+
+        // --- SambaNova ---
+        binding.btnPasteSambaNova.setOnClickListener {
+            pasteToField(binding.etSambaNovaKey, "SambaNova Key")
+        }
+        binding.btnClearSambaNova.setOnClickListener {
+            binding.etSambaNovaKey.setText("")
+        }
+        binding.btnTestSambaNova.setOnClickListener {
+            val key = binding.etSambaNovaKey.text?.toString()?.trim() ?: ""
+            if (key.isBlank()) {
+                binding.tvSambaNovaStatus.text = "Status: ❌ Please enter SambaNova key"
+                return@setOnClickListener
+            }
+            vault.setApiKey(ModelProvider.SAMBANOVA, key)
+            testProvider(ModelProvider.SAMBANOVA, binding.btnTestSambaNova, binding.tvSambaNovaStatus)
+        }
+
         // --- Ollama ---
         binding.btnTestOllama.setOnClickListener {
             val url = binding.etOllamaUrl.text?.toString()?.trim() ?: ""
@@ -216,6 +279,9 @@ class ApiConnectionActivity : AppCompatActivity() {
         val groqKey = binding.etGroqKey.text?.toString()?.trim() ?: ""
         val openRouterKey = binding.etOpenRouterKey.text?.toString()?.trim() ?: ""
         val deepSeekKey = binding.etDeepSeekKey.text?.toString()?.trim() ?: ""
+        val cerebrasKey = binding.etCerebrasKey.text?.toString()?.trim() ?: ""
+        val mistralKey = binding.etMistralKey.text?.toString()?.trim() ?: ""
+        val sambaNovaKey = binding.etSambaNovaKey.text?.toString()?.trim() ?: ""
         val ollamaUrl = binding.etOllamaUrl.text?.toString()?.trim() ?: ""
         val customEp = binding.etCustomEndpoint.text?.toString()?.trim() ?: ""
 
@@ -225,11 +291,14 @@ class ApiConnectionActivity : AppCompatActivity() {
             else -> GeminiConstants.MODEL_3_1_FLASH
         }
 
-        // Save to Secure Vault
+        // Save all 8 providers to Secure Vault
         if (geminiKey.isNotBlank()) vault.setApiKey(ModelProvider.GEMINI, geminiKey) else vault.removeApiKey(ModelProvider.GEMINI)
         if (groqKey.isNotBlank()) vault.setApiKey(ModelProvider.GROQ, groqKey) else vault.removeApiKey(ModelProvider.GROQ)
         if (openRouterKey.isNotBlank()) vault.setApiKey(ModelProvider.OPENROUTER, openRouterKey) else vault.removeApiKey(ModelProvider.OPENROUTER)
         if (deepSeekKey.isNotBlank()) vault.setApiKey(ModelProvider.DEEPSEEK, deepSeekKey) else vault.removeApiKey(ModelProvider.DEEPSEEK)
+        if (cerebrasKey.isNotBlank()) vault.setApiKey(ModelProvider.CEREBRAS, cerebrasKey) else vault.removeApiKey(ModelProvider.CEREBRAS)
+        if (mistralKey.isNotBlank()) vault.setApiKey(ModelProvider.MISTRAL, mistralKey) else vault.removeApiKey(ModelProvider.MISTRAL)
+        if (sambaNovaKey.isNotBlank()) vault.setApiKey(ModelProvider.SAMBANOVA, sambaNovaKey) else vault.removeApiKey(ModelProvider.SAMBANOVA)
         if (ollamaUrl.isNotBlank()) vault.setBaseUrl(ModelProvider.OLLAMA_LOCAL, ollamaUrl)
 
         // Save legacy preferences for backward compatibility
@@ -244,7 +313,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         com.jarvis.assistant.background.JarvisConversationService.clearLiveError()
         com.jarvis.assistant.background.JarvisConversationService.restartSession()
 
-        Toast.makeText(this, "All AI Provider settings saved securely!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "All 8 AI Provider configurations saved securely!", Toast.LENGTH_SHORT).show()
         finish()
     }
 }

@@ -41,8 +41,14 @@ keys.properties
 .DS_Store
 Thumbs.db
 desktop.ini
-.agents/
-
-# Private Master Plan & User Profile (NEVER COMMIT)
+# Private Master Plan, Session Memory & Internal Agent Files (NEVER COMMIT)
 MASTER_PLAN.md
-
+GEMINI.md
+PLAN.md
+PROGRESS.md
+AGENTS.md
+REMOVED.md
+ARCHITECTURE.md
+verify_agentic_system.py
+.agent/
+.agents/

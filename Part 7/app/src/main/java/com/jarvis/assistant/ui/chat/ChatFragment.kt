@@ -84,16 +84,19 @@ class ChatFragment : Fragment() {
             startActivity(intent)
         }
 
+        binding.chipAiPreview.setOnClickListener {
+            com.jarvis.assistant.ui.preview.AgentPreviewDialog.show(
+                context = requireContext(),
+                scope = viewLifecycleOwner.lifecycleScope
+            )
+        }
+
         observeChatTurns()
     }
 
     private fun sendMessage() {
         val text = binding.etMessageInput.text?.toString()?.trim() ?: ""
         if (text.isBlank()) return
-
-        if (!JarvisConversationService.isServiceRunning()) {
-            (activity as? MainActivity)?.handleMicOrOrbClick()
-        }
 
         JarvisConversationService.sendTextMessage(text)
         binding.etMessageInput.text?.clear()
@@ -102,12 +105,26 @@ class ChatFragment : Fragment() {
     private fun observeChatTurns() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.chatTurns.collect { turns ->
-                    chatAdapter.submitList(turns) {
-                        if (turns.isNotEmpty()) {
-                            binding.rvChatMessages.smoothScrollToPosition(turns.size - 1)
+                launch {
+                    viewModel.chatTurns.collect { turns ->
+                        chatAdapter.submitList(turns) {
+                            if (turns.isNotEmpty()) {
+                                binding.rvChatMessages.smoothScrollToPosition(turns.size - 1)
+                            }
                         }
                     }
+                }
+                launch {
+                    com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
+                        .latestPreview.collect { preview ->
+                            if (_binding != null) {
+                                binding.tvChipPreview.text = if (preview != null) {
+                                    "⚡ Preview: ${preview.title.take(12)}"
+                                } else {
+                                    "⚡ Live Preview"
+                                }
+                            }
+                        }
                 }
             }
         }

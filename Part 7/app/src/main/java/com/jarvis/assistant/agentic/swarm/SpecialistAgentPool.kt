@@ -198,7 +198,7 @@ class NavigatorSpecialistAgent(
 
 /**
  * CognitiveSpecialistAgent: Handles reasoning, math, code analysis, translation,
- * and text transformations using SmartProviderRouter.
+ * and text transformations using SmartProviderRouter + UnifiedToolRegistry.
  */
 class CognitiveSpecialistAgent(
     context: Context,
@@ -218,9 +218,21 @@ class CognitiveSpecialistAgent(
     ): AgentExecutionResult = withContext(Dispatchers.IO) {
         reportStep("CognitiveStart", "Analyzing query: $taskGoal", StepLogLevel.INFO, taskId)
 
+        val relevantTools = com.jarvis.assistant.agentic.router.UnifiedToolRegistry
+            .getInstance(context)
+            .selectRelevantTools(taskGoal, maxTools = 4)
+
+        val dualSoulCtx = (inputData["dualSoulContext"] as? String).orEmpty()
+        val enrichedSystemPrompt = if (dualSoulCtx.isNotBlank()) {
+            "$systemPrompt\n\n$dualSoulCtx"
+        } else {
+            systemPrompt
+        }
+
         val request = UnifiedPromptRequest(
-            systemInstruction = systemPrompt,
+            systemInstruction = enrichedSystemPrompt,
             messages = listOf(UnifiedMessage(role = MessageRole.USER, content = taskGoal)),
+            tools = relevantTools,
             temperature = 0.3f,
             maxTokens = 1200
         )
@@ -249,6 +261,120 @@ class CognitiveSpecialistAgent(
 }
 
 /**
+ * ShellCodingSpecialistAgent: Autonomous AI-Only Linux Terminal & Antigravity Coding Specialist.
+ * Controls [com.jarvis.assistant.agentic.shell.AgentShellEngine] to run Linux commands,
+ * install CLI tools (`agy`, `opencode`, `git`, `python3`, `node`, `proot-distro`),
+ * build runnable web apps/scripts, and publish Live Previews.
+ */
+class ShellCodingSpecialistAgent(
+    context: Context
+) : BaseSpecialistAgent(
+    id = "agent_shell_coding",
+    name = "ShellCodingSpecialist",
+    role = "Autonomous Linux Terminal & Coding Engineer",
+    description = "Executes Linux shell commands, delegates coding to Antigravity/OpenCode CLI, and builds Live Previews",
+    systemPrompt = "You are ShellCodingSpecialist in JARVIS. You control the autonomous Linux terminal (AgentShellEngine), install tools, write code, and generate live interactive previews.",
+    context = context
+) {
+    override suspend fun executeTask(
+        taskGoal: String,
+        taskId: String,
+        inputData: Map<String, Any>
+    ): AgentExecutionResult = withContext(Dispatchers.IO) {
+        val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(context)
+        val trimmed = taskGoal.trim()
+        val lower = trimmed.lowercase()
+
+        reportStep("AgentShellStart", "Autonomous Terminal Task: $trimmed", StepLogLevel.INFO, taskId)
+
+        try {
+            // Case 1: Explicit recipe, permission doctor, pagination, or raw shell prefix
+            val directCommand: String? = when {
+                trimmed.startsWith("sh ") -> trimmed.removePrefix("sh ").trim()
+                trimmed.startsWith("r ") || trimmed.startsWith("perm ") ||
+                    trimmed.startsWith("agy ") || trimmed.startsWith("opencode ") ||
+                    trimmed.startsWith("build-preview ") || trimmed.startsWith("termux:") ||
+                    trimmed == "--more" -> trimmed
+                lower.contains("sysinfo") || lower.contains("system info") || lower.contains("kernel") -> "r sysinfo"
+                lower.contains("setup termux") || lower.contains("install termux") -> "r setup-termux"
+                lower.contains("install agy") || lower.contains("install antigravity") || lower.contains("install opencode") -> "r install-agy"
+                lower.contains("install ubuntu") || lower.contains("proot") -> "r install-ubuntu"
+                lower.contains("list project") || lower.contains("workspace file") -> "r list-projects"
+                lower.contains("permission doctor") || lower.startsWith("check permission") -> "perm all"
+                else -> null
+            }
+
+            val result = if (directCommand != null) {
+                shell.executeCommand(
+                    rawCommand = directCommand,
+                    caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST
+                )
+            } else if (
+                lower.contains("build") || lower.contains("create") || lower.contains("preview") ||
+                lower.contains("webapp") || lower.contains("website") || lower.contains("html") ||
+                lower.contains("calculator") || lower.contains("dashboard") || lower.contains("game") ||
+                lower.contains("antigravity") || lower.contains("banao") || lower.contains("code a") ||
+                lower.contains("design a")
+            ) {
+                // Case 2: Autonomous coding & Live Preview generation
+                shell.autonomousBuildAndPreview(
+                    goal = trimmed,
+                    rawCommand = "agy \"$trimmed\"",
+                    caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST
+                )
+            } else {
+                // Case 3: Translate natural-language terminal request into safe Linux shell command or run directly
+                val safeCmd = trimmed
+                    .removePrefix("run in terminal")
+                    .removePrefix("execute in terminal")
+                    .removePrefix("terminal")
+                    .trim()
+                    .ifBlank { "r sysinfo" }
+                shell.executeCommand(
+                    rawCommand = safeCmd,
+                    caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST
+                )
+            }
+
+            writeBlackboard(taskId, "last_shell_output", result.compactOutput)
+            result.previewArtifact?.let { art ->
+                writeBlackboard(taskId, "latest_preview_path", art.primaryCodePath)
+            }
+
+            reportStep(
+                if (result.success) "AgentShellSuccess" else "AgentShellWarning",
+                "Exit=${result.exitCode} (${result.backend.name})",
+                if (result.success) StepLogLevel.SUCCESS else StepLogLevel.WARNING,
+                taskId
+            )
+
+            val artifactsMap = mutableMapOf<String, String>()
+            result.previewArtifact?.let {
+                artifactsMap["preview_title"] = it.title
+                artifactsMap["preview_path"] = it.primaryCodePath
+            }
+
+            AgentExecutionResult(
+                agentId = id,
+                agentName = name,
+                isSuccess = result.success,
+                output = result.compactOutput,
+                artifacts = artifactsMap
+            )
+        } catch (e: Exception) {
+            reportStep("AgentShellError", "Terminal error: ${e.message}", StepLogLevel.ERROR, taskId)
+            AgentExecutionResult(
+                agentId = id,
+                agentName = name,
+                isSuccess = false,
+                output = "AgentShell error: ${e.message}",
+                error = e.message
+            )
+        }
+    }
+}
+
+/**
  * SpecialistAgentPool: Manages the registry of active and built-in specialist agents.
  */
 class SpecialistAgentPool private constructor(private val context: Context) {
@@ -259,6 +385,7 @@ class SpecialistAgentPool private constructor(private val context: Context) {
         registerAgent(SearchSpecialistAgent(context))
         registerAgent(NavigatorSpecialistAgent(context))
         registerAgent(CognitiveSpecialistAgent(context))
+        registerAgent(ShellCodingSpecialistAgent(context))
     }
 
     fun registerAgent(agent: BaseSpecialistAgent) {
@@ -304,7 +431,21 @@ class SpecialistAgentPool private constructor(private val context: Context) {
             }
         }
 
-        // 2. Web search / live research
+        // 2. Autonomous AI Terminal / Linux / Antigravity Coding / Live Preview
+        if (lower.startsWith("sh ") || lower.startsWith("r ") || lower.startsWith("perm ") ||
+            lower.startsWith("agy ") || lower.startsWith("opencode ") || lower.startsWith("termux:") ||
+            lower.contains("terminal") || lower.contains("termux") || lower.contains("linux") ||
+            lower.contains("ubuntu") || lower.contains("antigravity") || lower.contains("opencode") ||
+            lower.contains("preview") || lower.contains("web app") || lower.contains("webapp") ||
+            lower.contains("website") || lower.contains("html") || lower.contains("script") ||
+            lower.contains("sysinfo") || lower.contains("git ") || lower.contains("python") ||
+            (lower.contains("build") && (lower.contains("app") || lower.contains("tool") || lower.contains("calculator") || lower.contains("dashboard") || lower.contains("ui") || lower.contains("page") || lower.contains("game"))) ||
+            (lower.contains("banao") && (lower.contains("app") || lower.contains("website") || lower.contains("calculator") || lower.contains("preview") || lower.contains("tool") || lower.contains("code")))
+        ) {
+            return pool["agent_shell_coding"] ?: pool.values.first()
+        }
+
+        // 3. Web search / live research
         if (lower.contains("search") || lower.contains("google") || lower.contains("weather") ||
             lower.contains("who is") || lower.contains("what is") || lower.contains("news") ||
             lower.contains("price of") || lower.contains("score") || lower.contains("look up")
@@ -312,7 +453,7 @@ class SpecialistAgentPool private constructor(private val context: Context) {
             return pool["agent_search"] ?: pool.values.first()
         }
 
-        // 3. UI Navigation / App opening
+        // 4. UI Navigation / App opening
         if (lower.contains("open") || lower.contains("launch") || lower.contains("instagram") ||
             lower.contains("uber") || lower.contains("click") || lower.contains("scroll") ||
             lower.contains("tap") || lower.contains("whatsapp") && (lower.contains("chat") || lower.contains("status"))
@@ -320,7 +461,7 @@ class SpecialistAgentPool private constructor(private val context: Context) {
             return pool["agent_navigator"] ?: pool.values.first()
         }
 
-        // 4. Hardware / phone controls / media / memory
+        // 5. Hardware / phone controls / media / memory
         if (lower.contains("flash") || lower.contains("torch") || lower.contains("volume") ||
             lower.contains("brightness") || lower.contains("play") || lower.contains("song") ||
             lower.contains("youtube") || lower.contains("call") || lower.contains("battery") ||
@@ -330,7 +471,7 @@ class SpecialistAgentPool private constructor(private val context: Context) {
             return pool["agent_device"] ?: pool.values.first()
         }
 
-        // 5. Reasoning / math / translation / coding / advice -> Cognitive Specialist
+        // 6. Reasoning / math / translation / advice -> Cognitive Specialist
         return pool["agent_cognitive"] ?: pool["agent_device"] ?: pool.values.first()
     }
 

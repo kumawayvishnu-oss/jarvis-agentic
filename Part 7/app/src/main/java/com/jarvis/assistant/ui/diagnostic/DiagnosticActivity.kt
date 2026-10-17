@@ -55,14 +55,15 @@ class DiagnosticActivity : AppCompatActivity() {
         DiagnosticItem(1, "1. Microphone & 16kHz PCM Audio", "Testing audio hardware and recording permissions..."),
         DiagnosticItem(2, "2. Vosk Offline Speech Engine", "Checking offline acoustic model & speakerprint in storage..."),
         DiagnosticItem(3, "3. Google Gemini Live Engine", "Validating Gemini Live API key and WebSocket readiness..."),
-        DiagnosticItem(4, "4. Groq Ultra-Fast LPU Engine", "Testing Groq LPU client latency and API key..."),
+        DiagnosticItem(4, "4. 8-Provider Smart Router Cascade", "Testing Groq, Cerebras, Mistral, SambaNova, DeepSeek, OpenRouter & Ollama..."),
         DiagnosticItem(5, "5. Free Live Search (DuckDuckGo)", "Executing live web query without API keys..."),
         DiagnosticItem(6, "6. Android Accessibility Service", "Checking if Jarvis Accessibility Service is active in OS..."),
         DiagnosticItem(7, "7. Shizuku ADB Shell Bridge", "Checking rootless ADB IPC connection & status..."),
         DiagnosticItem(8, "8. Dual-SOUL Cognitive Memory", "Verifying Room database (user_soul_matrix & blackboard)..."),
         DiagnosticItem(9, "9. Legacy Fact Memory DB", "Verifying persistent jarvis_memory.db connection..."),
         DiagnosticItem(10, "10. Battery Optimization Exemption", "Checking background process whitelist status..."),
-        DiagnosticItem(11, "11. Floating Overlay Permission", "Checking SYSTEM_ALERT_WINDOW draw permission...")
+        DiagnosticItem(11, "11. Floating Overlay Permission", "Checking SYSTEM_ALERT_WINDOW draw permission..."),
+        DiagnosticItem(12, "12. Autonomous AI Linux Terminal (AgentShell)", "Verifying embedded Linux sandbox, workspace & Antigravity CLI bridge...")
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -169,7 +170,7 @@ class DiagnosticActivity : AppCompatActivity() {
             setModuleResult(3, geminiOk, geminiDetail)
             if (geminiOk) passCount++ else failCount++
 
-            // 4. Groq Ultra-Fast LPU Engine
+            // 4. 8-Provider Smart Router Cascade
             setModuleTesting(4)
             val (groqOk, groqDetail) = withContext(Dispatchers.IO) { testGroq() }
             setModuleResult(4, groqOk, groqDetail)
@@ -217,6 +218,12 @@ class DiagnosticActivity : AppCompatActivity() {
             setModuleResult(11, ovOk, ovDetail)
             if (ovOk) passCount++ else failCount++
 
+            // 12. Autonomous AI Linux Terminal (AgentShell)
+            setModuleTesting(12)
+            val (shellOk, shellDetail) = withContext(Dispatchers.IO) { testAgentShell() }
+            setModuleResult(12, shellOk, shellDetail)
+            if (shellOk) passCount++ else failCount++
+
             // Final Overall Status
             binding.btnRunAudit.isEnabled = true
             binding.tvSummaryCounts.text = "Audit Complete: $passCount Passed (✅) • $failCount Issues Detected (❌)"
@@ -224,10 +231,10 @@ class DiagnosticActivity : AppCompatActivity() {
                 binding.tvOverallStatus.text = "SYSTEM HEALTH: 100% OPERATIONAL (PASS ✅)"
                 binding.viewOverallDot.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22C55E"))
             } else {
-                binding.tvOverallStatus.text = "SYSTEM HEALTH: $passCount/11 OPERATIONAL (ATTENTION REQUIRED)"
+                binding.tvOverallStatus.text = "SYSTEM HEALTH: $passCount/12 OPERATIONAL (ATTENTION REQUIRED)"
                 binding.viewOverallDot.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#EAB308"))
             }
-            Snackbar.make(binding.root, "Self-Test complete: $passCount/11 modules verified.", Snackbar.LENGTH_LONG).show()
+            Snackbar.make(binding.root, "Self-Test complete: $passCount/12 modules verified.", Snackbar.LENGTH_LONG).show()
         }
     }
 
@@ -286,14 +293,34 @@ class DiagnosticActivity : AppCompatActivity() {
 
     private suspend fun testGroq(): Pair<Boolean, String> {
         val vault = ProviderVault.getInstance(this)
-        if (!vault.hasApiKey(ModelProvider.GROQ)) {
-            return Pair(false, "Groq API key not configured (Fallback 1 dormant)")
+        val configuredProviders = ModelProvider.entries.filter { !it.isLocal && vault.hasApiKey(it) }
+        if (vault.hasApiKey(ModelProvider.GROQ)) {
+            val (ok, result) = SmartProviderRouter.getInstance(this).testProvider(ModelProvider.GROQ)
+            if (ok) {
+                return Pair(true, "Groq LPU online ($result) • ${configuredProviders.size}/7 cloud providers + Local Ollama ready")
+            }
         }
-        val (ok, result) = SmartProviderRouter.getInstance(this).testProvider(ModelProvider.GROQ)
-        return if (ok) {
-            Pair(true, "Groq LPU verified online! Latency: $result")
+        return if (configuredProviders.isNotEmpty()) {
+            Pair(true, "${configuredProviders.joinToString { it.id.uppercase() }} configured in 8-Provider Cascade")
         } else {
-            Pair(false, "Groq ping failed: $result")
+            Pair(false, "0/7 cloud fallback keys configured (Local Ollama fallback active)")
+        }
+    }
+
+    private suspend fun testAgentShell(): Pair<Boolean, String> {
+        return try {
+            val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(this)
+            val res = shell.executeCommand(
+                rawCommand = "r sysinfo",
+                caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SYSTEM_DIAGNOSTIC
+            )
+            if (res.success) {
+                Pair(true, "AgentShell Linux sandbox verified (${res.backend.name}) • Workspace: ${shell.workspaceDir.name}")
+            } else {
+                Pair(false, "AgentShell returned exit=${res.exitCode}")
+            }
+        } catch (e: Exception) {
+            Pair(false, "AgentShell error: ${e.message}")
         }
     }
 

@@ -25,6 +25,7 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
 
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
 
@@ -101,6 +102,10 @@
             android:exported="false"
             android:stopWithTask="false"
             android:foregroundServiceType="microphone|mediaPlayback|mediaProjection" />
+
+        <service
+            android:name=".agentic.shell.TermuxResultService"
+            android:exported="false" />
 
         <service
             android:name=".automation.accessibility.JarvisAccessibilityService"

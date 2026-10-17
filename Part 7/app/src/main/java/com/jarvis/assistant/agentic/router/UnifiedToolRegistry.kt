@@ -167,6 +167,52 @@ class UnifiedToolRegistry private constructor(private val context: Context) {
             val res = hybridDispatcher.openAppOrAction("WhatsApp", msg)
             "Prepared message to $recipient: '$msg' (${res.message})"
         }
+
+        // 7. Autonomous AI Linux Terminal & Antigravity Coding Builder (`sh`)
+        register(
+            UnifiedTool(
+                name = "sh",
+                description = "Executes command in JARVIS AI-only Linux Terminal: shell cmd, 'r <recipe>' (sysinfo, setup-termux, install-agy, install-ubuntu, list-projects), 'perm <target>' (termux, accessibility, overlay, battery), 'agy <coding/preview goal>', or '--more'.",
+                parameters = mapOf(
+                    "cmd" to ToolParameterProperty("string", "Command, recipe 'r <name>', 'perm <name>', 'agy <goal>', or '--more'")
+                ),
+                requiredParameters = listOf("cmd")
+            ),
+            keywords = setOf(
+                "terminal", "shell", "termux", "linux", "ubuntu", "bash", "sh", "code", "coding",
+                "build", "preview", "antigravity", "agy", "opencode", "script", "python", "node",
+                "git", "gh", "website", "webapp", "html", "calculator", "dashboard", "perm", "sysinfo", "banao"
+            )
+        ) { args ->
+            val cmd = args["cmd"].orEmpty()
+            val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(context)
+            val result = shell.executeCommand(
+                rawCommand = cmd,
+                caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST
+            )
+            result.compactOutput
+        }
+
+        // 8. Hardware & Device Action Tool (`device_hardware_control`)
+        register(
+            UnifiedTool(
+                name = "device_hardware_control",
+                description = "Controls phone hardware: flashlight/torch, volume, brightness, battery check, media play/pause, Wi-Fi/Bluetooth settings.",
+                parameters = mapOf(
+                    "command_text" to ToolParameterProperty("string", "Natural hardware command, e.g. 'turn on flashlight', 'volume up', 'battery status'")
+                ),
+                requiredParameters = listOf("command_text")
+            ),
+            keywords = setOf("flashlight", "torch", "volume", "brightness", "battery", "wifi", "bluetooth", "mute", "play", "pause", "awaz", "light")
+        ) { args ->
+            val cmdText = args["command_text"].orEmpty()
+            val parsed = com.jarvis.assistant.automation.command.CommandParser.parse(cmdText)
+            if (parsed?.command != null) {
+                com.jarvis.assistant.JarvisApp.instance.commandExecutor.execute(parsed.command)
+            } else {
+                hybridDispatcher.openAppOrAction(cmdText).message
+            }
+        }
     }
 
     fun register(

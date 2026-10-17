@@ -1,81 +1,66 @@
-# 🤖 JARVIS Voice Assistant - Complete Tutorial Playlist (Parts 1 to 7)
+# 🧠 JARVIS — Autonomous Multi-Agent Android Operating System
 
-[![License: Custom](https://img.shields.io/badge/License-Tech_GPTx_Attribution-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B-green.svg)](https://developer.android.com)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.20-purple.svg)](https://kotlinlang.org)
-[![Gradle](https://img.shields.io/badge/Gradle-8.9-brightgreen.svg)](https://gradle.org)
-[![Releases](https://img.shields.io/badge/APK_Releases-Part_1_to_7-orange.svg)](https://github.com/techgptx/Playlist/releases)
-
-Welcome to the official source code repository for the **JARVIS Android AI Assistant Series** by **Tech GPTx**!
-Every part in this playlist is organized into its own self-contained, ready-to-run Android Studio project.
+JARVIS is an autonomous, voice-first Android agentic operating system powered by **Gemini Live Bidi WebSocket (`v1alpha`)**, an **8-Provider Smart LLM Router**, a **4-Tier Dual-SOUL Memory Engine**, a **Self-Healing Accessibility & Intent App Dispatcher**, and an **Autonomous AI-Controlled Linux Terminal (`AgentShell`) with Live Preview**.
 
 ---
 
-## 📜 LICENSE & MANDATORY VIDEO ATTRIBUTION (MUST READ)
+## ✨ Core Architecture
 
-> [!IMPORTANT]
-> **100% Mandatory Shoutout Policy:**
-> If you use this source code, fork this repository, or build any video, tutorial, Reel, Short, livestream, or course based on this project, **you MUST give 100% visible and verbal credit/shoutout to Tech GPTx**.
->
-> 1. **In Video Spoken Audio:** Explicit verbal mention: *"Credit to Tech GPTx for the JARVIS AI Android source code / tutorial."*
-> 2. **In Description (Top 3 lines):** *"Original Project by Tech GPTx: https://github.com/techgptx/Playlist"*
-> 3. **On-Screen Display:** Visible watermark or on-screen text crediting **Tech GPTx**.
-> 
-> Read the full legal terms in the [LICENSE](LICENSE) file. Removing attribution or failing to provide a shoutout is a direct license violation.
+### 1. Real-Time Bidi Voice & Multimodal Intelligence
+- **Gemini Live WebSocket (`v1alpha`)**: Low-latency 16kHz PCM audio input and 24kHz native voice output with instant barge-in interruption and auto-reconnect.
+- **On-Device Wake Word (`"Hey Jarvis"`)**: Background foreground service with voice activity detection and seamless live session handoff.
+- **22 Live Voice Tools**: Real-time tool execution during voice conversations, including device control, WhatsApp automation, web search, multi-agent task delegation, and autonomous terminal execution.
+
+### 2. Autonomous AI-Only Linux Terminal (`AgentShell`) & Live Preview
+- **Strictly AI-Controlled Terminal**: Designed exclusively for JARVIS agents (`ManagerAgent` and `ShellCodingSpecialistAgent`). Users watch live command streams in a read-only neon console while the AI autonomously installs tools, runs scripts, and builds projects.
+- **Dual Execution Engine**:
+  - **Embedded Native Android Linux Shell**: Immediate zero-setup execution inside an isolated workspace (`$filesDir/agent_linux/workspace`) with automatic Termux binary PATH discovery (`/data/data/com.termux/files/usr/bin`).
+  - **External Termux Bridge (`RUN_COMMAND` Intent + `TermuxResultService`)**: Direct background execution inside Termux and Ubuntu `proot-distro` when installed.
+- **Autonomous CLI & Coding Delegation**: Can autonomously bootstrap and invoke developer CLIs (`agy` / Antigravity CLI, `opencode`, `gh`, `git`, `python3`, `node`, `curl`) to generate full web apps, scripts, or diagnostics and render them immediately in an interactive **Live Preview Window** (HTML5 WebView + syntax-highlighted source).
+
+### 3. Multi-Agent Swarm (`ManagerAgent` & Specialist Pool)
+- **DAG Task Decomposition**: Breaks complex multi-step user goals into parallel dependency graphs.
+- **4 Specialized Autonomous Agents**:
+  1. `CognitiveSpecialistAgent` — Deep reasoning, research synthesis, and structured tool calling via `UnifiedToolRegistry`.
+  2. `AppControlSpecialistAgent` — Intent-first Android app automation with Accessibility UI tree fallback.
+  3. `MemorySpecialistAgent` — Long-term factual recall, user profile synthesis, and episode search.
+  4. `ShellCodingSpecialistAgent` — Autonomous Linux terminal execution, CLI tool management, code generation, and live preview creation.
+
+### 4. 8-Provider Smart LLM Router (`SmartProviderRouter`)
+- Cascading multi-provider failover with real-time latency tracking, rate-limit cooldowns, and hardware-backed `EncryptedSharedPreferences` key storage:
+  1. **Google Gemini** (`gemini-2.5-flash`)
+  2. **Groq LPU** (`llama-3.3-70b-versatile`)
+  3. **Cerebras Wafer-Scale** (`llama-3.3-70b`)
+  4. **Mistral AI** (`mistral-small-latest`)
+  5. **SambaNova Cloud** (`Meta-Llama-3.3-70B-Instruct`)
+  6. **DeepSeek** (`deepseek-chat`)
+  7. **OpenRouter** (`meta-llama/llama-3.3-70b-instruct:free`)
+  8. **Local Ollama** (`http://127.0.0.1:11434`)
+
+### 5. 4-Tier Dual-SOUL Memory & Self-Healing Engine
+- **4-Tier Context Hierarchy**:
+  - **Tier 0 (`SOUL.md` & `USER_SOUL.md`)**: Immutable agent identity and encrypted evolving user profile.
+  - **Tier 1 (Working RAM)**: Active session context and live task DAG state.
+  - **Tier 2 (Episodic SQLite + FTS4)**: Sub-millisecond full-text search across past conversations and task outcomes.
+  - **Tier 3 (Semantic Knowledge Graph)**: Entity-relation graph with multi-hop graph traversal.
+- **Self-Healing Watchdog**: Persistent crash recovery (`CrashWatchdog`), exponential backoff circuit breakers, and autonomous diagnostic verification.
 
 ---
 
-## 📲 Direct APK Downloads (Parts 1 to 7)
+## 🛠️ Building the APK
 
-Don't want to compile from source right now? Pre-built APKs for Parts 1 to 7 are available in the **[GitHub Releases](https://github.com/techgptx/Playlist/releases)** section:
+### GitHub Actions Cloud Build
+Every push to `main` or `feature/*` automatically triggers `.github/workflows/android-build.yml` on `ubuntu-latest` with JDK 17 and Android SDK 34, producing `jarvis-debug-apk`.
 
-| Part | Name | Features Highlight | APK Download |
-|---|---|---|---|
-| **Part 1** | JARVIS-Part-1 | Gemini Live Bidi WebSocket, PCM Streaming, 3D Canvas Orb | [Download APK](https://github.com/techgptx/Playlist/releases) |
-| **Part 2** | JARVIS-Part-2 | Vosk Offline Hotword Manager, Foreground Services | [Download APK](https://github.com/techgptx/Playlist/releases) |
-| **Part 3** | JARVIS-Part-3 | Offline Wake Word, Accessibility Engine, Memory Room DB | [Download APK](https://github.com/techgptx/Playlist/releases) |
-| **Part 4** | JARVIS-Part-4 | Ultra Low-Latency Audio Pipeline, Natural Barge-In | [Download APK](https://github.com/techgptx/Playlist/releases) |
-| **Part 5** | JARVIS-Part-5 | WhatsApp & YouTube System Automations, UI Polish | [Download APK](https://github.com/techgptx/Playlist/releases) |
-| **Part 6** | JARVIS-Part-6 | Real-time Live Screen-Sharing Vision & Reasoning | [Download APK](https://github.com/techgptx/Playlist/releases) |
-| **Part 7** | JARVIS-Part-7 | Agentic Workflows, 17 Floating Overlays, Sound FX | [Download APK](https://github.com/techgptx/Playlist/releases) |
-
----
-
-## 📁 Repository Structure
-
+### Local Gradle Build
+```bash
+cd "Part 7"
+./gradlew assembleDebug --stacktrace
 ```
-Playlist/
-├── Part 1/    # Foundation: Gemini Live Bidi WebSocket, PCM Audio Streaming & Canvas Orb
-├── Part 2/    # Offline Vosk Hotword Manager & Standby Background Service
-├── Part 3/    # Accessibility Engine, Automation Commands & Room Memory DB
-├── Part 4/    # Low-Latency Audio, Natural Turn-Taking & System Integration
-├── Part 5/    # Advanced Accessibility Controls, YouTube/WhatsApp Automations & UI Polish
-├── Part 6/    # Screen-Sharing Vision, Real-Time Multimodal Reasoning & Bugfixes
-└── Part 7/    # Agentic Workflows, Floating Overlays, Sound FX & Production Ready Engine
-```
+The compiled APK is generated at:
+`Part 7/app/build/outputs/apk/debug/app-debug.apk`
 
 ---
 
-## 🚀 How to Run Any Part
-
-1. **Open in Android Studio**:
-   - Open Android Studio (Ladybug / Koala or newer recommended).
-   - Click **Open** and select the folder of the part you want to test (e.g. `Playlist/Part 1` or `Playlist/Part 7`).
-2. **Configure Local SDK**:
-   - Android Studio will automatically create `local.properties` pointing to your local Android SDK.
-   - If building from command-line, copy `local.properties.example` to `local.properties` and verify your SDK path.
-3. **Set Gemini API Key**:
-   - Launch the app on your Android device or emulator.
-   - Open **Settings** within the app and paste your Google Gemini API key.
-4. **Build & Run**:
-   - Run `./gradlew assembleDebug` or click **Run (Shift + F10)** in Android Studio.
-
----
-
-## 🧹 Cleaned & GitHub-Ready
-- **Zero bloat**: Local build caches, compiler artifacts (`.gradle/`, `.kotlin/`, `build/`), and dead files have been thoroughly cleaned.
-- **No file > 100 MB**: 100% compliant with GitHub push limits (no LFS errors).
-- **Safe & Sanitized**: Developer-specific machine paths in `local.properties` removed in favor of clean templates.
-
-Happy coding! Build your own JARVIS! 🎙️⚡  
-*Follow & Subscribe to **Tech GPTx** for more AI & Android tutorials!*
+## 📄 License
+Licensed under the [MIT License](LICENSE).

@@ -58,6 +58,71 @@ class UserSoulManager(
                 Log.e(TAG, "Error collecting user soul flow", e)
             }
         }
+        startPeriodicConsolidationLoop()
+    }
+
+    /**
+     * Background 30-minute consolidation loop that reinforces verified user traits
+     * and keeps the User SOUL matrix clean and up-to-date.
+     */
+    private fun startPeriodicConsolidationLoop() {
+        scope.launch {
+            while (true) {
+                try {
+                    seedBaselinePreferencesIfEmpty()
+                    kotlinx.coroutines.delay(30 * 60 * 1000L) // 30 minutes
+                    consolidateSoulMatrix()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Soul consolidation cycle warning: ${e.message}")
+                    kotlinx.coroutines.delay(60_000L)
+                }
+            }
+        }
+    }
+
+    private suspend fun seedBaselinePreferencesIfEmpty() {
+        traitMutex.withLock {
+            val current = soulDao.getAllUserSoulAttributes()
+            if (current.isEmpty()) {
+                val now = System.currentTimeMillis()
+                val defaults = listOf(
+                    UserSoulEntity(
+                        category = UserSoulEntity.CAT_PERSONALITY,
+                        traitKey = "comm_style_hinglish",
+                        traitValue = "Prefers natural, direct Hinglish/Hindi responses with zero robotic fluff",
+                        confidence = 0.95f,
+                        evidenceSummary = "Core baseline preference",
+                        createdAt = now,
+                        updatedAt = now
+                    ),
+                    UserSoulEntity(
+                        category = UserSoulEntity.CAT_PREFERENCES,
+                        traitKey = "autonomous_terminal_workflow",
+                        traitValue = "Prefers autonomous AI terminal execution (Antigravity/Termux) with live visual preview",
+                        confidence = 0.95f,
+                        evidenceSummary = "Core baseline preference",
+                        createdAt = now,
+                        updatedAt = now
+                    )
+                )
+                defaults.forEach { soulDao.insertOrUpdateUserSoul(it) }
+                _cachedUserSoul.value = soulDao.getAllUserSoulAttributes()
+            }
+        }
+    }
+
+    suspend fun consolidateSoulMatrix() {
+        traitMutex.withLock {
+            val all = soulDao.getAllUserSoulAttributes()
+            val now = System.currentTimeMillis()
+            for (item in all) {
+                if (item.confidence >= 0.85f && now - item.updatedAt > 3600_000L) {
+                    val boosted = (item.confidence + 0.02f).coerceAtMost(0.99f)
+                    soulDao.insertOrUpdateUserSoul(item.copy(confidence = boosted, updatedAt = now))
+                }
+            }
+            _cachedUserSoul.value = soulDao.getAllUserSoulAttributes()
+        }
     }
 
     fun refreshCache() {

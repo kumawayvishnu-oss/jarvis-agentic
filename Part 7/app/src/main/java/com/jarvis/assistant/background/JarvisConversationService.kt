@@ -230,14 +230,14 @@ class JarvisConversationService : Service() {
                     try {
                         val output = app.managerAgent.executeGoal(text)
                         withContext(Dispatchers.Main) {
-                            app.chatRepository.addTurn(text, output)
+                            app.chatRepository.updateLastTurnReply(text, output)
                             if (!app.preferences.isSilentExecutionMode) {
                                 instance?.tts?.speak(output, TextToSpeech.QUEUE_FLUSH, null, "text_task_done")
                             }
                         }
                     } catch (e: Exception) {
                         withContext(Dispatchers.Main) {
-                            app.chatRepository.addTurn(text, "Task execution error: ${e.message}")
+                            app.chatRepository.updateLastTurnReply(text, "Task execution error: ${e.message}")
                         }
                     }
                 }
@@ -2115,7 +2115,17 @@ class JarvisConversationService : Service() {
 
                     "builtin_chrome_search" -> {
                         val query = args.optString("query", "").trim()
-                        val searchExtracted = com.jarvis.assistant.util.BuiltInChromeEngine.searchAndExtract(query)
+                        val freeResults = runCatching {
+                            com.jarvis.assistant.agentic.search.FreeLiveSearchClient().search(query, 4)
+                        }.getOrNull().orEmpty()
+                        val formattedFree = if (freeResults.isNotEmpty()) {
+                            freeResults.joinToString("\n\n") { "• ${it.title}: ${it.snippet} (${it.url})" }
+                        } else ""
+                        val searchExtracted = if (formattedFree.isNotBlank()) {
+                            formattedFree
+                        } else {
+                            com.jarvis.assistant.util.BuiltInChromeEngine.searchAndExtract(query)
+                        }
                         result.put("success", searchExtracted.isNotBlank())
                         result.put("result", searchExtracted)
                     }
@@ -2374,6 +2384,24 @@ class JarvisConversationService : Service() {
                         result.put("message", managerOutput)
                     }
 
+                    "agent_terminal_exec", "sh" -> {
+                        val cmd = args.optString("cmd", args.optString("command", autonomousTaskGoal)).trim()
+                        Log.i("JarvisService", "agent_terminal_exec: running '$cmd' in AgentShellEngine")
+                        val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(applicationContext)
+                        val shellRes = shell.executeCommand(
+                            rawCommand = cmd,
+                            caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.VOICE_ORCHESTRATOR
+                        )
+                        result.put("success", shellRes.success)
+                        result.put("exit_code", shellRes.exitCode)
+                        result.put("backend", shellRes.backend.name)
+                        result.put("message", shellRes.compactOutput)
+                        shellRes.previewArtifact?.let { preview ->
+                            result.put("preview_ready", true)
+                            result.put("preview_title", preview.title)
+                            result.put("preview_path", preview.primaryCodePath)
+                        }
+                    }
 
                     else -> {
                         Log.w("JarvisService", "Unknown toolCall name: $name")

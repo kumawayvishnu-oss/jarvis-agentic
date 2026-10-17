@@ -672,6 +672,21 @@ class GeminiLiveWebSocket(
                             })
                         })
 
+                        // 23. agent_terminal_exec
+                        put(JSONObject().apply {
+                            put("name", "agent_terminal_exec")
+                            put("description", "Executes a command inside JARVIS's Autonomous AI-Only Linux Terminal (AgentShellEngine). Supports Linux shell commands, recipes ('r sysinfo', 'r setup-termux', 'r install-agy', 'r install-ubuntu', 'r list-projects'), permission doctor ('perm termux', 'perm accessibility', 'perm overlay', 'perm battery'), or autonomous Antigravity coding & Live Preview generation ('agy <project or web app goal>'). Use whenever the user asks to code, build a web app/calculator/dashboard/preview, run a Linux/Termux command, or check system/permission status.")
+                            put("parameters", JSONObject().apply {
+                                put("type", "OBJECT")
+                                put("properties", JSONObject().apply {
+                                    put("cmd", JSONObject().apply {
+                                        put("type", "STRING")
+                                        put("description", "Command to execute: e.g. 'agy Build a neon scientific calculator', 'r sysinfo', 'r install-agy', 'perm all', or a Linux shell command.")
+                                    })
+                                })
+                                put("required", JSONArray().put("cmd"))
+                            })
+                        })
 
                     })
                 }))
