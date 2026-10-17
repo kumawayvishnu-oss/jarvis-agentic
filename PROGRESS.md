@@ -82,8 +82,19 @@
 ---
 
 ## 📊 Verification & Artifacts
-- **Latest Verified Commit:** `c6cab12` (and cleanup commit `36fc562`)
-- **Latest GitHub Actions Run ID:** [38902247766](https://github.com/kumawayvishnu-oss/jarvis-agentic/actions/runs/38902247766) -> **`✓ SUCCESS in 3m 42s`** (`jarvis-debug-apk`)
-- **Zero-Regression Guarantee:** All 21 Tools, Vosk wake-word/speakerprint, 3D WebGL Orb, 17 Floating Overlays, and Dual Personas remain intact.
+- **Latest Verified Commit:** `65ba9e6` (Phase A 6-commit series: `517f53d`, `43c502f`, `0874891`, `34d4444`, `391e447`, `65ba9e6`)
+- **Previous Verified Run ID:** [38902247766](https://github.com/kumawayvishnu-oss/jarvis-agentic/actions/runs/38902247766) -> **`✓ SUCCESS in 3m 42s`** (`jarvis-debug-apk`)
+- **Zero-Regression Guarantee:** All 21 Tools, Vosk wake-word/speakerprint, 3D WebGL Orb, 6 Core + 11 Lazy Floating Overlays, and Dual Personas (`JARVIS` & `NAIRA`) remain intact.
+
+---
+
+## 🧹 चरण A (Phase A): बड़ी सफ़ाई व APK संकुचन (6 Atomic Commits + `REMOVED.md`)
+- **`517f53d`:** Removed `Part 1` to `Part 6` legacy tutorial directories (~363 MB repo cleanup).
+- **`43c502f`:** Removed `HandsFreeActivity`, `PrivacyShieldActivity`, their XML layouts, and Manifest entries.
+- **`0874891`:** Removed all promotional/social links (`Telegram`, `Instagram`, `YouTube`, `GitHub`), social vector icons (`ic_social_*`, `ic_settings_apps`, `ic_settings_lock`), and hardcoded creator names (`LICENSE` untouched).
+- **`34d4444`:** Removed `Pari`, `Kabir`, and `TechGPT X` roleplay modes; kept only `JARVIS` and `NAIRA` across `GeminiConstants`, `PersonaActivity`, `ChatFragment`, and `PromptGenerator`.
+- **`391e447`:** Kept 6 core floating avatars (`droid`, `mech`, `ghost`, `alien`, `circle`, `hexagon`) and converted the remaining 11 into on-demand lazy-loaded avatars via `droid.html?type=<avatar>` and `gallery.html`.
+- **`65ba9e6`:** Enabled safe R8 code & resource shrinking (`isMinifyEnabled = true`, `isShrinkResources = true`, `-dontobfuscate`) in `Part 7/app/build.gradle.kts` and `proguard-rules.pro`, and recorded all pruned items in `REMOVED.md`.
+
 
 

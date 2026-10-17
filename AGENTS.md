@@ -45,3 +45,6 @@
 - [x] CI Verification: Push and monitor GitHub Actions until build is green (**Run ID: 38522472876 - SUCCESS**).
 - [x] Verify generated APK (`jarvis-debug-apk` artifact produced in 5m 49s).
 - [x] End-to-end operational wiring across Swarm, Connectors, Memory, Router, and UI verified.
+- [x] **Phase A (चरण A: सफ़ाई):** Executed via 4 parallel subagents (1 file per agent, main agent commits):
+  - Removed `Part 1`–`Part 6` (`517f53d`), `HandsFreeActivity` & `PrivacyShieldActivity` (`43c502f`), all social/promo links & icons (`0874891`), extra roleplay personas keeping only `JARVIS` & `NAIRA` (`34d4444`), pruned 11 static avatar HTMLs into lazy-load keeping 6 core (`391e447`), and enabled safe R8 + resource shrinking with `REMOVED.md` ledger (`65ba9e6`).
+
