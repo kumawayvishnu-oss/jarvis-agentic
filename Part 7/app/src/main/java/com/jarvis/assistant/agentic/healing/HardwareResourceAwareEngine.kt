@@ -52,6 +52,11 @@ class HardwareResourceAwareEngine private constructor(private val context: Conte
     }
 
     /**
+     * Alias for getDeviceResourceStatus() used by probabilistic planner & SOUL research loop.
+     */
+    fun inspectHardware(): DeviceResourceStatus = getDeviceResourceStatus()
+
+    /**
      * Inspects live phone RAM, storage, and internet state.
      */
     fun getDeviceResourceStatus(): DeviceResourceStatus {

@@ -204,7 +204,7 @@ class ManagerAgent private constructor(
             originalGoal = userGoal,
             isParallelExecution = isParallel,
             stages = stages,
-            hardwareSummary = "RAM=${hw.availableRamMb}MB free, Battery=${hw.batteryPercent}%, Net=${if (hw.hasInternet) "ONLINE" else "OFFLINE"}"
+            hardwareSummary = "RAM=${hw.availableRamMb}MB/${hw.totalRamMb}MB free, Storage=${hw.freeStorageMb}MB, Net=${if (hw.hasInternet) "ONLINE" else "OFFLINE"}"
         )
     }
 
@@ -266,7 +266,7 @@ class ManagerAgent private constructor(
         // 2. Build Probabilistic Pre-Execution Plan ("pahle planning karega, har probability samjhega")
         val probPlan = buildProbabilisticPlan(cleanGoal)
         val planSummary = probPlan.toCompactSummary()
-        BlackboardMemory.getInstance().write(taskId, "probabilistic_plan", planSummary, "ManagerAgent")
+        agentSoulManager.postToBlackboard(taskId, "probabilistic_plan", planSummary)
 
         agentSoulManager.postStepLog(
             agentName = "ManagerAgent",
