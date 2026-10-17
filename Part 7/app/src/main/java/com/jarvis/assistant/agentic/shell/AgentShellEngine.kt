@@ -1273,11 +1273,11 @@ $verifyOut</pre>
             val endpoints = listOf(
                 Triple("Pollinations Free Cloud", "https://text.pollinations.ai/models", false),
                 Triple("DuckDuckGo Search API", "https://api.duckduckgo.com/?q=linux&format=json", false),
-                Triple("Google AI Studio (Gemini)", "https://generativelanguage.googleapis.com", vault.getApiKey(ModelProvider.GEMINI).isNotBlank()),
-                Triple("GLM Zhipu Free (BigModel)", "https://open.bigmodel.cn", vault.getApiKey(ModelProvider.GLM_ZHIPU).isNotBlank()),
-                Triple("SiliconFlow Free API", "https://api.siliconflow.cn", vault.getApiKey(ModelProvider.SILICONFLOW).isNotBlank()),
-                Triple("NVIDIA NIM Cloud", "https://integrate.api.nvidia.com", vault.getApiKey(ModelProvider.NVIDIA_NIM).isNotBlank()),
-                Triple("Groq LPU Cloud", "https://api.groq.com", vault.getApiKey(ModelProvider.GROQ).isNotBlank())
+                Triple("Google AI Studio (Gemini)", "https://generativelanguage.googleapis.com", !vault.getApiKey(ModelProvider.GEMINI).isNullOrBlank()),
+                Triple("GLM Zhipu Free (BigModel)", "https://open.bigmodel.cn", !vault.getApiKey(ModelProvider.GLM_ZHIPU).isNullOrBlank()),
+                Triple("SiliconFlow Free API", "https://api.siliconflow.cn", !vault.getApiKey(ModelProvider.SILICONFLOW).isNullOrBlank()),
+                Triple("NVIDIA NIM Cloud", "https://integrate.api.nvidia.com", !vault.getApiKey(ModelProvider.NVIDIA_NIM).isNullOrBlank()),
+                Triple("Groq LPU Cloud", "https://api.groq.com", !vault.getApiKey(ModelProvider.GROQ).isNullOrBlank())
             )
 
             val report = buildString {
@@ -1441,7 +1441,7 @@ $verifyOut</pre>
     /**
      * Native 10-Point System Validation Script (`validate` / `r validate` / `verify_all.sh`).
      */
-    private fun executeSystemValidationSuite(
+    private suspend fun executeSystemValidationSuite(
         rawCommand: String,
         caller: CallerRole,
         startMs: Long
@@ -1450,7 +1450,7 @@ $verifyOut</pre>
         val ram = com.jarvis.assistant.util.OppoA11kRamOptimizer.captureTelemetry(context)
         val hw = com.jarvis.assistant.agentic.healing.HardwareResourceAwareEngine.getInstance(context).getDeviceResourceStatus()
         val vault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(context)
-        val configuredCount = ModelProvider.entries.count { !it.requiresApiKey || vault.getApiKey(it).isNotBlank() }
+        val configuredCount = ModelProvider.entries.count { !it.requiresApiKey || !vault.getApiKey(it).isNullOrBlank() }
         val agyBin = File(binDir, "agy")
         val a11yRunning = JarvisAccessibilityService.isRunning()
         val searchProbeOk = runCatching { liveSearchClient.search("Android", maxResults = 1).isNotEmpty() }.getOrDefault(false)

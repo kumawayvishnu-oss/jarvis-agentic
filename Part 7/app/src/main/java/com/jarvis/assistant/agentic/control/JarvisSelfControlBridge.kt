@@ -182,10 +182,10 @@ object JarvisSelfControlBridge {
         val vault = ProviderVault.getInstance(context)
         val shell = AgentShellEngine.getInstance(context)
         val configuredProviders = ModelProvider.entries.filter { provider ->
-            !provider.requiresApiKey || vault.getApiKey(provider).isNotBlank()
+            !provider.requiresApiKey || !vault.getApiKey(provider).isNullOrBlank()
         }
         val missingKeyProviders = ModelProvider.entries.filter { provider ->
-            provider.requiresApiKey && vault.getApiKey(provider).isBlank()
+            provider.requiresApiKey && vault.getApiKey(provider).isNullOrBlank()
         }
         val a11yEnabled = JarvisAccessibilityService.isRunning()
         val voiceState = JarvisConversationService.connectionStatus.value

@@ -221,8 +221,13 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         com.jarvis.assistant.util.ThemeManager.applyDynamicBackground(binding.root)
-        binding.orbWebView.onResume()
-        binding.orbWebView.resumeTimers()
+        if (!isHidden) {
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.wakeWebView(binding.orbWebView)
+            binding.orbWebView.resumeTimers()
+            if (isPageLoaded) {
+                binding.orbWebView.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.wake)window.JarvisOrb.wake();", null)
+            }
+        }
         renderTaskFallback(com.jarvis.assistant.automation.agent.AgentTaskEngine.taskState.value)
 
         // Sync theme with settings
@@ -236,7 +241,10 @@ class HomeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        binding.orbWebView.onPause()
+        if (isPageLoaded) {
+            binding.orbWebView.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.hibernate)window.JarvisOrb.hibernate();", null)
+        }
+        com.jarvis.assistant.util.OppoA11kRamOptimizer.hibernateWebView(binding.orbWebView)
         binding.orbWebView.pauseTimers()
     }
 
@@ -245,13 +253,19 @@ class HomeFragment : Fragment() {
         if (!hidden && _binding != null) {
             binding.root.visibility = View.VISIBLE
             binding.orbWebView.visibility = View.VISIBLE
-            binding.orbWebView.onResume()
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.wakeWebView(binding.orbWebView)
             binding.orbWebView.resumeTimers()
+            if (isPageLoaded) {
+                binding.orbWebView.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.wake)window.JarvisOrb.wake();", null)
+            }
             com.jarvis.assistant.util.ThemeManager.applyDynamicBackground(binding.root)
             setOrbTheme(preferences.appTheme, preferences.customThemeColor)
             updateHomeHeaderAndVoiceStatus()
         } else if (hidden && _binding != null) {
-            binding.orbWebView.onPause()
+            if (isPageLoaded) {
+                binding.orbWebView.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.hibernate)window.JarvisOrb.hibernate();", null)
+            }
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.hibernateWebView(binding.orbWebView)
             binding.orbWebView.pauseTimers()
             binding.orbWebView.visibility = View.GONE
             binding.root.visibility = View.GONE
@@ -604,36 +618,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
-
-    override fun onHiddenChanged(hidden: Boolean) {
-        super.onHiddenChanged(hidden)
-        val wv = _binding?.orbWebView ?: return
-        if (hidden) {
-            if (isPageLoaded) wv.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.hibernate)window.JarvisOrb.hibernate();", null)
-            com.jarvis.assistant.util.OppoA11kRamOptimizer.hibernateWebView(wv)
-        } else {
-            com.jarvis.assistant.util.OppoA11kRamOptimizer.wakeWebView(wv)
-            if (isPageLoaded) wv.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.wake)window.JarvisOrb.wake();", null)
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        _binding?.orbWebView?.let { wv ->
-            if (isPageLoaded) wv.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.hibernate)window.JarvisOrb.hibernate();", null)
-            com.jarvis.assistant.util.OppoA11kRamOptimizer.hibernateWebView(wv)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (!isHidden) {
-            _binding?.orbWebView?.let { wv ->
-                com.jarvis.assistant.util.OppoA11kRamOptimizer.wakeWebView(wv)
-                if (isPageLoaded) wv.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.wake)window.JarvisOrb.wake();", null)
-            }
-        }
-    }
 
     override fun onDestroyView() {
         _binding?.orbWebView?.let { wv ->
