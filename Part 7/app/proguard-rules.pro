@@ -1,12 +1,10 @@
-# Keep Gson model classes
--keep class com.jarvis.assistant.data.model.** { *; }
--keepattributes Signature
--keepattributes *Annotation*
-
-# Keep JavascriptInterfaces for WebViews (Cyberpunk Orb & Settings Activity)
+# JARVIS Agentic — Safe R8 Shrinking & Keep Rules
+-dontobfuscate
+-keep class com.jarvis.assistant.** { *; }
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
+-keepattributes Signature, InnerClasses, EnclosingMethod, *Annotation*
 
 # Keep Vosk and JNA native libraries & models
 -keep class org.vosk.** { *; }
@@ -16,24 +14,8 @@
 # JNA ships optional desktop AWT bridges that are not present on Android; app code does not use them.
 -dontwarn java.awt.**
 
-# Keep Room database & Agentic models
+# Keep Room database & Gson
 -keep class androidx.room.** { *; }
 -keep class * extends androidx.room.RoomDatabase
--keep class com.jarvis.assistant.agentic.** { *; }
--keep class com.jarvis.assistant.data.memory.** { *; }
+-keep class com.google.gson.** { *; }
 
-# ── Tech GPTx Security Module — keep rules ───────────────────────────────────
--keep class com.jarvis.assistant.security.SecurityManager { *; }
--keep class com.jarvis.assistant.security.AppIdentityVerifier { *; }
-
-# Obfuscate everything else aggressively
--optimizationpasses 5
--allowaccessmodification
--repackageclasses 'tgptx'
-
-# Remove Log calls in release builds (security: don't leak internals)
--assumenosideeffects class android.util.Log {
-    public static int d(...);
-    public static int v(...);
-    public static int i(...);
-}

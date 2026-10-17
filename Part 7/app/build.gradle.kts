@@ -14,8 +14,8 @@ val releaseStorePassword = configuredValue("JARVIS_RELEASE_STORE_PASSWORD")
 val releaseKeyAlias = configuredValue("JARVIS_RELEASE_KEY_ALIAS")
 val releaseKeyPassword = configuredValue("JARVIS_RELEASE_KEY_PASSWORD")
 val releaseCertSha256 = configuredValue("JARVIS_RELEASE_CERT_SHA256")?.replace(":", "")?.uppercase().orEmpty()
-val developerName = configuredValue("JARVIS_DEVELOPER_NAME")?.ifBlank { null } ?: "Tech GPTx"
-val copyrightOwner = configuredValue("JARVIS_COPYRIGHT_OWNER")?.ifBlank { null } ?: "Tech GPTx"
+val developerName = configuredValue("JARVIS_DEVELOPER_NAME")?.ifBlank { null } ?: "JARVIS Agentic"
+val copyrightOwner = configuredValue("JARVIS_COPYRIGHT_OWNER")?.ifBlank { null } ?: "JARVIS Agentic"
 val verificationEndpoint = configuredValue("JARVIS_VERIFICATION_ENDPOINT").orEmpty()
 val releaseSigningReady = listOf(releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }
 
@@ -64,6 +64,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

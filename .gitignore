@@ -42,3 +42,7 @@ keys.properties
 Thumbs.db
 desktop.ini
 .agents/
+
+# Private Master Plan & User Profile (NEVER COMMIT)
+MASTER_PLAN.md
+
