@@ -312,12 +312,41 @@ class ShellCodingSpecialistAgent(
         reportStep("AgentShellStart", "Autonomous Terminal Task: $trimmed", StepLogLevel.INFO, taskId)
 
         try {
-            // Case 1: Explicit recipe, download, research, git clone, permission doctor, pagination, or raw shell prefix
+            val wantsVisualShow = lower.contains("dikhao") || lower.contains("show ") || lower.contains("kholo") || lower.contains("open ")
+
+            // Case 0: Direct Self-UI Navigation / "Mujhe dikhao terminal mein kya ho raha hai"
+            if ((lower.contains("terminal") || lower.contains("shell") || lower.contains("console")) &&
+                (lower.contains("dikhao") || lower.contains("kya ho raha") || lower.contains("show") || lower.contains("kholo") || lower.contains("open")) &&
+                !lower.contains("antigravity") && !lower.contains("anti gravity")
+            ) {
+                val uiMsg = com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                    context,
+                    com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.TERMINAL
+                )
+                val selfReport = com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.inspectSelfState(context)
+                val combined = "$uiMsg\n\n$selfReport"
+                writeBlackboard(taskId, "last_shell_output", combined)
+                return@withContext AgentExecutionResult(id, name, true, combined)
+            }
+
+            if ((lower.contains("api vault") || lower.contains("diagnostics") || lower.contains("live debug") || lower.contains("memory screen") || lower.contains("updates tab")) &&
+                (lower.contains("kholo") || lower.contains("dikhao") || lower.contains("open") || lower.contains("show"))
+            ) {
+                val navOut = com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.navigateToInternalScreen(context, trimmed)
+                writeBlackboard(taskId, "last_shell_output", navOut)
+                return@withContext AgentExecutionResult(id, name, true, navOut)
+            }
+
+            // Case 1: Explicit recipe, htop, postman, netstat, validate, download, research, git clone, permission doctor, pagination, or raw shell prefix
             val directCommand: String? = when {
                 trimmed.startsWith("sh ") -> trimmed.removePrefix("sh ").trim()
                 trimmed.startsWith("r ") || trimmed.startsWith("perm ") ||
                     trimmed.startsWith("agy ") || trimmed.startsWith("opencode ") ||
                     trimmed.startsWith("build-preview ") || trimmed.startsWith("termux:") ||
+                    trimmed.startsWith("htop") || trimmed.startsWith("top") ||
+                    trimmed.startsWith("postman") || trimmed.startsWith("api-test") ||
+                    trimmed.startsWith("netstat") || trimmed.startsWith("ping ") ||
+                    trimmed.startsWith("validate") ||
                     trimmed.startsWith("curl ") || trimmed.startsWith("wget ") ||
                     trimmed.startsWith("git ") || trimmed.startsWith("gh ") ||
                     trimmed.startsWith("pkg ") || trimmed.startsWith("apt ") ||
@@ -326,6 +355,11 @@ class ShellCodingSpecialistAgent(
                     trimmed == "--more" -> trimmed
                 (lower.contains("antigravity") || lower.contains("anti gravity") || lower.contains("anti-gravity") || lower.contains("agy") || lower.contains("opencode")) &&
                     (lower.contains("download") || lower.contains("install") || lower.contains("setup") || lower.contains("karke dikhao")) -> "r install-agy"
+                lower.contains("htop") || lower.contains("system monitor") || (lower.contains("ram") && (lower.contains("monitor") || lower.contains("status") || lower.contains("check"))) -> "htop"
+                lower.contains("ram boost") || lower.contains("ram clean") || lower.contains("trim ram") || lower.contains("ram kam") -> "r ram-boost"
+                lower.contains("postman") || lower.contains("api test") || lower.contains("test api") -> "postman test-providers"
+                lower.contains("validate") || lower.contains("validation script") || (lower.contains("full control") && lower.contains("monitoring")) -> "r validate"
+                lower.contains("netstat") || lower.contains("network monitor") || lower.contains("network access") -> "netstat"
                 lower.contains("sysinfo") || lower.contains("system info") || lower.contains("kernel") -> "r sysinfo"
                 lower.contains("setup termux") || lower.contains("install termux") -> "r setup-termux"
                 lower.contains("install ubuntu") || lower.contains("proot") -> "r install-ubuntu"
@@ -360,11 +394,20 @@ class ShellCodingSpecialistAgent(
                     .removePrefix("execute in terminal")
                     .removePrefix("terminal")
                     .trim()
-                    .ifBlank { "r sysinfo" }
+                    .ifBlank { "r validate" }
                 shell.executeCommand(
                     rawCommand = safeCmd,
                     caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST
                 )
+            }
+
+            if (wantsVisualShow) {
+                val tab = when {
+                    directCommand == "htop" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.HTOP
+                    result.previewArtifact != null -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.VIEWPORT
+                    else -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.TERMINAL
+                }
+                com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(context, tab)
             }
 
             writeBlackboard(taskId, "last_shell_output", result.compactOutput)
@@ -470,16 +513,20 @@ class SpecialistAgentPool private constructor(private val context: Context) {
             return pool["agent_cognitive"] ?: pool.values.first()
         }
 
-        // 2. Autonomous AI Terminal / Linux / Antigravity Coding / Live Preview
+        // 2. Autonomous AI Terminal / Linux / Antigravity / htop / Postman / Netstat / Validation / Self-UI Display
         if (lower.startsWith("sh ") || lower.startsWith("r ") || lower.startsWith("perm ") ||
             lower.startsWith("agy ") || lower.startsWith("opencode ") || lower.startsWith("termux:") ||
             lower.contains("terminal") || lower.contains("termux") || lower.contains("linux") ||
+            lower.contains("htop") || lower.contains("postman") || lower.contains("api-test") ||
+            lower.contains("validate") || lower.contains("validation") || lower.contains("netstat") ||
+            lower.contains("ram boost") || lower.contains("system monitor") ||
             lower.contains("ubuntu") || lower.contains("antigravity") || lower.contains("anti gravity") ||
             lower.contains("anti-gravity") || lower.contains("opencode") || lower.contains("curl ") ||
             lower.contains("wget ") || lower.contains("git clone") || lower.contains("pkg install") ||
             lower.contains("preview") || lower.contains("web app") || lower.contains("webapp") ||
             lower.contains("website") || lower.contains("html") || lower.contains("script") ||
             lower.contains("sysinfo") || lower.contains("git ") || lower.contains("python") ||
+            lower.contains("api vault") || lower.contains("diagnostics") || lower.contains("live debug") ||
             (lower.contains("build") && (lower.contains("app") || lower.contains("tool") || lower.contains("calculator") || lower.contains("dashboard") || lower.contains("ui") || lower.contains("page") || lower.contains("game"))) ||
             (lower.contains("banao") && (lower.contains("app") || lower.contains("website") || lower.contains("calculator") || lower.contains("preview") || lower.contains("tool") || lower.contains("code")))
         ) {

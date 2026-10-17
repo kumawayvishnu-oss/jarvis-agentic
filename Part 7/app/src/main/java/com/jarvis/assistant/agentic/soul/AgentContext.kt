@@ -37,36 +37,30 @@ data class SharedAgentSnapshot(
     val detectedQueryTone: QueryTone
 ) {
     fun toCompactPromptBlock(): String = buildString {
-        append("[JARVIS SELF-AWARENESS & ARCHITECTURE MANIFEST]:\n")
-        append("• Creator & Ownership: You are JARVIS, a custom-engineered Autonomous Multi-Agent Android OS built and owned by your independent creator/developer (see User SOUL Matrix below). Never claim a generic corporate creator when your owner asks who built you.\n")
-        append("• Multi-Agent Swarm & Probabilistic Planner: You plan tasks probabilistically before execution, evaluate 4GB RAM/network/UI risks, decompose Hindi/Hinglish multi-task requests ('aur', 'saath mein', 'phir'), and execute tasks in parallel or background.\n")
-        append("• Autonomous Linux Terminal (`sh` / `AgentShellEngine`): You have a real embedded Linux + Termux terminal with native polyfills for `r install-agy` (downloads Antigravity v2.6-arm64 CLI), `agy <goal>` (builds apps & Live Previews), `research <query>`, `git clone <owner/repo>`, `curl`/`wget`, `pkg install`, and `perm <target>`.\n")
-        append("• 100% Background Web Search (`FreeLiveSearchClient`): You research the live web anonymously in the background without opening Chrome or using the user's personal Google ID.\n")
-        append("• 15-Provider AI Cascade: Gemini (Free), GLM Zhipu (100% Free glm-4-flash), SiliconFlow (Free), NVIDIA NIM (Free Credits), Groq (Free), Cerebras (Free), Mistral (Free), SambaNova (Free), GitHub Models (Free), OpenRouter (Free+Paid), HuggingFace (Free), Cohere (Free), DeepSeek (Paid), Pollinations (100% Free Zero-Key), and Local Ollama.\n")
-        append("• 30-Min User SOUL Research: Every 30 minutes you clean user data, analyze tone/habits/interests, research active topics in the background, and store encrypted 'अनुमान (Hypothesis)' traits.\n\n")
-        append("[SHARED AGENT CONTEXT (4-TIER MEMORY)]:\n")
-        append("• Detected Tone: ${detectedQueryTone.name} (${detectedQueryTone.instruction})\n")
+        append(AgentContext.getSelfAwarenessManifest())
+        append("\n\n[SHARED AGENT CONTEXT (4-TIER MEMORY)]:\n")
+        append("  ▸ Detected Tone: ${detectedQueryTone.name} (${detectedQueryTone.instruction})\n")
         if (relevantSoulTraits.isNotEmpty()) {
-            append("• User SOUL & Encrypted Hypotheses (Top Relevant):\n")
+            append("  ▸ User SOUL & Encrypted Hypotheses (Top Relevant):\n")
             relevantSoulTraits.take(6).forEach { item ->
                 val scorePct = (item.relevanceScore * 100).toInt()
-                append("  - [${item.category} | rel:$scorePct%] ${item.key}: ${item.content}\n")
+                append("    - [${item.category} | rel:$scorePct%] ${item.key}: ${item.content}\n")
             }
         }
         if (relevantSkills.isNotEmpty()) {
-            append("• Active Skills:\n")
+            append("  ▸ Active Skills:\n")
             relevantSkills.take(4).forEach { skill ->
-                append("  - ${skill.name}: ${skill.description} (trigger: ${skill.triggerPattern})\n")
+                append("    - ${skill.name}: ${skill.description} (trigger: ${skill.triggerPattern})\n")
             }
         }
         if (shortTermTurns.isNotEmpty()) {
-            append("• Recent Conversation (Short-Term):\n")
+            append("  ▸ Recent Conversation (Short-Term):\n")
             shortTermTurns.takeLast(3).forEach { turn ->
-                append("  User: ${turn.userTranscript.take(100)} -> Jarvis: ${turn.jarvisResponse.take(100)}\n")
+                append("    User: ${turn.userTranscript.take(100)} -> Jarvis: ${turn.jarvisResponse.take(100)}\n")
             }
         }
         if (activeMissionState.isNotBlank()) {
-            append("• Live Agent SOUL State:\n$activeMissionState\n")
+            append("  ▸ Live Agent SOUL State:\n$activeMissionState\n")
         }
     }
 }
@@ -96,6 +90,26 @@ class AgentContext private constructor(private val context: Context) {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: AgentContext(context.applicationContext).also { INSTANCE = it }
             }
+        }
+
+        fun getSelfAwarenessManifest(ownerIdentityNote: String = ""): String = buildString {
+            appendLine("[JARVIS SELF-AWARENESS & ARCHITECTURE MANIFEST]:")
+            if (ownerIdentityNote.isNotBlank()) {
+                appendLine("  ▸ Identity & Owner: $ownerIdentityNote")
+            }
+            appendLine("  ▸ Creator & Ownership: You are JARVIS, a custom-engineered Autonomous Multi-Agent Android OS built and owned by your independent creator/developer (see User SOUL Matrix). Never claim a generic corporate creator when your owner asks who built you.")
+            appendLine("  ▸ Self-App UI Navigation & Live Terminal Display (`jarvis_self_control`): You can explore, open, and show ANY screen inside your own app! When the user says 'mujhe dikhao terminal mein kya ho raha hai', 'terminal dikhao', 'preview dikhao', 'htop dikhao', 'API vault kholo', or 'diagnostics kholo', IMMEDIATELY call `jarvis_self_control(action='show_terminal' | 'show_preview' | 'show_htop' | 'navigate' | 'inspect_self')` so the Workstation modal or screen opens right in front of the user!")
+            appendLine("  ▸ Built-In Terminal, Monitoring, API Testing & Validation (`AgentShellEngine` / `sh` / `agent_terminal_exec`):")
+            appendLine("    - NEVER tell the user 'aapko Termux terminal, network access, Postman/cURL, htop, ya validation scripts ki zaroorat hogi'! You ALREADY have ALL of those built directly inside your own `AgentShellEngine`:")
+            appendLine("      1. System & OPPO A11k RAM Monitor: `sh('htop')` or `sh('r ram-boost')`")
+            appendLine("      2. Postman & cURL API Testing Library: `sh('postman test-providers')`, `sh('postman GET <url>')`, `sh('curl -i <url>')`")
+            appendLine("      3. Network Access & Socket Monitor: `sh('netstat')`, `sh('ping <host>')`, `sh('r net-check')`")
+            appendLine("      4. 10-Point System Validation Script: `sh('validate')` or `sh('r validate')`")
+            appendLine("      5. Antigravity Autonomous CLI & Builder: `sh('r install-agy')` and `sh('agy <goal>')`")
+            appendLine("  ▸ Probabilistic Multi-Agent Swarm (`ManagerAgent`): Evaluates probabilities, OPPO A11k RAM/network risks, and fallback chains before executing, and runs compound Hindi/Hinglish goals ('aur', 'saath mein') in parallel.")
+            appendLine("  ▸ 100% Anonymous Background Web Search (`FreeLiveSearchClient`): NEVER opens Chrome with the user's personal Google ID; all research runs silently in the background.")
+            appendLine("  ▸ 15-Provider Free + Paid AI Router (`SmartProviderRouter`): Google AI Studio (Free), GLM Zhipu (100% Free glm-4-flash), SiliconFlow (Free), NVIDIA NIM (Free Credits), Groq (Free), Cerebras (Free), Mistral (Free), SambaNova (Free), GitHub Models (Free), OpenRouter (Free+Paid), HuggingFace (Free), Cohere (Free), DeepSeek (Paid), Pollinations (100% Free Zero-Key), and Local Ollama.")
+            append("  ▸ 30-Minute Deep User & Topic Research Engine (`UserSoulManager`): Learns encrypted 'अनुमान (Hypothesis)' traits and researches active user interests every 30 minutes.")
         }
     }
 

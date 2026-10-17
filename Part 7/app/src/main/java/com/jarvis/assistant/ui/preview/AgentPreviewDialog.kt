@@ -12,45 +12,61 @@ import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.view.animation.OvershootInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.EditText
+import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
+import com.jarvis.assistant.R
+import com.jarvis.assistant.agentic.control.JarvisSelfControlBridge
 import com.jarvis.assistant.agentic.shell.AgentShellEngine
+import com.jarvis.assistant.util.OppoA11kRamOptimizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Locale
 
 /**
- * Interactive Live Preview Window (`AgentPreviewDialog`) for viewing web apps, dashboards,
- * scripts, and tools built autonomously by JARVIS's AI Terminal (`AgentShellEngine`).
+ * Professional Terminal, Telemetry & Viewport Workstation (`AgentPreviewDialog`).
  *
- * Notice: The user does NOT type raw terminal commands here; the terminal is strictly
- * AI-controlled. The user can inspect the Live Rendered WebView, inspect the generated source
- * code, or give the AI Agent a high-level build/refinement goal that the AI executes in its terminal.
+ * Designed with Terminal-HUD Typography Architecture (Zero cartoon emojis; crisp geometric
+ * indicators `◈`, `▸`, `❯`, `┌──`, `└──`, and OPPO A11k low-RAM WebView lifecycle management).
  */
 object AgentPreviewDialog {
+
+    @Volatile
+    private var activeDialog: Dialog? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     fun show(
         context: Context,
         scope: CoroutineScope,
-        initialArtifact: AgentShellEngine.AgentPreviewArtifact? = null
+        initialArtifact: AgentShellEngine.AgentPreviewArtifact? = null,
+        initialTab: JarvisSelfControlBridge.WorkstationTab? = null
     ) {
+        try {
+            activeDialog?.dismiss()
+        } catch (_: Exception) {
+        }
+
         val shell = AgentShellEngine.getInstance(context)
         val artifact = initialArtifact ?: shell.latestPreview.value
+        val orbitronFont = runCatching { ResourcesCompat.getFont(context, R.font.orbitron_bold) }.getOrNull() ?: Typeface.DEFAULT_BOLD
+        val rajdhaniBold = runCatching { ResourcesCompat.getFont(context, R.font.rajdhani_semibold) }.getOrNull() ?: Typeface.DEFAULT_BOLD
 
         val dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        activeDialog = dialog
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#F204070D")))
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#F704070D")))
 
         val root = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -58,13 +74,12 @@ object AgentPreviewDialog {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            setPadding(dp(context, 16), dp(context, 18), dp(context, 16), dp(context, 16))
+            setPadding(dp(context, 14), dp(context, 14), dp(context, 14), dp(context, 12))
             alpha = 0f
-            scaleX = 0.94f
-            scaleY = 0.94f
+            translationY = 18f
         }
 
-        // Top HUD Header
+        // ── 1. Top Precision HUD Header ─────────────────────────────────────────
         val headerRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -79,25 +94,27 @@ object AgentPreviewDialog {
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
 
+        val ramSnap = OppoA11kRamOptimizer.captureTelemetry(context)
         val badgeTv = TextView(context).apply {
-            text = "⚡ AI TERMINAL LIVE PREVIEW • READ-ONLY SANDBOX"
+            text = "◈ JARVIS // SHELL & VIEWPORT WORKSTATION  |  RAM: ${ramSnap.availableRamMb}MB FREE"
             setTextColor(Color.parseColor("#00E5FF"))
-            textSize = 10f
-            typeface = Typeface.DEFAULT_BOLD
-            letterSpacing = 0.12f
+            textSize = 9.5f
+            typeface = orbitronFont
+            letterSpacing = 0.09f
         }
 
         val titleTv = TextView(context).apply {
-            text = artifact?.title ?: "AUTONOMOUS WORKSPACE PREVIEW"
-            setTextColor(Color.parseColor("#F8FAFC"))
-            textSize = 17f
-            typeface = Typeface.DEFAULT_BOLD
+            text = artifact?.title ?: "ROOT@JARVIS-LINUX :: AUTONOMOUS CONSOLE"
+            setTextColor(Color.parseColor("#F1F5F9"))
+            textSize = 16f
+            typeface = rajdhaniBold
         }
 
         val subTitleTv = TextView(context).apply {
-            text = artifact?.description ?: "Ask JARVIS to build any app, calculator, dashboard, or script"
-            setTextColor(Color.parseColor("#94A3B8"))
-            textSize = 11.5f
+            text = "session: ${shell.workspaceDir.absolutePath}  //  status: ${shell.activeStatus.value}"
+            setTextColor(Color.parseColor("#64748B"))
+            textSize = 10.5f
+            typeface = Typeface.MONOSPACE
         }
 
         titleColumn.addView(badgeTv)
@@ -105,12 +122,13 @@ object AgentPreviewDialog {
         titleColumn.addView(subTitleTv)
 
         val closeBtn = Button(context).apply {
-            text = "✕ Close"
+            text = "[ X  CLOSE ]"
             isAllCaps = false
-            textSize = 12f
-            setTextColor(Color.parseColor("#F8FAFC"))
-            background = pillDrawable("#1E293B", "#334155")
-            setPadding(dp(context, 14), dp(context, 6), dp(context, 14), dp(context, 6))
+            textSize = 11f
+            typeface = Typeface.MONOSPACE
+            setTextColor(Color.parseColor("#E2E8F0"))
+            background = panelDrawable("#0F172A", "#334155", cornerRadiusDp = 8f)
+            setPadding(dp(context, 12), dp(context, 4), dp(context, 12), dp(context, 4))
             setOnClickListener {
                 it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 dialog.dismiss()
@@ -121,28 +139,30 @@ object AgentPreviewDialog {
         headerRow.addView(closeBtn)
         root.addView(headerRow)
 
-        // Mode Switch Tabs: [🌐 Live Render] [💻 Source Code] [📜 AI Terminal Stream]
+        // ── 2. Precision Navigation Tabs (Zero Cartoon Emojis) ──────────────────
         val tabRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = dp(context, 12)
-                bottomMargin = dp(context, 10)
+                topMargin = dp(context, 10)
+                bottomMargin = dp(context, 8)
             }
         }
 
-        val btnLiveTab = createTabButton(context, "🌐 Live Render", true)
-        val btnCodeTab = createTabButton(context, "💻 Source Code", false)
-        val btnLogsTab = createTabButton(context, "📜 Agent Terminal", false)
+        val btnTerminalTab = createTabButton(context, "[ TERMINAL ]", false)
+        val btnViewportTab = createTabButton(context, "[ VIEWPORT ]", false)
+        val btnSourceTab = createTabButton(context, "[ SOURCE ]", false)
+        val btnHtopTab = createTabButton(context, "[ HTOP // SYS ]", false)
 
-        tabRow.addView(btnLiveTab, LinearLayout.LayoutParams(0, dp(context, 38), 1f).apply { rightMargin = dp(context, 6) })
-        tabRow.addView(btnCodeTab, LinearLayout.LayoutParams(0, dp(context, 38), 1f).apply { rightMargin = dp(context, 6) })
-        tabRow.addView(btnLogsTab, LinearLayout.LayoutParams(0, dp(context, 38), 1f))
+        tabRow.addView(btnTerminalTab, LinearLayout.LayoutParams(0, dp(context, 34), 1f).apply { rightMargin = dp(context, 5) })
+        tabRow.addView(btnViewportTab, LinearLayout.LayoutParams(0, dp(context, 34), 1f).apply { rightMargin = dp(context, 5) })
+        tabRow.addView(btnSourceTab, LinearLayout.LayoutParams(0, dp(context, 34), 1f).apply { rightMargin = dp(context, 5) })
+        tabRow.addView(btnHtopTab, LinearLayout.LayoutParams(0, dp(context, 34), 1f))
         root.addView(tabRow)
 
-        // Content Frame
+        // ── 3. Main Workstation Viewport Frame ──────────────────────────────────
         val contentContainer = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
@@ -150,24 +170,37 @@ object AgentPreviewDialog {
                 0,
                 1f
             )
-            background = pillDrawable("#0A0F1D", "#00E5FF", cornerRadiusDp = 16f, strokeWidthPx = 2)
-            setPadding(dp(context, 4), dp(context, 4), dp(context, 4), dp(context, 4))
+            background = panelDrawable("#050811", "#1E293B", cornerRadiusDp = 10f, strokeWidthPx = 2)
+            setPadding(dp(context, 2), dp(context, 2), dp(context, 2), dp(context, 2))
         }
+
+        // Terminal Prompt Banner inside Console
+        val consoleBanner = TextView(context).apply {
+            text = "┌──(root@jarvis-linux)-[~/workspace]──[TOOLS: htop | postman | curl | netstat | git | agy | validate]"
+            typeface = Typeface.MONOSPACE
+            textSize = 10f
+            setTextColor(Color.parseColor("#00E5FF"))
+            setBackgroundColor(Color.parseColor("#09101E"))
+            setPadding(dp(context, 10), dp(context, 6), dp(context, 10), dp(context, 6))
+        }
+        contentContainer.addView(consoleBanner)
 
         val webView = WebView(context).apply {
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            setBackgroundColor(Color.parseColor("#060A12"))
+            setBackgroundColor(Color.parseColor("#050811"))
             settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
+            settings.domStorageEnabled = false
             settings.allowFileAccess = true
             settings.loadWithOverviewMode = true
             settings.useWideViewPort = true
             settings.cacheMode = WebSettings.LOAD_NO_CACHE
+            OppoA11kRamOptimizer.optimizeWebViewForLowRam(this, isLocalAssetView = true)
             webChromeClient = WebChromeClient()
             webViewClient = WebViewClient()
+            visibility = View.GONE
         }
 
         val codeScroll = ScrollView(context).apply {
@@ -175,34 +208,62 @@ object AgentPreviewDialog {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            visibility = View.GONE
-            setPadding(dp(context, 12), dp(context, 12), dp(context, 12), dp(context, 12))
+            setBackgroundColor(Color.parseColor("#04070D"))
+            setPadding(dp(context, 12), dp(context, 10), dp(context, 12), dp(context, 12))
         }
 
         val codeText = TextView(context).apply {
             typeface = Typeface.MONOSPACE
             textSize = 11.5f
-            setTextColor(Color.parseColor("#A5F3FC"))
+            setLineSpacing(dp(context, 3).toFloat(), 1.0f)
+            setTextColor(Color.parseColor("#CBD5E1"))
             setTextIsSelectable(true)
         }
         codeScroll.addView(codeText)
 
-        fun renderArtifact(art: AgentShellEngine.AgentPreviewArtifact?) {
+        contentContainer.addView(webView)
+        contentContainer.addView(codeScroll)
+        root.addView(contentContainer)
+
+        fun formatTerminalStream(): String {
+            val logs = shell.terminalLogs.value
+            val t = OppoA11kRamOptimizer.captureTelemetry(context)
+            val header = buildString {
+                appendLine("JARVIS EMBEDDED LINUX & TERMUX WORKSTATION [v2.7-ARM64]")
+                appendLine("DEVICE PROFILE : ${t.deviceModel} | FREE RAM: ${t.availableRamMb}MB / ${t.totalRamMb}MB | JVM: ${t.jvmUsedMb}MB/${t.jvmMaxMb}MB")
+                appendLine("BUILTIN TOOLS  : htop, postman, curl, wget, netstat, ping, git clone, agy, validate, search")
+                appendLine("────────────────────────────────────────────────────────────────────────")
+            }
+            if (logs.isEmpty()) {
+                return header + "\n[SESSION READY] Type any command below or tap a quick-exec chip ([HTOP], [VALIDATE], [POSTMAN], [NETSTAT]).\n└─❯ _"
+            }
+            val body = logs.takeLast(18).joinToString("\n\n") { entry ->
+                val statusTag = if (entry.exitCode == 0) "[OK // EXIT:0]" else "[ERR // EXIT:${entry.exitCode}]"
+                "┌──[${entry.timestamp}]──[${entry.caller} :: ${entry.backend.name}]──[${entry.durationMs}ms]──$statusTag\n" +
+                    "└─❯ ${entry.command}\n" +
+                    entry.output.trimEnd()
+            }
+            return "$header\n$body\n\n└─❯ _"
+        }
+
+        fun renderArtifactInWebView(art: AgentShellEngine.AgentPreviewArtifact?) {
             if (art == null) {
                 val emptyHtml = """
-                    <!DOCTYPE html><html><body style="background:#060A12;color:#F8FAFC;font-family:sans-serif;padding:24px;text-align:center;">
-                    <h3 style="color:#00E5FF;">No AI Preview Generated Yet</h3>
-                    <p style="color:#94A3B8;font-size:13px;">Give the AI Agent a build goal below (e.g. "Build a neon crypto & EMI calculator" or "Create a Pomodoro timer app") and watch the AI build it autonomously in its Linux terminal.</p>
+                    <!DOCTYPE html><html><body style="background:#050811;color:#E2E8F0;font-family:monospace;padding:24px;">
+                    <div style="border:1px solid #1E293B;background:#09101E;padding:18px;border-radius:8px;">
+                      <div style="color:#00E5FF;font-size:12px;letter-spacing:1px;">◈ VIEWPORT STANDBY // NO HTML ARTIFACT LOADED</div>
+                      <h3 style="margin:10px 0 6px 0;color:#F8FAFC;">Autonomous App & Tool Viewport</h3>
+                      <p style="color:#94A3B8;font-size:12px;line-height:1.5;">
+                        Run <b>r install-agy</b>, <b>htop</b>, <b>validate</b>, or <b>agy &lt;goal&gt;</b> below to render live output here.
+                      </p>
+                    </div>
                     </body></html>
                 """.trimIndent()
                 webView.loadDataWithBaseURL(null, emptyHtml, "text/html", "UTF-8", null)
-                codeText.text = "// Workspace is ready at: ${shell.workspaceDir.absolutePath}\n// Ask the AI Agent below to autonomously code & preview a project."
                 return
             }
             titleTv.text = art.title
-            subTitleTv.text = "${art.description} • ${art.primaryCodePath.substringAfterLast("/")}"
-            codeText.text = art.codeContent
-
+            subTitleTv.text = "${art.description}  //  ${art.primaryCodePath.substringAfterLast("/")}"
             val htmlFile = art.htmlFilePath?.let { File(it) }
             if (htmlFile != null && htmlFile.exists()) {
                 webView.loadDataWithBaseURL(
@@ -217,141 +278,314 @@ object AgentPreviewDialog {
             }
         }
 
-        renderArtifact(artifact)
-
-        contentContainer.addView(webView)
-        contentContainer.addView(codeScroll)
-        root.addView(contentContainer)
-
-        // Tab switching logic
-        btnLiveTab.setOnClickListener {
-            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            webView.visibility = View.VISIBLE
-            codeScroll.visibility = View.GONE
-            btnLiveTab.background = pillDrawable("#112240", "#00E5FF")
-            btnCodeTab.background = pillDrawable("#0F172A", "#1E293B")
-            btnLogsTab.background = pillDrawable("#0F172A", "#1E293B")
+        var currentTab = initialTab ?: if (artifact != null) {
+            JarvisSelfControlBridge.WorkstationTab.VIEWPORT
+        } else {
+            JarvisSelfControlBridge.WorkstationTab.TERMINAL
         }
 
-        btnCodeTab.setOnClickListener {
-            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            webView.visibility = View.GONE
-            codeScroll.visibility = View.VISIBLE
-            val cur = shell.latestPreview.value ?: artifact
-            codeText.text = cur?.codeContent ?: "// No source code generated yet."
-            btnCodeTab.background = pillDrawable("#112240", "#00E5FF")
-            btnLiveTab.background = pillDrawable("#0F172A", "#1E293B")
-            btnLogsTab.background = pillDrawable("#0F172A", "#1E293B")
-        }
+        fun selectWorkstationTab(tab: JarvisSelfControlBridge.WorkstationTab) {
+            currentTab = tab
+            val allBtns = listOf(
+                JarvisSelfControlBridge.WorkstationTab.TERMINAL to btnTerminalTab,
+                JarvisSelfControlBridge.WorkstationTab.VIEWPORT to btnViewportTab,
+                JarvisSelfControlBridge.WorkstationTab.SOURCE to btnSourceTab,
+                JarvisSelfControlBridge.WorkstationTab.HTOP to btnHtopTab
+            )
+            allBtns.forEach { (t, btn) ->
+                val active = t == tab
+                btn.background = if (active) {
+                    panelDrawable("#0D2137", "#00E5FF", cornerRadiusDp = 7f, strokeWidthPx = 2)
+                } else {
+                    panelDrawable("#090F1C", "#1E293B", cornerRadiusDp = 7f, strokeWidthPx = 1)
+                }
+                btn.setTextColor(if (active) Color.parseColor("#00E5FF") else Color.parseColor("#94A3B8"))
+            }
 
-        btnLogsTab.setOnClickListener {
-            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            webView.visibility = View.GONE
-            codeScroll.visibility = View.VISIBLE
-            val logs = shell.terminalLogs.value
-            codeText.text = if (logs.isEmpty()) {
-                "=== AI TERMINAL READ-ONLY CONSOLE ===\nWorkspace: ${shell.workspaceDir.absolutePath}\nNo commands executed by AI agent in this session yet."
-            } else {
-                logs.reversed().joinToString("\n\n────────────────────────\n\n") { entry ->
-                    "[${entry.timestamp}] (${entry.caller} • ${entry.backend.name} • ${entry.durationMs}ms • exit=${entry.exitCode})\n" +
-                        "agent@jarvis-linux:~/workspace$ ${entry.command}\n${entry.output}"
+            when (tab) {
+                JarvisSelfControlBridge.WorkstationTab.TERMINAL -> {
+                    OppoA11kRamOptimizer.hibernateWebView(webView)
+                    webView.visibility = View.GONE
+                    codeScroll.visibility = View.VISIBLE
+                    consoleBanner.text = "┌──(root@jarvis-linux)-[~/workspace]──[STREAM: LIVE SHELL LOGS & STDOUT]"
+                    codeText.setTextColor(Color.parseColor("#E2E8F0"))
+                    codeText.text = formatTerminalStream()
+                    codeScroll.post { codeScroll.fullScroll(View.FOCUS_DOWN) }
+                }
+                JarvisSelfControlBridge.WorkstationTab.VIEWPORT -> {
+                    codeScroll.visibility = View.GONE
+                    webView.visibility = View.VISIBLE
+                    OppoA11kRamOptimizer.wakeWebView(webView)
+                    consoleBanner.text = "┌──(root@jarvis-linux)-[~/workspace]──[VIEWPORT: LIVE INTERACTIVE RENDER]"
+                    renderArtifactInWebView(shell.latestPreview.value ?: artifact)
+                }
+                JarvisSelfControlBridge.WorkstationTab.SOURCE -> {
+                    OppoA11kRamOptimizer.hibernateWebView(webView)
+                    webView.visibility = View.GONE
+                    codeScroll.visibility = View.VISIBLE
+                    consoleBanner.text = "┌──(root@jarvis-linux)-[~/workspace]──[INSPECTOR: GENERATED SOURCE CODE]"
+                    codeText.setTextColor(Color.parseColor("#7DD3FC"))
+                    val cur = shell.latestPreview.value ?: artifact
+                    codeText.text = cur?.codeContent ?: "// No source code artifact generated yet.\n// Use 'agy <goal>' or 'r install-agy' to generate code."
+                }
+                JarvisSelfControlBridge.WorkstationTab.HTOP -> {
+                    OppoA11kRamOptimizer.hibernateWebView(webView)
+                    webView.visibility = View.GONE
+                    codeScroll.visibility = View.VISIBLE
+                    consoleBanner.text = "┌──(root@jarvis-linux)-[~/workspace]──[HTOP // SYSTEM, RAM & NETWORK MONITOR]"
+                    codeText.setTextColor(Color.parseColor("#6EE7B7"))
+                    codeText.text = "Running live htop & OPPO A11k hardware telemetry..."
+                    scope.launch {
+                        val res = shell.executeCommand("htop", AgentShellEngine.CallerRole.SYSTEM_DIAGNOSTIC)
+                        withContext(Dispatchers.Main) {
+                            codeText.text = res.compactOutput
+                        }
+                    }
                 }
             }
-            btnLogsTab.background = pillDrawable("#112240", "#00E5FF")
-            btnLiveTab.background = pillDrawable("#0F172A", "#1E293B")
-            btnCodeTab.background = pillDrawable("#0F172A", "#1E293B")
         }
 
-        // Bottom Bar: Delegate Goal to Autonomous AI Builder (Strictly AI-controlled terminal)
-        val bottomRow = LinearLayout(context).apply {
+        btnTerminalTab.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            selectWorkstationTab(JarvisSelfControlBridge.WorkstationTab.TERMINAL)
+        }
+        btnViewportTab.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            selectWorkstationTab(JarvisSelfControlBridge.WorkstationTab.VIEWPORT)
+        }
+        btnSourceTab.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            selectWorkstationTab(JarvisSelfControlBridge.WorkstationTab.SOURCE)
+        }
+        btnHtopTab.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            selectWorkstationTab(JarvisSelfControlBridge.WorkstationTab.HTOP)
+        }
+
+        // ── 4. Quick-Exec Telemetry & Tool Chips Bar ────────────────────────────
+        val chipScroll = HorizontalScrollView(context).apply {
+            isHorizontalScrollBarEnabled = false
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(context, 8)
+            }
+        }
+
+        val chipRow = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        // Forward declaration of command runner
+        lateinit var runWorkstationCommand: (String) -> Unit
+
+        val quickCommands = listOf(
+            "[ HTOP ]" to "htop",
+            "[ VALIDATE ]" to "r validate",
+            "[ POSTMAN API ]" to "postman test-providers",
+            "[ NETSTAT ]" to "netstat",
+            "[ AGY SUITE ]" to "r install-agy",
+            "[ RAM BOOST ]" to "r ram-boost",
+            "[ SYSINFO ]" to "r sysinfo",
+            "[ SELF-AUDIT ]" to "self-inspect"
+        )
+
+        quickCommands.forEach { (label, cmdStr) ->
+            val chip = Button(context).apply {
+                text = label
+                isAllCaps = false
+                textSize = 10.5f
+                typeface = Typeface.MONOSPACE
+                setTextColor(Color.parseColor("#00E5FF"))
+                background = panelDrawable("#091326", "#1E3A5F", cornerRadiusDp = 6f)
+                setPadding(dp(context, 10), dp(context, 2), dp(context, 10), dp(context, 2))
+                setOnClickListener {
+                    it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    runWorkstationCommand(cmdStr)
+                }
+            }
+            chipRow.addView(
+                chip,
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(context, 30)).apply {
+                    rightMargin = dp(context, 6)
+                }
+            )
+        }
+        chipScroll.addView(chipRow)
+        root.addView(chipScroll)
+
+        // ── 5. Bottom Command & AI Build Input Bar ──────────────────────────────
+        val buildRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = dp(context, 12) }
+            ).apply {
+                topMargin = dp(context, 8)
+            }
+        }
+
+        val promptPrefix = TextView(context).apply {
+            text = "❯"
+            typeface = Typeface.MONOSPACE
+            textSize = 15f
+            setTextColor(Color.parseColor("#00E5FF"))
+            setPadding(dp(context, 6), 0, dp(context, 8), 0)
         }
 
         val goalInput = EditText(context).apply {
-            hint = "Tell AI Agent what to build & preview (e.g. 'Neon Scientific Calculator')..."
-            setHintTextColor(Color.parseColor("#64748B"))
+            hint = "htop, postman GET <url>, curl, netstat, validate, or agy <goal>..."
+            setHintTextColor(Color.parseColor("#475569"))
             setTextColor(Color.parseColor("#F8FAFC"))
-            textSize = 13f
-            background = pillDrawable("#0F172A", "#334155")
-            setPadding(dp(context, 14), dp(context, 10), dp(context, 14), dp(context, 10))
+            typeface = Typeface.MONOSPACE
+            textSize = 12f
+            setSingleLine(true)
+            background = panelDrawable("#09101E", "#1E293B", cornerRadiusDp = 8f)
+            setPadding(dp(context, 12), dp(context, 9), dp(context, 12), dp(context, 9))
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
                 rightMargin = dp(context, 8)
             }
         }
 
-        val buildBtn = Button(context).apply {
-            text = "🤖 AI Build"
+        val runBuildBtn = Button(context).apply {
+            text = "[ ▸ EXEC ]"
             isAllCaps = false
-            textSize = 13f
-            typeface = Typeface.DEFAULT_BOLD
+            typeface = Typeface.MONOSPACE
+            textSize = 11.5f
             setTextColor(Color.parseColor("#04070D"))
-            background = pillDrawable("#00E5FF", "#00E5FF")
-            setPadding(dp(context, 16), dp(context, 10), dp(context, 16), dp(context, 10))
+            background = panelDrawable("#00E5FF", "#00E5FF", cornerRadiusDp = 8f)
+            setPadding(dp(context, 14), dp(context, 9), dp(context, 14), dp(context, 9))
         }
 
-        buildBtn.setOnClickListener {
-            val goal = goalInput.text?.toString()?.trim().orEmpty()
-            if (goal.isBlank()) return@setOnClickListener
-            buildBtn.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-            buildBtn.isEnabled = false
-            buildBtn.text = "⏳ AI Building..."
-            subTitleTv.text = "AI Agent is autonomously coding & verifying in agent_linux/workspace..."
+        runWorkstationCommand = { rawInput ->
+            val input = rawInput.trim()
+            if (input.isNotBlank()) {
+                runBuildBtn.isEnabled = false
+                runBuildBtn.text = "[ WAIT ]"
+                subTitleTv.text = "executing: $input ..."
+                scope.launch {
+                    if (input.equals("self-inspect", ignoreCase = true)) {
+                        val report = JarvisSelfControlBridge.inspectSelfState(context)
+                        withContext(Dispatchers.Main) {
+                            runBuildBtn.isEnabled = true
+                            runBuildBtn.text = "[ ▸ EXEC ]"
+                            selectWorkstationTab(JarvisSelfControlBridge.WorkstationTab.TERMINAL)
+                            codeText.text = report
+                        }
+                    } else {
+                        val shellCmd = if (
+                            input.startsWith("agy ", ignoreCase = true) ||
+                            input.startsWith("r ", ignoreCase = true) ||
+                            input.startsWith("perm ", ignoreCase = true) ||
+                            input.startsWith("htop", ignoreCase = true) ||
+                            input.startsWith("top", ignoreCase = true) ||
+                            input.startsWith("postman", ignoreCase = true) ||
+                            input.startsWith("api-test", ignoreCase = true) ||
+                            input.startsWith("curl ", ignoreCase = true) ||
+                            input.startsWith("wget ", ignoreCase = true) ||
+                            input.startsWith("netstat", ignoreCase = true) ||
+                            input.startsWith("ping ", ignoreCase = true) ||
+                            input.startsWith("validate", ignoreCase = true) ||
+                            input.startsWith("git ", ignoreCase = true) ||
+                            input.startsWith("search ", ignoreCase = true) ||
+                            input.startsWith("research ", ignoreCase = true) ||
+                            input.startsWith("ls", ignoreCase = true) ||
+                            input.startsWith("cat ", ignoreCase = true) ||
+                            input.startsWith("echo ", ignoreCase = true) ||
+                            input.startsWith("uname", ignoreCase = true) ||
+                            input.startsWith("df", ignoreCase = true) ||
+                            input.startsWith("free", ignoreCase = true) ||
+                            input.startsWith("ps", ignoreCase = true)
+                        ) {
+                            input
+                        } else if (input.contains("antigravity", ignoreCase = true) || input.contains("anti gravity", ignoreCase = true)) {
+                            "r install-agy"
+                        } else {
+                            "agy $input"
+                        }
 
-            scope.launch {
-                val res = shell.autonomousBuildAndPreview(
-                    goal = goal,
-                    rawCommand = "agy \"$goal\"",
-                    caller = AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST
-                )
-                withContext(Dispatchers.Main) {
-                    buildBtn.isEnabled = true
-                    buildBtn.text = "🤖 AI Build"
-                    goalInput.setText("")
-                    renderArtifact(res.previewArtifact ?: shell.latestPreview.value)
-                    webView.visibility = View.VISIBLE
-                    codeScroll.visibility = View.GONE
+                        val res = shell.executeCommand(shellCmd, AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
+                        withContext(Dispatchers.Main) {
+                            runBuildBtn.isEnabled = true
+                            runBuildBtn.text = "[ ▸ EXEC ]"
+                            val newRam = OppoA11kRamOptimizer.captureTelemetry(context)
+                            badgeTv.text = "◈ JARVIS // SHELL & VIEWPORT WORKSTATION  |  RAM: ${newRam.availableRamMb}MB FREE"
+                            subTitleTv.text = "last: $shellCmd (exit=${res.exitCode})"
+                            if (res.previewArtifact != null && shellCmd.startsWith("agy ", ignoreCase = true)) {
+                                renderArtifactInWebView(res.previewArtifact)
+                                selectWorkstationTab(JarvisSelfControlBridge.WorkstationTab.VIEWPORT)
+                            } else if (shellCmd.startsWith("htop", ignoreCase = true)) {
+                                selectWorkstationTab(JarvisSelfControlBridge.WorkstationTab.HTOP)
+                            } else {
+                                selectWorkstationTab(JarvisSelfControlBridge.WorkstationTab.TERMINAL)
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        bottomRow.addView(goalInput)
-        bottomRow.addView(buildBtn)
-        root.addView(bottomRow)
+        runBuildBtn.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            val text = goalInput.text?.toString()?.trim().orEmpty()
+            if (text.isNotBlank()) {
+                goalInput.setText("")
+                runWorkstationCommand(text)
+            }
+        }
+
+        buildRow.addView(promptPrefix)
+        buildRow.addView(goalInput)
+        buildRow.addView(runBuildBtn)
+        root.addView(buildRow)
+
+        selectWorkstationTab(currentTab)
+
+        dialog.setOnDismissListener {
+            OppoA11kRamOptimizer.hibernateWebView(webView)
+            runCatching {
+                webView.stopLoading()
+                webView.loadUrl("about:blank")
+                webView.destroy()
+            }
+            if (activeDialog === dialog) {
+                activeDialog = null
+            }
+        }
 
         dialog.setContentView(root)
         dialog.show()
 
-        // 60fps physics entry animation
         root.animate()
             .alpha(1f)
-            .scaleX(1f)
-            .scaleY(1f)
-            .setDuration(280L)
-            .setInterpolator(OvershootInterpolator(1.08f))
+            .translationY(0f)
+            .setDuration(210L)
+            .setInterpolator(DecelerateInterpolator())
             .start()
     }
 
-    private fun createTabButton(context: Context, label: String, active: Boolean): Button {
+    private fun createTabButton(context: Context, title: String, active: Boolean): Button {
         return Button(context).apply {
-            text = label
+            text = title
             isAllCaps = false
-            textSize = 11.5f
-            typeface = Typeface.DEFAULT_BOLD
+            textSize = 10.5f
+            typeface = Typeface.MONOSPACE
             setTextColor(if (active) Color.parseColor("#00E5FF") else Color.parseColor("#94A3B8"))
-            background = if (active) pillDrawable("#112240", "#00E5FF") else pillDrawable("#0F172A", "#1E293B")
-            setPadding(dp(context, 8), dp(context, 4), dp(context, 8), dp(context, 4))
+            background = if (active) {
+                panelDrawable("#0D2137", "#00E5FF", cornerRadiusDp = 7f, strokeWidthPx = 2)
+            } else {
+                panelDrawable("#090F1C", "#1E293B", cornerRadiusDp = 7f, strokeWidthPx = 1)
+            }
+            setPadding(dp(context, 6), dp(context, 2), dp(context, 6), dp(context, 2))
         }
     }
 
-    private fun pillDrawable(
+    private fun panelDrawable(
         fillHex: String,
         strokeHex: String,
-        cornerRadiusDp: Float = 12f,
+        cornerRadiusDp: Float = 10f,
         strokeWidthPx: Int = 2
     ): GradientDrawable {
         return GradientDrawable().apply {
@@ -362,7 +596,6 @@ object AgentPreviewDialog {
         }
     }
 
-    private fun dp(context: Context, value: Int): Int {
-        return (value * context.resources.displayMetrics.density).toInt()
-    }
+    private fun dp(context: Context, value: Int): Int =
+        (value * context.resources.displayMetrics.density).toInt()
 }

@@ -345,7 +345,7 @@ class FreeLiveSearchClient(
 
     companion object {
         private val defaultClient: OkHttpClient by lazy {
-            OkHttpClient.Builder()
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.sharedBaseHttpClient.newBuilder()
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
                 .build()

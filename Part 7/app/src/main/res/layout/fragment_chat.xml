@@ -185,10 +185,10 @@
                     android:id="@+id/tvChipPreview"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="⚡ Live Preview"
+                    android:text="◈ WORKSTATION"
                     android:textColor="?attr/themeAccent"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-medium"
+                    android:textSize="11sp"
+                    android:fontFamily="monospace"
                     android:textStyle="bold" />
             </LinearLayout>
 

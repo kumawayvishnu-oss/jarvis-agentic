@@ -675,16 +675,40 @@ class GeminiLiveWebSocket(
                         // 23. agent_terminal_exec
                         put(JSONObject().apply {
                             put("name", "agent_terminal_exec")
-                            put("description", "Executes a command inside JARVIS's Autonomous AI-Only Linux Terminal (AgentShellEngine). Supports Linux shell commands, recipes ('r sysinfo', 'r setup-termux', 'r install-agy', 'r install-ubuntu', 'r list-projects'), permission doctor ('perm termux', 'perm accessibility', 'perm overlay', 'perm battery'), or autonomous Antigravity coding & Live Preview generation ('agy <project or web app goal>'). Use whenever the user asks to code, build a web app/calculator/dashboard/preview, run a Linux/Termux command, or check system/permission status.")
+                            put("description", "Executes a command inside JARVIS's built-in Linux/Termux Terminal (AgentShellEngine). Built-in tools include: 'htop' (system/RAM monitor), 'postman test-providers' or 'postman GET/POST <url>' (API testing), 'curl', 'wget', 'netstat', 'ping', 'validate' (10-point validation script), 'r install-agy' (Antigravity CLI), 'r ram-boost' (OPPO A11k RAM optimizer), 'git clone <repo>', 'search <query>', and 'agy <goal>'. Never tell the user you lack Termux, htop, Postman, cURL, network monitor, or validation scripts—run them here!")
                             put("parameters", JSONObject().apply {
                                 put("type", "OBJECT")
                                 put("properties", JSONObject().apply {
                                     put("cmd", JSONObject().apply {
                                         put("type", "STRING")
-                                        put("description", "Command to execute: e.g. 'agy Build a neon scientific calculator', 'r sysinfo', 'r install-agy', 'perm all', or a Linux shell command.")
+                                        put("description", "Command to execute: e.g. 'htop', 'postman test-providers', 'validate', 'netstat', 'r ram-boost', 'r install-agy', 'agy <goal>', or any Linux command.")
+                                    })
+                                    put("show_on_screen", JSONObject().apply {
+                                        put("type", "BOOLEAN")
+                                        put("description", "Set true if the user asked to SEE the terminal, preview, or htop monitor on screen.")
                                     })
                                 })
                                 put("required", JSONArray().put("cmd"))
+                            })
+                        })
+
+                        // 24. jarvis_self_control
+                        put(JSONObject().apply {
+                            put("name", "jarvis_self_control")
+                            put("description", "Controls, explores, and displays JARVIS's own internal UI screens, live terminal console, htop monitor, live preview viewport, and internal diagnostics. Use whenever the user says 'mujhe dikhao terminal mein kya ho raha hai', 'apna terminal dikhao', 'preview dikhao', 'htop dikhao', 'API vault kholo', 'diagnostics kholo', 'memory kholo', or asks to inspect JARVIS's own internal status/problems.")
+                            put("parameters", JSONObject().apply {
+                                put("type", "OBJECT")
+                                put("properties", JSONObject().apply {
+                                    put("action", JSONObject().apply {
+                                        put("type", "STRING")
+                                        put("description", "One of: 'show_terminal', 'show_preview', 'show_htop', 'show_source', 'navigate', 'inspect_self'.")
+                                    })
+                                    put("target", JSONObject().apply {
+                                        put("type", "STRING")
+                                        put("description", "Target screen when action='navigate': 'terminal', 'htop', 'preview', 'source', 'api_vault', 'diagnostics', 'memory', 'live_debug', 'persona', 'avatars', 'home', 'chat', 'updates', 'settings'.")
+                                    })
+                                })
+                                put("required", JSONArray().put("action"))
                             })
                         })
 

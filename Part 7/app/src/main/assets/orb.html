@@ -73,7 +73,8 @@ if (isEmbedded) {
   document.body.style.background = "transparent";
 }
 
-const FOV=45, VIS=3.1, ORBIT=36, COUNT=6000;
+const isLowMem = (navigator.deviceMemory && navigator.deviceMemory <= 4) || (window.innerWidth <= 760);
+const FOV=45, VIS=3.1, ORBIT=isLowMem ? 28 : 36, COUNT=isLowMem ? 3800 : 5200;
 const STATES={
   idle:     {scale:1.00,speed:.35,cyan:.35,purple:.45,bright:1.00,glow:.50,ring:.15,wob:0},
   listening:{scale:1.05,speed:.85,cyan:1.00,purple:.25,bright:1.12,glow:.95,ring:.35,wob:0},
@@ -85,7 +86,7 @@ const $=s=>document.querySelector(s);
 const stage=$("#stage"),canvas=$("#c"),shadowEl=$("#shadow");
 
 let renderer;
-try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:"high-performance"});}
+try{renderer=new THREE.WebGLRenderer({canvas,antialias:!isLowMem,alpha:true,powerPreference:"default"});}
 catch(e){$("#err").style.display="block";stage.style.display="none";return;}
 renderer.setClearColor(0x000000,0);
 const scene=new THREE.Scene();
@@ -356,7 +357,7 @@ function updateParticles(dt){
 
 /* ---------- Resize / loop ---------- */
 function handleResize(){
-  const w=Math.max(stage.clientWidth,1),h=Math.max(stage.clientHeight,1),pr=Math.min(window.devicePixelRatio,2);
+  const w=Math.max(stage.clientWidth,1),h=Math.max(stage.clientHeight,1),pr=Math.min(window.devicePixelRatio||1, isLowMem ? 1.25 : 1.6);
   renderer.setPixelRatio(pr);renderer.setSize(w,h,false);
   camera.aspect=w/h;
   const visH=VIS/Math.min(1,w/h),tan=Math.tan(THREE.MathUtils.degToRad(FOV/2));
@@ -365,11 +366,20 @@ function handleResize(){
   shadowEl.style.top=Math.round(h/2+pxPerUnit*1.2)+"px";
 }
 let last=performance.now();
+let isHibernated=false;
 function animate(now){
+  if(isHibernated || document.hidden) return;
   requestAnimationFrame(animate);
   const dt=Math.min((now-last)/1000,.05);last=now;
   updateOrb(dt);updateParticles(dt);renderer.render(scene,camera);
 }
+
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden && !isHibernated){
+    last=performance.now();
+    requestAnimationFrame(animate);
+  }
+});
 
 document.querySelectorAll("[data-s]").forEach(b=>b.addEventListener("click",()=>setOrbState(b.dataset.s)));
 document.querySelectorAll("[data-t]").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.t)));
@@ -394,7 +404,15 @@ window.JarvisOrb={
   startSpeaking:()=>setOrbState("speaking"),
   stopSpeaking:()=>setOrbState("idle"),
   startAudioReactive:startAudioReactive,
-  stopAudioReactive:stopAudioReactive
+  stopAudioReactive:stopAudioReactive,
+  hibernate:()=>{isHibernated=true;},
+  wake:()=>{
+    if(isHibernated){
+      isHibernated=false;
+      last=performance.now();
+      requestAnimationFrame(animate);
+    }
+  }
 };
 
 handleResize();

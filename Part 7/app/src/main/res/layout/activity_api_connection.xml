@@ -96,11 +96,11 @@
                         android:id="@+id/tvLiveStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="ONLINE • READY"
+                        android:text="◈ ONLINE // READY"
                         android:textColor="?attr/themeTextPrimary"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        android:fontFamily="sans-serif-medium"
+                        android:fontFamily="monospace"
                         android:layout_marginStart="10dp" />
                 </LinearLayout>
 
@@ -108,7 +108,7 @@
                     android:id="@+id/tvEndpointSummary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="15-Provider Cascade: Gemini ➔ Groq ➔ GLM (Free) ➔ SiliconFlow (Free) ➔ NVIDIA NIM (Free) ➔ Cerebras ➔ Mistral ➔ SambaNova ➔ GitHub ➔ OpenRouter ➔ HF ➔ Cohere ➔ DeepSeek ➔ Pollinations (Zero-Key Free) ➔ Ollama"
+                    android:text="15-Provider Cascade: Gemini ▸ Groq ▸ GLM [Free] ▸ SiliconFlow [Free] ▸ NVIDIA NIM [Free] ▸ Cerebras ▸ Mistral ▸ SambaNova ▸ GitHub ▸ OpenRouter ▸ HF ▸ Cohere ▸ DeepSeek ▸ Pollinations [Zero-Key Free] ▸ Ollama"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif"
@@ -126,10 +126,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Primary: Google AI Studio • 🟢 FREE TIER (15 RPM / 1,500 Req/Day) + PAID"
+                android:text="◈ PRIMARY // GOOGLE AI STUDIO [FREE TIER 15 RPM + PAID]"
                 android:textColor="?attr/themeTextMuted"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
@@ -225,9 +225,10 @@
                     android:id="@+id/tvGeminiStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status: Not tested"
+                    android:text="STATUS // [STANDBY] Not tested"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
+                    android:fontFamily="monospace"
                     android:layout_marginTop="6dp" />
 
                 <!-- Model Engine Selection -->
@@ -276,10 +277,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Groq Cloud LPU • 🟢 FREE TIER (30 RPM / 14,400 Req/Day • ~250ms)"
+                android:text="◈ GROQ CLOUD LPU // [FREE TIER 30 RPM / 14,400 Req/Day ~250ms]"
                 android:textColor="?attr/themeTextMuted"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
@@ -372,9 +373,10 @@
                     android:id="@+id/tvGroqStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status: Not tested"
+                    android:text="STATUS // [STANDBY] Not tested"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
+                    android:fontFamily="monospace"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
@@ -382,10 +384,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="OpenRouter Matrix • 🟡 FREE (:free models 20 RPM) + PAID"
+                android:text="◆ OPENROUTER MATRIX // [FREE :free models 20 RPM + PAID]"
                 android:textColor="?attr/themeTextMuted"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
@@ -478,9 +480,10 @@
                     android:id="@+id/tvOpenRouterStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status: Not tested"
+                    android:text="STATUS // [STANDBY] Not tested"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
+                    android:fontFamily="monospace"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
@@ -488,10 +491,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="DeepSeek Official V3 / R1 • 🔴 PAID API (Requires Top-Up Balance)"
+                android:text="▪ DEEPSEEK OFFICIAL V3 / R1 // [PAID API - Balance Required]"
                 android:textColor="?attr/themeTextMuted"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
@@ -584,9 +587,10 @@
                     android:id="@+id/tvDeepSeekStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status: Not tested"
+                    android:text="STATUS // [STANDBY] Not tested"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
+                    android:fontFamily="monospace"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
@@ -594,10 +598,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cerebras Wafer-Scale • 🟢 FREE TIER (30 RPM / 1M Tok/Day • ~2000 tok/s)"
+                android:text="◈ CEREBRAS WAFER-SCALE // [FREE TIER 30 RPM / 1M Tok/Day ~2000 tok/s]"
                 android:textColor="?attr/themeTextMuted"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
@@ -690,9 +694,10 @@
                     android:id="@+id/tvCerebrasStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status: Not tested"
+                    android:text="STATUS // [STANDBY] Not tested"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
+                    android:fontFamily="monospace"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
@@ -700,10 +705,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mistral AI (La Plateforme) • 🟢 FREE TIER (Experiment Plan • 500K tok/min)"
+                android:text="◈ MISTRAL AI (LA PLATEFORME) // [FREE TIER Experiment 500K tok/min]"
                 android:textColor="?attr/themeTextMuted"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
@@ -796,9 +801,10 @@
                     android:id="@+id/tvMistralStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status: Not tested"
+                    android:text="STATUS // [STANDBY] Not tested"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
+                    android:fontFamily="monospace"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
@@ -806,10 +812,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SambaNova Cloud RDU • 🟢 FREE TIER (20 RPM • Llama 3.3 70B)"
+                android:text="◈ SAMBANOVA CLOUD RDU // [FREE TIER 20 RPM Llama 3.3 70B]"
                 android:textColor="?attr/themeTextMuted"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
@@ -902,9 +908,10 @@
                     android:id="@+id/tvSambaNovaStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status: Not tested"
+                    android:text="STATUS // [STANDBY] Not tested"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
+                    android:fontFamily="monospace"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
@@ -912,10 +919,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Local Ollama (LAN / Termux) • 🟢 100% FREE OFFLINE (Zero Key)"
+                android:text="◈ LOCAL OLLAMA (LAN / TERMUX) // [100% FREE OFFLINE - Zero Key]"
                 android:textColor="?attr/themeTextMuted"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 

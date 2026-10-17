@@ -125,19 +125,19 @@ class HomeFragment : Fragment() {
     private fun setupOrbWebView() {
         binding.orbWebView.apply {
             setBackgroundColor(Color.TRANSPARENT)
-            setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
             settings.apply {
                 javaScriptEnabled = true
-                domStorageEnabled = true
+                domStorageEnabled = false
                 allowFileAccess = true
                 allowContentAccess = true
                 @Suppress("DEPRECATION")
                 allowFileAccessFromFileURLs = true
                 @Suppress("DEPRECATION")
                 allowUniversalAccessFromFileURLs = true
-                cacheMode = WebSettings.LOAD_DEFAULT
+                cacheMode = WebSettings.LOAD_NO_CACHE
             }
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.optimizeWebViewForLowRam(this, isLocalAssetView = true)
 
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -605,7 +605,41 @@ class HomeFragment : Fragment() {
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        val wv = _binding?.orbWebView ?: return
+        if (hidden) {
+            if (isPageLoaded) wv.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.hibernate)window.JarvisOrb.hibernate();", null)
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.hibernateWebView(wv)
+        } else {
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.wakeWebView(wv)
+            if (isPageLoaded) wv.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.wake)window.JarvisOrb.wake();", null)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        _binding?.orbWebView?.let { wv ->
+            if (isPageLoaded) wv.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.hibernate)window.JarvisOrb.hibernate();", null)
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.hibernateWebView(wv)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!isHidden) {
+            _binding?.orbWebView?.let { wv ->
+                com.jarvis.assistant.util.OppoA11kRamOptimizer.wakeWebView(wv)
+                if (isPageLoaded) wv.evaluateJavascript("if(window.JarvisOrb&&window.JarvisOrb.wake)window.JarvisOrb.wake();", null)
+            }
+        }
+    }
+
     override fun onDestroyView() {
+        _binding?.orbWebView?.let { wv ->
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.hibernateWebView(wv)
+            wv.stopLoading()
+        }
         super.onDestroyView()
         _binding = null
     }

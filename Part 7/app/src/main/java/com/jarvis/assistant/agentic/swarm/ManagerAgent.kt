@@ -58,9 +58,9 @@ class ManagerAgent private constructor(
         val hardwareSummary: String
     ) {
         fun toCompactSummary(): String = buildString {
-            appendLine("🧠 [PROBABILISTIC PRE-EXECUTION PLAN • Mode=${if (isParallelExecution) "PARALLEL SWARM" else "SEQUENTIAL PIPELINE"} | $hardwareSummary]")
+            appendLine("◈ [PROBABILISTIC PRE-EXECUTION PLAN // Mode=${if (isParallelExecution) "PARALLEL SWARM" else "SEQUENTIAL PIPELINE"} | $hardwareSummary]")
             stages.forEach { s ->
-                appendLine("  • Stage ${s.stageIndex}: '${s.subGoal}' -> ${s.primarySpecialist} (Success Prob: ${s.estimatedSuccessProbPercent}% | Risks: ${s.identifiedRisks.joinToString(", ")} | Fallback: ${s.fallbackChain})")
+                appendLine("  ├── Stage ${s.stageIndex}: '${s.subGoal}' ▸ ${s.primarySpecialist} [Prob: ${s.estimatedSuccessProbPercent}% | Risks: ${s.identifiedRisks.joinToString(", ")} | Fallback: ${s.fallbackChain}]")
             }
         }.trim()
     }
@@ -138,7 +138,7 @@ class ManagerAgent private constructor(
                 activeBackgroundMissions.remove(missionId)
             }
         }
-        return "⚡ Background Mission [$missionId] started in parallel for: '$userGoal'. Main aapko background me execute karke update dunga."
+        return "◈ [BG-MISSION: $missionId] Background execution started in parallel for: '$userGoal'. Main aapko background me execute karke update dunga."
     }
 
     fun getActiveBackgroundMissions(): Map<String, String> = activeBackgroundMissions.toMap()
@@ -185,7 +185,7 @@ class ManagerAgent private constructor(
 
             val fallbackChain = when (specialist.id) {
                 "agent_search" -> "DuckDuckGo API -> DDG Lite -> Wikipedia -> BuiltInChromeEngine (100% Anonymous Background)"
-                "agent_shell_coding" -> "Embedded Linux + Native Polyfills (curl/git/agy) -> Termux Bridge -> Autonomous HTML5 Builder"
+                "agent_shell_coding" -> "Embedded Linux + Native Polyfills (curl/git/agy/htop/postman) -> Termux Bridge -> Autonomous HTML5 Builder"
                 "agent_navigator", "agent_device" -> "Tier 1 Deep Intent -> Tier 2 Accessibility Tree -> Tier 3 Shizuku -> Background Web Research"
                 else -> "15-Provider Cascade (Gemini -> Groq -> GLM Free -> SiliconFlow -> NVIDIA -> Pollinations Zero-Key)"
             }
@@ -251,7 +251,7 @@ class ManagerAgent private constructor(
         val resourceEngine = com.jarvis.assistant.agentic.healing.HardwareResourceAwareEngine.getInstance(context)
         val safetyVerdict = resourceEngine.evaluateSafetyGate(cleanGoal)
         if (!safetyVerdict.allowedImmediately && safetyVerdict.requiresConfirmation && !cleanGoal.contains("[CONFIRMED]", ignoreCase = true)) {
-            val confirmMsg = "⚠️ ${safetyVerdict.reason}\nLakshya: '$cleanGoal'\nKripya confirm karein ('Haan confirm' bolein ya likhein)."
+            val confirmMsg = "◆ [SAFETY GATE] ${safetyVerdict.reason}\nLakshya: '$cleanGoal'\nKripya confirm karein ('Haan confirm' bolein ya likhein)."
             agentSoulManager.updateTaskStatus(taskId, TaskStatus.PENDING, confirmMsg)
             currentState = AgentState.IDLE
             return@withContext confirmMsg

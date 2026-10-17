@@ -119,9 +119,9 @@ class ChatFragment : Fragment() {
                         .latestPreview.collect { preview ->
                             if (_binding != null) {
                                 binding.tvChipPreview.text = if (preview != null) {
-                                    "⚡ Preview: ${preview.title.take(12)}"
+                                    "◈ WORKSTATION // ${preview.title.take(10)}"
                                 } else {
-                                    "⚡ Live Preview"
+                                    "◈ WORKSTATION"
                                 }
                             }
                         }

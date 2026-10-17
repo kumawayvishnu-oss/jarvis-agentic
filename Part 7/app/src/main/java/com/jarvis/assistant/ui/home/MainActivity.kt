@@ -200,6 +200,7 @@ class MainActivity : AppCompatActivity() {
         setupNavigationDock()
         selectTab(currentTab)
         observeViewModel()
+        handleSelfControlIntent(intent)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (currentTab != TAB_HOME) {
@@ -213,6 +214,35 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleSelfControlIntent(intent)
+    }
+
+    private fun handleSelfControlIntent(intent: Intent?) {
+        if (intent == null) return
+        if (intent.hasExtra("SELECT_TAB_ID")) {
+            val tabId = intent.getIntExtra("SELECT_TAB_ID", currentTab)
+            intent.removeExtra("SELECT_TAB_ID")
+            selectTab(tabId)
+        }
+        val workstationTabName = intent.getStringExtra("OPEN_WORKSTATION_TAB")
+        if (!workstationTabName.isNullOrBlank()) {
+            intent.removeExtra("OPEN_WORKSTATION_TAB")
+            val tab = runCatching {
+                com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.valueOf(workstationTabName)
+            }.getOrDefault(com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.TERMINAL)
+            binding.root.post {
+                com.jarvis.assistant.ui.preview.AgentPreviewDialog.show(
+                    context = this,
+                    scope = lifecycleScope,
+                    initialTab = tab
+                )
+            }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

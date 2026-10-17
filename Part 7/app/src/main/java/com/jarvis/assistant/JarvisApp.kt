@@ -187,6 +187,24 @@ class JarvisApp : Application() {
         }
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_RUNNING_LOW || level >= TRIM_MEMORY_UI_HIDDEN) {
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.performSmartRamTrim(this, level)
+            runCatching {
+                com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(this).trimLogsForLowRam()
+            }
+        }
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        com.jarvis.assistant.util.OppoA11kRamOptimizer.performSmartRamTrim(this, TRIM_MEMORY_COMPLETE)
+        runCatching {
+            com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(this).trimLogsForLowRam()
+        }
+    }
+
     companion object {
         private val _isAppForeground = MutableStateFlow(false)
         val isAppForeground: StateFlow<Boolean> = _isAppForeground.asStateFlow()

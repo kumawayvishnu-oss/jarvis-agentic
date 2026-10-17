@@ -80,9 +80,10 @@ class ApiConnectionActivity : AppCompatActivity() {
         extraProvidersList.forEach { provider ->
             // Section Header with explicit FREE / PAID badge
             val sectionHeader = TextView(this).apply {
-                text = "${provider.displayName} • ${provider.pricingBadge}"
+                text = "◈ ${provider.displayName.uppercase()} // ${provider.pricingBadge}"
                 setTextColor(Color.parseColor("#38BDF8"))
-                textSize = 13f
+                textSize = 12f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setPadding(0, 0, 0, 6.toPx())
             }
@@ -103,7 +104,7 @@ class ApiConnectionActivity : AppCompatActivity() {
 
             // Title + Model info
             val tvTitle = TextView(this).apply {
-                text = "${provider.displayName} (Model: ${provider.defaultModel})"
+                text = "${provider.displayName} [Model: ${provider.defaultModel}]"
                 setTextColor(Color.WHITE)
                 textSize = 14.5f
                 setTypeface(typeface, Typeface.BOLD)
@@ -112,7 +113,7 @@ class ApiConnectionActivity : AppCompatActivity() {
 
             // Free/Paid Tier Details
             val tvTierDetail = TextView(this).apply {
-                text = provider.pricingDetails
+                text = "▸ ${provider.pricingDetails}"
                 setTextColor(
                     when {
                         provider.pricingBadge.contains("100% FREE") || provider.pricingBadge.contains("FREE") -> Color.parseColor("#4ADE80")
@@ -131,6 +132,7 @@ class ApiConnectionActivity : AppCompatActivity() {
                 setHintTextColor(Color.parseColor("#64748B"))
                 setTextColor(Color.WHITE)
                 textSize = 13.5f
+                typeface = Typeface.MONOSPACE
                 setSingleLine(true)
                 background = ContextCompat.getDrawable(this@ApiConnectionActivity, R.drawable.bg_jarvis_icon_square)
                 setPadding(12.toPx(), 10.toPx(), 12.toPx(), 10.toPx())
@@ -138,7 +140,7 @@ class ApiConnectionActivity : AppCompatActivity() {
                     inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
                 } else {
                     isEnabled = false
-                    setText("Built-in Zero-Key Cloud Engine (Active Automatically)")
+                    setText("◈ BUILT-IN ZERO-KEY CLOUD ENGINE [AUTO-ACTIVE]")
                     setTextColor(Color.parseColor("#22C55E"))
                 }
             }
@@ -150,12 +152,13 @@ class ApiConnectionActivity : AppCompatActivity() {
             // Status TextView
             val tvStatus = TextView(this).apply {
                 text = if (!provider.requiresApiKey) {
-                    "Status: ✅ Active 24/7 (Zero API Key Needed — 100% Free)"
+                    "STATUS // [ACTIVE 24/7] Zero API Key Needed — 100% Free"
                 } else {
-                    "Status: Not tested (${provider.pricingBadge})"
+                    "STATUS // [STANDBY] Not tested (${provider.pricingBadge})"
                 }
                 setTextColor(if (!provider.requiresApiKey) Color.parseColor("#22C55E") else Color.parseColor("#94A3B8"))
                 textSize = 11.5f
+                typeface = Typeface.MONOSPACE
                 setPadding(0, 8.toPx(), 0, 0)
             }
 
@@ -186,7 +189,7 @@ class ApiConnectionActivity : AppCompatActivity() {
                         pasteToField(etKey, provider.displayName)
                         val k = etKey.text?.toString()?.trim().orEmpty()
                         if (k.isNotBlank()) {
-                            tvStatus.text = "Status: 🔑 Key detected (${ inspectKeyTierHint(k, provider) })"
+                            tvStatus.text = "STATUS // [KEY DETECTED] ${inspectKeyTierHint(k, provider)}"
                             tvStatus.setTextColor(Color.parseColor("#38BDF8"))
                         }
                     }
@@ -206,7 +209,7 @@ class ApiConnectionActivity : AppCompatActivity() {
                     setOnClickListener {
                         etKey.setText("")
                         vault.removeApiKey(provider)
-                        tvStatus.text = "Status: Cleared"
+                        tvStatus.text = "STATUS // [CLEARED]"
                         updateOverallStatus()
                     }
                 }
@@ -226,7 +229,7 @@ class ApiConnectionActivity : AppCompatActivity() {
                 if (provider.requiresApiKey) {
                     val key = etKey.text?.toString()?.trim().orEmpty()
                     if (key.isBlank()) {
-                        tvStatus.text = "Status: ❌ Please enter ${provider.displayName} key"
+                        tvStatus.text = "STATUS // [ERROR] Please enter ${provider.displayName} key"
                         tvStatus.setTextColor(Color.parseColor("#EF4444"))
                         return@setOnClickListener
                     }
@@ -248,17 +251,17 @@ class ApiConnectionActivity : AppCompatActivity() {
     private fun inspectKeyTierHint(key: String, provider: ModelProvider): String {
         val k = key.trim()
         return when {
-            k.startsWith("AIzaSy") -> "Google AI Studio Key • 🟢 FREE TIER (15 RPM) / Paid Billing"
-            k.startsWith("gsk_") -> "Groq LPU Key • 🟢 100% FREE TIER (14,400 Req/Day)"
-            k.startsWith("nvapi-") -> "NVIDIA NIM Key • 🟢 FREE DEV CREDITS (Llama 3.3 70B)"
-            k.startsWith("sk-or-") -> "OpenRouter Key • 🟡 FREE on ':free' models / Paid on Pro"
-            k.startsWith("csk-") -> "Cerebras Key • 🟢 FREE TIER (1M Tokens/Day)"
-            k.startsWith("ghp_") || k.startsWith("github_pat_") -> "GitHub PAT • 🟢 FREE GitHub Models (GPT-4o-mini)"
-            k.startsWith("hf_") -> "HuggingFace Token • 🟢 FREE Serverless Inference"
-            k.contains(".") && provider == ModelProvider.GLM_ZHIPU -> "Zhipu GLM Key • 🟢 100% FREE on glm-4-flash"
-            provider == ModelProvider.SILICONFLOW && k.startsWith("sk-") -> "SiliconFlow Key • 🟢 FREE on Qwen2.5-7B & GLM-4-9B"
-            provider == ModelProvider.DEEPSEEK && k.startsWith("sk-") -> "DeepSeek Key • 🔴 PAID API (Requires Balance)"
-            else -> "${provider.pricingBadge} • Click 'Test Ping' to verify live quota"
+            k.startsWith("AIzaSy") -> "Google AI Studio Key // ◈ [FREE TIER 15 RPM + PAID]"
+            k.startsWith("gsk_") -> "Groq LPU Key // ◈ [100% FREE TIER 14,400 Req/Day]"
+            k.startsWith("nvapi-") -> "NVIDIA NIM Key // ◈ [FREE DEV CREDITS Llama 3.3 70B]"
+            k.startsWith("sk-or-") -> "OpenRouter Key // ◆ [FREE on ':free' models + PAID Pro]"
+            k.startsWith("csk-") -> "Cerebras Key // ◈ [FREE TIER 1M Tokens/Day]"
+            k.startsWith("ghp_") || k.startsWith("github_pat_") -> "GitHub PAT // ◈ [FREE GitHub Models GPT-4o-mini]"
+            k.startsWith("hf_") -> "HuggingFace Token // ◈ [FREE Serverless Inference]"
+            k.contains(".") && provider == ModelProvider.GLM_ZHIPU -> "Zhipu GLM Key // ◈ [100% FREE on glm-4-flash]"
+            provider == ModelProvider.SILICONFLOW && k.startsWith("sk-") -> "SiliconFlow Key // ◈ [FREE on Qwen2.5-7B & GLM-4-9B]"
+            provider == ModelProvider.DEEPSEEK && k.startsWith("sk-") -> "DeepSeek Key // ▪ [PAID API - Balance Required]"
+            else -> "${provider.pricingBadge} // Tap 'Test Ping' to verify live quota"
         }
     }
 
@@ -310,10 +313,10 @@ class ApiConnectionActivity : AppCompatActivity() {
         } + if (preferences.apiKey.isNotBlank() && !vault.hasApiKey(ModelProvider.GEMINI)) 1 else 0
 
         if (configuredCount > 0) {
-            binding.tvLiveStatus.text = "VAULT ACTIVE • $configuredCount/$totalKeyProviders KEYS + ZERO-KEY FREE CLOUD READY"
+            binding.tvLiveStatus.text = "◈ VAULT ONLINE // $configuredCount/$totalKeyProviders KEYS + ZERO-KEY FREE CLOUD READY"
             binding.viewStatusDot.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#22C55E"))
         } else {
-            binding.tvLiveStatus.text = "ZERO-KEY FREE AI ACTIVE • ADD KEYS FOR 15-PROVIDER BOOST"
+            binding.tvLiveStatus.text = "◈ ZERO-KEY FREE AI ACTIVE // ADD KEYS FOR 15-PROVIDER BOOST"
             binding.viewStatusDot.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#38BDF8"))
         }
     }
@@ -323,7 +326,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnPasteKey.setOnClickListener {
             pasteToField(binding.etApiKey, "Gemini Key")
             val k = binding.etApiKey.text?.toString()?.trim().orEmpty()
-            if (k.isNotBlank()) binding.tvGeminiStatus.text = "Status: 🔑 ${inspectKeyTierHint(k, ModelProvider.GEMINI)}"
+            if (k.isNotBlank()) binding.tvGeminiStatus.text = "STATUS // [KEY DETECTED] ${inspectKeyTierHint(k, ModelProvider.GEMINI)}"
         }
         binding.btnClearKey.setOnClickListener {
             binding.etApiKey.setText("")
@@ -331,7 +334,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnTestConnection.setOnClickListener {
             val key = binding.etApiKey.text?.toString()?.trim() ?: ""
             if (key.isBlank()) {
-                binding.tvGeminiStatus.text = "Status: ❌ Please enter Gemini key"
+                binding.tvGeminiStatus.text = "STATUS // [ERROR] Please enter Gemini key"
                 return@setOnClickListener
             }
             vault.setApiKey(ModelProvider.GEMINI, key)
@@ -342,7 +345,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnPasteGroq.setOnClickListener {
             pasteToField(binding.etGroqKey, "Groq Key")
             val k = binding.etGroqKey.text?.toString()?.trim().orEmpty()
-            if (k.isNotBlank()) binding.tvGroqStatus.text = "Status: 🔑 ${inspectKeyTierHint(k, ModelProvider.GROQ)}"
+            if (k.isNotBlank()) binding.tvGroqStatus.text = "STATUS // [KEY DETECTED] ${inspectKeyTierHint(k, ModelProvider.GROQ)}"
         }
         binding.btnClearGroq.setOnClickListener {
             binding.etGroqKey.setText("")
@@ -350,7 +353,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnTestGroq.setOnClickListener {
             val key = binding.etGroqKey.text?.toString()?.trim() ?: ""
             if (key.isBlank()) {
-                binding.tvGroqStatus.text = "Status: ❌ Please enter Groq key"
+                binding.tvGroqStatus.text = "STATUS // [ERROR] Please enter Groq key"
                 return@setOnClickListener
             }
             vault.setApiKey(ModelProvider.GROQ, key)
@@ -361,7 +364,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnPasteOpenRouter.setOnClickListener {
             pasteToField(binding.etOpenRouterKey, "OpenRouter Key")
             val k = binding.etOpenRouterKey.text?.toString()?.trim().orEmpty()
-            if (k.isNotBlank()) binding.tvOpenRouterStatus.text = "Status: 🔑 ${inspectKeyTierHint(k, ModelProvider.OPENROUTER)}"
+            if (k.isNotBlank()) binding.tvOpenRouterStatus.text = "STATUS // [KEY DETECTED] ${inspectKeyTierHint(k, ModelProvider.OPENROUTER)}"
         }
         binding.btnClearOpenRouter.setOnClickListener {
             binding.etOpenRouterKey.setText("")
@@ -369,7 +372,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnTestOpenRouter.setOnClickListener {
             val key = binding.etOpenRouterKey.text?.toString()?.trim() ?: ""
             if (key.isBlank()) {
-                binding.tvOpenRouterStatus.text = "Status: ❌ Please enter OpenRouter key"
+                binding.tvOpenRouterStatus.text = "STATUS // [ERROR] Please enter OpenRouter key"
                 return@setOnClickListener
             }
             vault.setApiKey(ModelProvider.OPENROUTER, key)
@@ -380,7 +383,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnPasteDeepSeek.setOnClickListener {
             pasteToField(binding.etDeepSeekKey, "DeepSeek Key")
             val k = binding.etDeepSeekKey.text?.toString()?.trim().orEmpty()
-            if (k.isNotBlank()) binding.tvDeepSeekStatus.text = "Status: 🔑 ${inspectKeyTierHint(k, ModelProvider.DEEPSEEK)}"
+            if (k.isNotBlank()) binding.tvDeepSeekStatus.text = "STATUS // [KEY DETECTED] ${inspectKeyTierHint(k, ModelProvider.DEEPSEEK)}"
         }
         binding.btnClearDeepSeek.setOnClickListener {
             binding.etDeepSeekKey.setText("")
@@ -388,7 +391,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnTestDeepSeek.setOnClickListener {
             val key = binding.etDeepSeekKey.text?.toString()?.trim() ?: ""
             if (key.isBlank()) {
-                binding.tvDeepSeekStatus.text = "Status: ❌ Please enter DeepSeek key"
+                binding.tvDeepSeekStatus.text = "STATUS // [ERROR] Please enter DeepSeek key"
                 return@setOnClickListener
             }
             vault.setApiKey(ModelProvider.DEEPSEEK, key)
@@ -399,7 +402,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnPasteCerebras.setOnClickListener {
             pasteToField(binding.etCerebrasKey, "Cerebras Key")
             val k = binding.etCerebrasKey.text?.toString()?.trim().orEmpty()
-            if (k.isNotBlank()) binding.tvCerebrasStatus.text = "Status: 🔑 ${inspectKeyTierHint(k, ModelProvider.CEREBRAS)}"
+            if (k.isNotBlank()) binding.tvCerebrasStatus.text = "STATUS // [KEY DETECTED] ${inspectKeyTierHint(k, ModelProvider.CEREBRAS)}"
         }
         binding.btnClearCerebras.setOnClickListener {
             binding.etCerebrasKey.setText("")
@@ -407,7 +410,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnTestCerebras.setOnClickListener {
             val key = binding.etCerebrasKey.text?.toString()?.trim() ?: ""
             if (key.isBlank()) {
-                binding.tvCerebrasStatus.text = "Status: ❌ Please enter Cerebras key"
+                binding.tvCerebrasStatus.text = "STATUS // [ERROR] Please enter Cerebras key"
                 return@setOnClickListener
             }
             vault.setApiKey(ModelProvider.CEREBRAS, key)
@@ -418,7 +421,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnPasteMistral.setOnClickListener {
             pasteToField(binding.etMistralKey, "Mistral Key")
             val k = binding.etMistralKey.text?.toString()?.trim().orEmpty()
-            if (k.isNotBlank()) binding.tvMistralStatus.text = "Status: 🔑 ${inspectKeyTierHint(k, ModelProvider.MISTRAL)}"
+            if (k.isNotBlank()) binding.tvMistralStatus.text = "STATUS // [KEY DETECTED] ${inspectKeyTierHint(k, ModelProvider.MISTRAL)}"
         }
         binding.btnClearMistral.setOnClickListener {
             binding.etMistralKey.setText("")
@@ -426,7 +429,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnTestMistral.setOnClickListener {
             val key = binding.etMistralKey.text?.toString()?.trim() ?: ""
             if (key.isBlank()) {
-                binding.tvMistralStatus.text = "Status: ❌ Please enter Mistral key"
+                binding.tvMistralStatus.text = "STATUS // [ERROR] Please enter Mistral key"
                 return@setOnClickListener
             }
             vault.setApiKey(ModelProvider.MISTRAL, key)
@@ -437,7 +440,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnPasteSambaNova.setOnClickListener {
             pasteToField(binding.etSambaNovaKey, "SambaNova Key")
             val k = binding.etSambaNovaKey.text?.toString()?.trim().orEmpty()
-            if (k.isNotBlank()) binding.tvSambaNovaStatus.text = "Status: 🔑 ${inspectKeyTierHint(k, ModelProvider.SAMBANOVA)}"
+            if (k.isNotBlank()) binding.tvSambaNovaStatus.text = "STATUS // [KEY DETECTED] ${inspectKeyTierHint(k, ModelProvider.SAMBANOVA)}"
         }
         binding.btnClearSambaNova.setOnClickListener {
             binding.etSambaNovaKey.setText("")
@@ -445,7 +448,7 @@ class ApiConnectionActivity : AppCompatActivity() {
         binding.btnTestSambaNova.setOnClickListener {
             val key = binding.etSambaNovaKey.text?.toString()?.trim() ?: ""
             if (key.isBlank()) {
-                binding.tvSambaNovaStatus.text = "Status: ❌ Please enter SambaNova key"
+                binding.tvSambaNovaStatus.text = "STATUS // [ERROR] Please enter SambaNova key"
                 return@setOnClickListener
             }
             vault.setApiKey(ModelProvider.SAMBANOVA, key)
@@ -485,25 +488,25 @@ class ApiConnectionActivity : AppCompatActivity() {
         statusText: TextView
     ) {
         button.isEnabled = false
-        statusText.text = "Status: Testing ${provider.displayName} (${provider.pricingBadge})..."
+        statusText.text = "STATUS // [TESTING] ${provider.displayName} (${provider.pricingBadge})..."
         statusText.setTextColor(Color.parseColor("#3B82F6"))
 
         lifecycleScope.launch {
             val (success, detail) = router.testProvider(provider)
             button.isEnabled = true
             if (success) {
-                statusText.text = "Status: ✅ Online ($detail) • ${provider.pricingBadge}"
+                statusText.text = "STATUS // [ONLINE] ($detail) // ${provider.pricingBadge}"
                 statusText.setTextColor(Color.parseColor("#22C55E"))
-                Snackbar.make(binding.root, "${provider.displayName}: Verified! ($detail • ${provider.pricingBadge})", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "[PASS] ${provider.displayName}: Verified ($detail // ${provider.pricingBadge})", Snackbar.LENGTH_LONG).show()
             } else {
                 val hint = if (detail.contains("402") || detail.contains("Insufficient", true)) {
                     "Paid balance required ($detail)"
                 } else {
                     detail
                 }
-                statusText.text = "Status: ❌ $hint"
+                statusText.text = "STATUS // [FAIL] $hint"
                 statusText.setTextColor(Color.parseColor("#EF4444"))
-                Snackbar.make(binding.root, "${provider.displayName} test failed: $hint", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "[FAIL] ${provider.displayName} test failed: $hint", Snackbar.LENGTH_LONG).show()
             }
             updateOverallStatus()
         }

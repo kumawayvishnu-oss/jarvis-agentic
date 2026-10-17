@@ -85,11 +85,12 @@ class UpdatesFragment : Fragment() {
         val container = binding.missionControlContainer
         container.removeAllViews()
 
-        // 0. Quick Mission Dispatcher Card (लिखकर task देना)
+        // 0. Quick Mission Dispatcher Card
         val dispatcherCard = createCard().apply {
             addView(TextView(requireContext()).apply {
-                text = "🚀 SWARM MISSION DISPATCHER"
+                text = "◈ SWARM // MISSION DISPATCHER"
                 textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
@@ -102,7 +103,7 @@ class UpdatesFragment : Fragment() {
             })
 
             val etGoal = EditText(requireContext()).apply {
-                hint = "Enter goal (e.g. 'Build neon calculator app', 'Search AI news', 'Turn on flashlight')..."
+                hint = "Enter goal (e.g. 'Build neon calculator app', 'htop', 'Turn on flashlight')..."
                 setHintTextColor(Color.parseColor("#64748B"))
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 textSize = 13f
@@ -127,20 +128,23 @@ class UpdatesFragment : Fragment() {
                 orientation = LinearLayout.HORIZONTAL
             }
             val quickGoals = listOf(
-                "🤖 Build Neon App" to "agy Build a futuristic neon scientific & EMI calculator web app",
-                "🖥️ Terminal SysInfo" to "r sysinfo",
-                "💡 Torch On" to "Turn on flashlight",
-                "🔍 Search News" to "Search latest tech news",
-                "📱 WhatsApp" to "Open WhatsApp",
-                "🧠 Multi-Step" to "Search Kotlin version and then turn on torch"
+                "[ ◈ BUILD APP ]" to "agy Build a futuristic neon scientific & EMI calculator web app",
+                "[ ▸ HTOP // RAM ]" to "r htop",
+                "[ ▸ VALIDATE ALL ]" to "r validate",
+                "[ ▸ POSTMAN API ]" to "postman test-providers",
+                "[ ▸ TORCH ON ]" to "Turn on flashlight",
+                "[ ▸ SEARCH NEWS ]" to "Search latest tech news",
+                "[ ▸ PARALLEL SWARM ]" to "Search Kotlin version and then turn on torch"
             )
             quickGoals.forEach { (label, goalText) ->
                 val chip = TextView(requireContext()).apply {
                     text = label
-                    textSize = 11f
+                    textSize = 10.5f
+                    typeface = Typeface.MONOSPACE
+                    setTypeface(typeface, Typeface.BOLD)
                     setTextColor(themeColor(R.attr.themeAccent))
                     setBackgroundResource(R.drawable.bg_jarvis_chip)
-                    setPadding(dp(10), dp(4), dp(10), dp(4))
+                    setPadding(dp(10), dp(5), dp(10), dp(5))
                     val lp = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
@@ -157,8 +161,9 @@ class UpdatesFragment : Fragment() {
             addView(chipRow)
 
             val btnLaunch = Button(requireContext()).apply {
-                text = "⚡ LAUNCH MISSION"
+                text = "▸ EXECUTE SWARM MISSION"
                 textSize = 12f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(Color.WHITE)
                 setBackgroundResource(R.drawable.bg_jarvis_pill_button)
@@ -199,16 +204,17 @@ class UpdatesFragment : Fragment() {
         }
         container.addView(dispatcherCard)
 
-        // 0.5 Autonomous AI-Only Linux Terminal Console & Antigravity Builder (READ-ONLY FOR USER)
+        // 0.5 Autonomous AI-Only Linux Terminal Workstation & Antigravity Builder (READ-ONLY FOR USER)
         val terminalCard = createCard().apply {
             addView(TextView(requireContext()).apply {
-                text = "🖥️ AUTONOMOUS AI LINUX TERMINAL • READ-ONLY CONSOLE"
+                text = "◈ TERMINAL // AUTONOMOUS LINUX WORKSTATION [AI-ONLY]"
                 textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
-                text = "Controlled Exclusively by AI Agents (Termux + Embedded Linux + Antigravity)"
+                text = "Termux + Embedded Linux + htop + Postman/cURL + Netstat + Validation"
                 textSize = 13f
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
@@ -216,9 +222,9 @@ class UpdatesFragment : Fragment() {
             })
 
             dynamicTerminalStatusTv = TextView(requireContext()).apply {
-                text = "● AGENT SHELL IDLE • WORKSPACE READY"
+                text = "● AGENT SHELL IDLE // WORKSPACE READY"
                 textSize = 11f
-                setTypeface( Typeface.MONOSPACE, Typeface.BOLD)
+                setTypeface(Typeface.MONOSPACE, Typeface.BOLD)
                 setTextColor(Color.parseColor("#10B981"))
                 setPadding(0, 0, 0, dp(6))
             }
@@ -232,7 +238,7 @@ class UpdatesFragment : Fragment() {
                 setBackgroundColor(Color.parseColor("#030712"))
                 setPadding(dp(12), dp(10), dp(12), dp(10))
                 setTextIsSelectable(true)
-                text = "agent@jarvis-linux:~/workspace$ r sysinfo\n[AI Terminal Ready — Waiting for ManagerAgent / ShellCodingSpecialist commands...]"
+                text = "┌──(root@jarvis-linux)-[~/workspace]\n└─❯ r validate\n  ├── [STANDBY] Waiting for ManagerAgent / ShellCodingSpecialist..."
                 layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -241,14 +247,15 @@ class UpdatesFragment : Fragment() {
             addView(dynamicTerminalConsoleTv)
 
             dynamicPreviewSummaryTv = TextView(requireContext()).apply {
-                text = "Live Preview: Tap [👁️ Live Preview] to view AI-built web apps & code"
-                textSize = 11.5f
+                text = "▸ WORKSTATION // Tap [ ◈ OPEN WORKSTATION ] to inspect live Terminal, Viewport & HTOP"
+                textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTextColor(Color.parseColor("#38BDF8"))
                 setPadding(0, 0, 0, dp(8))
             }
             addView(dynamicPreviewSummaryTv)
 
-            // AI-Delegated Terminal Action Buttons (User triggers AI Agent goals, never raw terminal input)
+            // AI-Delegated Terminal Action Buttons (User triggers AI Agent goals or opens Workstation tabs)
             val termActionScroll = HorizontalScrollView(requireContext()).apply {
                 isHorizontalScrollBarEnabled = false
             }
@@ -259,11 +266,12 @@ class UpdatesFragment : Fragment() {
             fun addTermActionChip(label: String, onClick: () -> Unit) {
                 val btn = TextView(requireContext()).apply {
                     text = label
-                    textSize = 11.5f
+                    textSize = 10.5f
+                    typeface = Typeface.MONOSPACE
                     setTypeface(typeface, Typeface.BOLD)
                     setTextColor(themeColor(R.attr.themeAccent))
                     setBackgroundResource(R.drawable.bg_jarvis_chip)
-                    setPadding(dp(12), dp(6), dp(12), dp(6))
+                    setPadding(dp(10), dp(6), dp(10), dp(6))
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
@@ -273,13 +281,40 @@ class UpdatesFragment : Fragment() {
                 termActionRow.addView(btn)
             }
 
-            addTermActionChip("👁️ Live Preview") {
+            addTermActionChip("[ ◈ OPEN WORKSTATION ]") {
                 com.jarvis.assistant.ui.preview.AgentPreviewDialog.show(
                     context = requireContext(),
-                    scope = viewLifecycleOwner.lifecycleScope
+                    scope = viewLifecycleOwner.lifecycleScope,
+                    initialTab = com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.TERMINAL
                 )
             }
-            addTermActionChip("⚡ AI Build App") {
+            addTermActionChip("[ ▸ HTOP // RAM ]") {
+                com.jarvis.assistant.ui.preview.AgentPreviewDialog.show(
+                    context = requireContext(),
+                    scope = viewLifecycleOwner.lifecycleScope,
+                    initialTab = com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.HTOP
+                )
+            }
+            addTermActionChip("[ ▸ VIEWPORT ]") {
+                com.jarvis.assistant.ui.preview.AgentPreviewDialog.show(
+                    context = requireContext(),
+                    scope = viewLifecycleOwner.lifecycleScope,
+                    initialTab = com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.VIEWPORT
+                )
+            }
+            addTermActionChip("[ ▸ VALIDATE SUITE ]") {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
+                    shell.executeCommand("r validate", com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
+                }
+            }
+            addTermActionChip("[ ▸ POSTMAN TEST ]") {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
+                    shell.executeCommand("postman test-providers", com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
+                }
+            }
+            addTermActionChip("[ ▸ AI BUILD APP ]") {
                 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
                     val res = shell.autonomousBuildAndPreview(
@@ -292,23 +327,11 @@ class UpdatesFragment : Fragment() {
                             com.jarvis.assistant.ui.preview.AgentPreviewDialog.show(
                                 context = requireContext(),
                                 scope = viewLifecycleOwner.lifecycleScope,
-                                initialArtifact = res.previewArtifact
+                                initialArtifact = res.previewArtifact,
+                                initialTab = com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.VIEWPORT
                             )
                         }
                     }
-                }
-            }
-            addTermActionChip("🛠️ AI Setup CLI") {
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
-                    shell.executeCommand("r install-agy", com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
-                    shell.executeCommand("r sysinfo", com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
-                }
-            }
-            addTermActionChip("🩺 Perm Doctor") {
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(requireContext())
-                    shell.executeCommand("perm all", com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST)
                 }
             }
 
@@ -317,11 +340,12 @@ class UpdatesFragment : Fragment() {
         }
         container.addView(terminalCard)
 
-        // 1. Active Swarm Agents Card (चलते agents की स्थिति)
+        // 1. Active Swarm Agents Card
         val agentsCard = createCard().apply {
             addView(TextView(requireContext()).apply {
-                text = "👥 ACTIVE SWARM AGENTS & STATUS"
+                text = "◈ SWARM // ACTIVE AGENTS & TELEMETRY"
                 textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
@@ -339,11 +363,12 @@ class UpdatesFragment : Fragment() {
         }
         container.addView(agentsCard)
 
-        // 2. Multi-Agent Swarm Missions Card (Task की स्थिति)
+        // 2. Multi-Agent Swarm Missions Card
         val swarmCard = createCard().apply {
             addView(TextView(requireContext()).apply {
-                text = "⚡ MULTI-AGENT SWARM MISSIONS"
+                text = "◈ MISSIONS // MULTI-AGENT EXECUTION LEDGER"
                 textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
@@ -364,8 +389,9 @@ class UpdatesFragment : Fragment() {
         // 3. Real-Time Blackboard Step Logs Card
         val logsCard = createCard().apply {
             addView(TextView(requireContext()).apply {
-                text = "📜 REAL-TIME BLACKBOARD STEP LOGS"
+                text = "◈ BLACKBOARD // REAL-TIME STEP LOGS"
                 textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
@@ -385,8 +411,9 @@ class UpdatesFragment : Fragment() {
         // 4. Dual-SOUL Memory Card
         val soulCard = createCard().apply {
             addView(TextView(requireContext()).apply {
-                text = "🧠 DUAL-SOUL MEMORY MATRIX · LIVE"
+                text = "◈ DUAL-SOUL // MEMORY MATRIX [LIVE]"
                 textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
@@ -404,45 +431,37 @@ class UpdatesFragment : Fragment() {
         }
         container.addView(soulCard)
 
-        // 5. Multi-Provider Router Card (All 8 Providers)
+        // 5. Multi-Provider Router Card (All 15 Providers)
         val routerCard = createCard().apply {
             addView(TextView(requireContext()).apply {
-                text = "🌐 8-PROVIDER SMART LLM ROUTER"
+                text = "◈ ROUTER // 15-PROVIDER CASCADE MATRIX"
                 textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeAccent))
             })
             addView(TextView(requireContext()).apply {
-                text = "Auto-Failover Cascade Matrix Status"
+                text = "Auto-Failover & Free/Paid Tier Telemetry"
                 textSize = 14f
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 setPadding(0, dp(4), 0, dp(4))
             })
             val vault = com.jarvis.assistant.agentic.router.ProviderVault.getInstance(requireContext())
-            val geminiReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.GEMINI)
-            val groqReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.GROQ)
-            val cerebrasReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.CEREBRAS)
-            val mistralReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.MISTRAL)
-            val sambaNovaReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.SAMBANOVA)
-            val deepSeekReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.DEEPSEEK)
-            val openRouterReady = vault.hasApiKey(com.jarvis.assistant.agentic.router.ModelProvider.OPENROUTER)
-
             val statusText = buildString {
-                append("• 1. Google Gemini : ${if (geminiReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• 2. Groq LPU      : ${if (groqReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• 3. Cerebras WSE  : ${if (cerebrasReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• 4. Mistral AI    : ${if (mistralReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• 5. SambaNova RDU : ${if (sambaNovaReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• 6. DeepSeek V3   : ${if (deepSeekReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• 7. OpenRouter    : ${if (openRouterReady) "✅ Ready" else "⚪ No Key"}\n")
-                append("• 8. Local Ollama  : ⚡ Ready (http://127.0.0.1:11434)\n")
-                append("Failover Cascade: Active (RPM 429 Circuit-Breaker Protected)")
+                com.jarvis.assistant.agentic.router.ModelProvider.entries.forEachIndexed { idx, p ->
+                    val ready = !p.requiresApiKey || vault.hasApiKey(p)
+                    val stateTag = if (!p.requiresApiKey) "[AUTO-FREE]" else if (ready) "[KEY READY]" else "[STANDBY]"
+                    val num = (idx + 1).toString().padStart(2, '0')
+                    append("├── $num. ${p.displayName.take(22).padEnd(22)} : $stateTag ${p.pricingBadge}\n")
+                }
+                append("└── FAILOVER CASCADE // ACTIVE [RPM 429 Circuit-Breaker Protected]")
             }
 
             addView(TextView(requireContext()).apply {
                 text = statusText
-                textSize = 12f
+                textSize = 10.5f
+                typeface = Typeface.MONOSPACE
                 setTextColor(themeColor(R.attr.themeTextMuted))
                 setLineSpacing(dp(2).toFloat(), 1f)
             })
@@ -464,7 +483,7 @@ class UpdatesFragment : Fragment() {
                             val statuses = app.specialistAgentPool.getAllAgentStatuses()
                             renderAgentStatuses(statuses)
                         } catch (e: Exception) {}
-                        delay(1200)
+                        delay(1500)
                     }
                 }
 
@@ -477,8 +496,9 @@ class UpdatesFragment : Fragment() {
                             layout.removeAllViews()
                             if (tasks.isEmpty()) {
                                 layout.addView(TextView(ctx).apply {
-                                    text = "No swarm tasks yet. Dispatch a mission above or speak to JARVIS."
-                                    textSize = 12f
+                                    text = "▸ STANDBY // No swarm tasks yet. Dispatch a mission above or speak to JARVIS."
+                                    textSize = 11.5f
+                                    typeface = Typeface.MONOSPACE
                                     setTextColor(themeColor(R.attr.themeTextMuted))
                                 })
                             } else {
@@ -507,15 +527,16 @@ class UpdatesFragment : Fragment() {
                                         else -> Color.parseColor("#94A3B8")
                                     }
                                     val badgeText = when (task.status) {
-                                        TaskStatus.IN_PROGRESS -> "▶ RUNNING ⏳"
-                                        TaskStatus.COMPLETED -> "✓ COMPLETED ✅"
-                                        TaskStatus.FAILED -> "✕ FAILED ❌"
-                                        else -> task.status.name
+                                        TaskStatus.IN_PROGRESS -> "◈ [RUNNING]"
+                                        TaskStatus.COMPLETED -> "● [COMPLETED]"
+                                        TaskStatus.FAILED -> "▪ [FAILED]"
+                                        else -> "◇ [${task.status.name}]"
                                     }
 
                                     headerRow.addView(TextView(ctx).apply {
                                         text = badgeText
                                         textSize = 10f
+                                        typeface = Typeface.MONOSPACE
                                         setTypeface(typeface, Typeface.BOLD)
                                         setTextColor(badgeColor)
                                         setBackgroundResource(R.drawable.bg_jarvis_chip)
@@ -523,8 +544,9 @@ class UpdatesFragment : Fragment() {
                                     })
 
                                     headerRow.addView(TextView(ctx).apply {
-                                        text = "  [${task.assignedTo}]"
+                                        text = "  // ${task.assignedTo}"
                                         textSize = 11f
+                                        typeface = Typeface.MONOSPACE
                                         setTextColor(themeColor(R.attr.themeTextMuted))
                                         layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                                     })
@@ -533,7 +555,7 @@ class UpdatesFragment : Fragment() {
 
                                     // Task Title / Goal
                                     taskView.addView(TextView(ctx).apply {
-                                        text = task.title
+                                        text = "▸ ${task.title}"
                                         textSize = 13f
                                         setTypeface(typeface, Typeface.BOLD)
                                         setTextColor(themeColor(R.attr.themeTextPrimary))
@@ -543,8 +565,9 @@ class UpdatesFragment : Fragment() {
                                     // Result Summary (if present)
                                     if (!task.resultSummary.isNullOrBlank()) {
                                         taskView.addView(TextView(ctx).apply {
-                                            text = "Result: ${task.resultSummary}"
+                                            text = "└── ${task.resultSummary}"
                                             textSize = 11f
+                                            typeface = Typeface.MONOSPACE
                                             setTextColor(Color.parseColor("#94A3B8"))
                                             maxLines = 3
                                             ellipsize = TextUtils.TruncateAt.END
@@ -567,8 +590,9 @@ class UpdatesFragment : Fragment() {
                             layout.removeAllViews()
                             if (logs.isEmpty()) {
                                 layout.addView(TextView(ctx).apply {
-                                    text = "Blackboard standby."
-                                    textSize = 12f
+                                    text = "▸ BLACKBOARD // Standby"
+                                    textSize = 11.5f
+                                    typeface = Typeface.MONOSPACE
                                     setTextColor(themeColor(R.attr.themeTextMuted))
                                 })
                             } else {
@@ -580,8 +604,9 @@ class UpdatesFragment : Fragment() {
                                         else -> themeColor(R.attr.themeAccent)
                                     }
                                     layout.addView(TextView(ctx).apply {
-                                        text = "• [${log.agentName}] ${log.action}: ${log.detail}"
+                                        text = "├── [${log.agentName}] ${log.action} // ${log.detail}"
                                         textSize = 11f
+                                        typeface = Typeface.MONOSPACE
                                         setTextColor(color)
                                         setPadding(0, dp(2), 0, dp(2))
                                     })
@@ -600,15 +625,16 @@ class UpdatesFragment : Fragment() {
                             layout.removeAllViews()
                             if (list.isEmpty()) {
                                 layout.addView(TextView(ctx).apply {
-                                    text = "Listening and learning user habits, personality, and recurring skills..."
+                                    text = "▸ Listening and learning user habits, personality, and recurring skills..."
                                     textSize = 12f
                                     setTextColor(themeColor(R.attr.themeTextMuted))
                                 })
                             } else {
-                                list.take(4).forEach { item ->
+                                list.take(5).forEach { item ->
                                     layout.addView(TextView(ctx).apply {
-                                        text = "• [${item.category}] ${item.traitKey}: ${item.traitValue.take(60)}"
-                                        textSize = 12f
+                                        text = "├── [${item.category}] ${item.traitKey}: ${item.traitValue.take(60)}"
+                                        textSize = 11.5f
+                                        typeface = Typeface.MONOSPACE
                                         setTextColor(themeColor(R.attr.themeTextPrimary))
                                         setPadding(0, dp(2), 0, dp(2))
                                     })
@@ -629,13 +655,14 @@ class UpdatesFragment : Fragment() {
                     shell.terminalLogs.collectLatest { entries ->
                         val tv = dynamicTerminalConsoleTv ?: return@collectLatest
                         if (entries.isEmpty()) {
-                            tv.text = "agent@jarvis-linux:~/workspace$ r sysinfo\n[AI Terminal Ready — Controlled by ManagerAgent & ShellCodingSpecialist]"
+                            tv.text = "┌──(root@jarvis-linux)-[~/workspace]\n└─❯ r validate\n  ├── [READY] Controlled by ManagerAgent & ShellCodingSpecialist"
                         } else {
                             val recent = entries.takeLast(3)
                             tv.text = recent.joinToString("\n\n") { e ->
-                                "[${e.timestamp}] (${e.caller} • ${e.backend.name} • exit=${e.exitCode})\n" +
-                                    "agent@jarvis-linux:~/workspace$ ${e.command}\n" +
-                                    e.output.lines().take(8).joinToString("\n")
+                                val statusTag = if (e.exitCode == 0) "[OK:0]" else "[ERR:${e.exitCode}]"
+                                "┌──(${e.caller.lowercase()}@jarvis-linux)-[~/workspace] [$statusTag ${e.timestamp}]\n" +
+                                    "└─❯ ${e.command}\n" +
+                                    e.output.lines().take(8).joinToString("\n") { "  │ $it" }
                             }
                         }
                     }
@@ -644,9 +671,9 @@ class UpdatesFragment : Fragment() {
                     shell.latestPreview.collectLatest { preview ->
                         val tv = dynamicPreviewSummaryTv ?: return@collectLatest
                         if (preview != null) {
-                            tv.text = "✅ Latest AI Preview: ${preview.title} (${preview.description}) — Tap [👁️ Live Preview]"
+                            tv.text = "◈ LATEST ARTIFACT // ${preview.title} (${preview.description}) — Tap [ ◈ OPEN WORKSTATION ]"
                         } else {
-                            tv.text = "Live Preview: Tap [⚡ AI Build App] or ask JARVIS to code any web app/tool"
+                            tv.text = "▸ WORKSTATION // Tap [ ◈ OPEN WORKSTATION ] or [ ▸ HTOP // RAM ] for live telemetry"
                         }
                     }
                 }
@@ -677,8 +704,9 @@ class UpdatesFragment : Fragment() {
             }
 
             val tvName = TextView(ctx).apply {
-                text = agent.name
+                text = "▸ ${agent.name}"
                 textSize = 12f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(themeColor(R.attr.themeTextPrimary))
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
@@ -686,8 +714,9 @@ class UpdatesFragment : Fragment() {
 
             val isWorking = agent.state == AgentState.WORKING
             val tvBadge = TextView(ctx).apply {
-                text = if (isWorking) "⚡ WORKING" else if (agent.state == AgentState.ERROR) "❌ ERROR" else "⚪ IDLE"
+                text = if (isWorking) "◈ [ACTIVE]" else if (agent.state == AgentState.ERROR) "▪ [ERROR]" else "◇ [STANDBY]"
                 textSize = 10f
+                typeface = Typeface.MONOSPACE
                 setTypeface(typeface, Typeface.BOLD)
                 setTextColor(if (isWorking) Color.parseColor("#06B6D4") else if (agent.state == AgentState.ERROR) Color.parseColor("#EF4444") else Color.parseColor("#94A3B8"))
                 setBackgroundResource(R.drawable.bg_jarvis_chip)
@@ -699,8 +728,9 @@ class UpdatesFragment : Fragment() {
             row.addView(top)
 
             val tvDetail = TextView(ctx).apply {
-                text = "${agent.role} · ${agent.lastAction}"
+                text = "  └── ${agent.role} // ${agent.lastAction}"
                 textSize = 11f
+                typeface = Typeface.MONOSPACE
                 setTextColor(if (isWorking) themeColor(R.attr.themeAccent) else themeColor(R.attr.themeTextMuted))
                 maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END

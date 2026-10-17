@@ -226,6 +226,12 @@ class JarvisConversationService : Service() {
                 lower.contains("anti-gravity") ||
                 lower.contains("terminal") ||
                 lower.contains("termux") ||
+                lower.contains("dikhao") ||
+                lower.contains("htop") ||
+                lower.contains("postman") ||
+                lower.contains("validate") ||
+                lower.contains("netstat") ||
+                lower.contains("ram ") ||
                 lower.startsWith("r ") ||
                 lower.startsWith("agy ") ||
                 lower.startsWith("perm ") ||
@@ -245,7 +251,7 @@ class JarvisConversationService : Service() {
             } else {
                 // Multi-Agent Swarm Autonomous Execution (Probabilistic Plan + Parallel Swarm + Autonomous Terminal)
                 val app = JarvisApp.instance
-                app.chatRepository.addTurn(text, "⏳ Processing with JARVIS Probabilistic Multi-Agent Swarm...")
+                app.chatRepository.addTurn(text, "[SWARM // EXECUTING] Processing with JARVIS Probabilistic Multi-Agent Swarm...")
                 (instance?.serviceScope ?: CoroutineScope(Dispatchers.IO)).launch {
                     try {
                         val output = app.managerAgent.executeGoal(text)
@@ -2425,12 +2431,23 @@ class JarvisConversationService : Service() {
 
                     "agent_terminal_exec", "sh" -> {
                         val cmd = args.optString("cmd", args.optString("command", autonomousTaskGoal)).trim()
-                        Log.i("JarvisService", "agent_terminal_exec: running '$cmd' in AgentShellEngine")
+                        val showOnScreen = args.optBoolean("show_on_screen", false) ||
+                            autonomousTaskGoal.contains("dikhao", ignoreCase = true) ||
+                            autonomousTaskGoal.contains("show", ignoreCase = true)
+                        Log.i("JarvisService", "agent_terminal_exec: running '$cmd' in AgentShellEngine (showOnScreen=$showOnScreen)")
                         val shell = com.jarvis.assistant.agentic.shell.AgentShellEngine.getInstance(applicationContext)
                         val shellRes = shell.executeCommand(
                             rawCommand = cmd,
                             caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.VOICE_ORCHESTRATOR
                         )
+                        if (showOnScreen) {
+                            val tab = when {
+                                cmd.startsWith("htop", ignoreCase = true) -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.HTOP
+                                shellRes.previewArtifact != null -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.VIEWPORT
+                                else -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.TERMINAL
+                            }
+                            com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(applicationContext, tab)
+                        }
                         result.put("success", shellRes.success)
                         result.put("exit_code", shellRes.exitCode)
                         result.put("backend", shellRes.backend.name)
@@ -2440,6 +2457,33 @@ class JarvisConversationService : Service() {
                             result.put("preview_title", preview.title)
                             result.put("preview_path", preview.primaryCodePath)
                         }
+                    }
+
+                    "jarvis_self_control" -> {
+                        val action = args.optString("action", "show_terminal").trim().lowercase()
+                        val target = args.optString("target", "terminal").trim()
+                        val bridgeMsg = when (action) {
+                            "show_terminal", "terminal" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                                applicationContext,
+                                com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.TERMINAL
+                            )
+                            "show_preview", "show_viewport", "preview" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                                applicationContext,
+                                com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.VIEWPORT
+                            )
+                            "show_htop", "htop" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                                applicationContext,
+                                com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.HTOP
+                            )
+                            "show_source", "source" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                                applicationContext,
+                                com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.SOURCE
+                            )
+                            "inspect_self", "inspect", "status" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.inspectSelfState(applicationContext)
+                            else -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.navigateToInternalScreen(applicationContext, target.ifBlank { action })
+                        }
+                        result.put("success", true)
+                        result.put("message", bridgeMsg)
                     }
 
                     else -> {

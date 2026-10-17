@@ -172,16 +172,17 @@ class UnifiedToolRegistry private constructor(private val context: Context) {
         register(
             UnifiedTool(
                 name = "sh",
-                description = "Executes command in JARVIS AI-only Linux Terminal: shell cmd, 'r <recipe>' (sysinfo, setup-termux, install-agy, install-ubuntu, list-projects), 'perm <target>' (termux, accessibility, overlay, battery), 'agy <coding/preview goal>', or '--more'.",
+                description = "Executes command in JARVIS AI Linux Terminal: 'htop' (system/RAM monitor), 'postman test-providers' or 'postman GET/POST <url>', 'curl', 'netstat', 'ping', 'validate' (10-point validation script), 'r <recipe>' (sysinfo, htop, validate, test-apis, ram-boost, setup-termux, install-agy, list-projects), 'perm <target>', 'agy <goal>', or '--more'.",
                 parameters = mapOf(
-                    "cmd" to ToolParameterProperty("string", "Command, recipe 'r <name>', 'perm <name>', 'agy <goal>', or '--more'")
+                    "cmd" to ToolParameterProperty("string", "Command: 'htop', 'postman test-providers', 'validate', 'netstat', 'r ram-boost', 'r install-agy', 'agy <goal>', or shell command")
                 ),
                 requiredParameters = listOf("cmd")
             ),
             keywords = setOf(
                 "terminal", "shell", "termux", "linux", "ubuntu", "bash", "sh", "code", "coding",
                 "build", "preview", "antigravity", "agy", "opencode", "script", "python", "node",
-                "git", "gh", "website", "webapp", "html", "calculator", "dashboard", "perm", "sysinfo", "banao"
+                "git", "gh", "website", "webapp", "html", "calculator", "dashboard", "perm", "sysinfo", "banao",
+                "htop", "postman", "curl", "wget", "netstat", "ping", "validate", "ram"
             )
         ) { args ->
             val cmd = args["cmd"].orEmpty()
@@ -211,6 +212,43 @@ class UnifiedToolRegistry private constructor(private val context: Context) {
                 com.jarvis.assistant.JarvisApp.instance.commandExecutor.execute(parsed.command)
             } else {
                 hybridDispatcher.openAppOrAction(cmdText).message
+            }
+        }
+
+        // 9. Self-App Accessibility, Workstation Display & Internal Introspection (`jarvis_self_control`)
+        register(
+            UnifiedTool(
+                name = "jarvis_self_control",
+                description = "Displays JARVIS's own live Terminal Workstation ('show_terminal', 'show_preview', 'show_htop', 'show_source'), navigates internal screens ('api_vault', 'diagnostics', 'memory', 'live_debug', 'updates', 'settings'), or runs full internal self-inspection ('inspect_self').",
+                parameters = mapOf(
+                    "action" to ToolParameterProperty("string", "Action: 'show_terminal', 'show_preview', 'show_htop', 'show_source', 'navigate', or 'inspect_self'"),
+                    "target" to ToolParameterProperty("string", "Target screen when action='navigate': 'terminal', 'htop', 'preview', 'api_vault', 'diagnostics', 'memory', 'live_debug', 'updates', 'settings'")
+                ),
+                requiredParameters = listOf("action")
+            ),
+            keywords = setOf("dikhao", "show", "terminal", "preview", "htop", "vault", "diagnostics", "inspect", "explore", "screen")
+        ) { args ->
+            val action = args["action"].orEmpty().lowercase()
+            val target = args["target"].orEmpty()
+            when (action) {
+                "show_terminal", "terminal" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                    context,
+                    com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.TERMINAL
+                )
+                "show_preview", "preview", "viewport" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                    context,
+                    com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.VIEWPORT
+                )
+                "show_htop", "htop" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                    context,
+                    com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.HTOP
+                )
+                "show_source", "source" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.showWorkstationOnScreen(
+                    context,
+                    com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.WorkstationTab.SOURCE
+                )
+                "inspect_self", "inspect" -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.inspectSelfState(context)
+                else -> com.jarvis.assistant.agentic.control.JarvisSelfControlBridge.navigateToInternalScreen(context, target.ifBlank { action })
             }
         }
     }

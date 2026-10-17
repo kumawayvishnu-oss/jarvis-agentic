@@ -47,7 +47,7 @@ object LiveDebug {
 
     @Volatile var lastDropReason: String = ""
 
-    private const val MAX_LINES = 300
+    private const val MAX_LINES = 80
     private val ring = ArrayDeque<String>(MAX_LINES)
     private val timeFmt = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
 
@@ -67,7 +67,15 @@ object LiveDebug {
         }
     }
 
-    fun recentLines(max: Int = 100): List<String> = synchronized(ring) {
+    fun trimToMaxEntries(max: Int = 30) {
+        synchronized(ring) {
+            while (ring.size > max.coerceAtLeast(10)) {
+                ring.pollFirst()
+            }
+        }
+    }
+
+    fun recentLines(max: Int = 80): List<String> = synchronized(ring) {
         ring.toList().takeLast(max)
     }
 
@@ -75,7 +83,7 @@ object LiveDebug {
      * Reads this process's own logcat (allowed without READ_LOGS for own pid).
      * Falls back to the in-app ring buffer if logcat is unavailable.
      */
-    fun readOwnLogcat(lines: Int = 100): List<String> {
+    fun readOwnLogcat(lines: Int = 80): List<String> {
         return try {
             val pid = android.os.Process.myPid()
             val proc = Runtime.getRuntime().exec(arrayOf("logcat", "-d", "-v", "time", "-t", lines.toString(), "--pid=$pid"))

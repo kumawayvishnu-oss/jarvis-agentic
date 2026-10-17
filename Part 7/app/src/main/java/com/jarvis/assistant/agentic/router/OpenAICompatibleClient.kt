@@ -236,7 +236,7 @@ class OpenAICompatibleClient(
 
     companion object {
         private val defaultClient: OkHttpClient by lazy {
-            OkHttpClient.Builder()
+            com.jarvis.assistant.util.OppoA11kRamOptimizer.sharedBaseHttpClient.newBuilder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(15, TimeUnit.SECONDS)
