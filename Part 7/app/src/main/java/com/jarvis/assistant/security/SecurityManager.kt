@@ -9,16 +9,15 @@ import kotlin.system.exitProcess
 
 /**
  * JARVIS ASSISTANT — SECURITY MODULE
- * Developer       : Tech GPTx
- * Copyright © 2026: Tech GPTx. All Rights Reserved.
- * GitHub          : https://github.com/techgptx/Playlist
+ * Developer       : JARVIS Agentic
+ * Copyright       : JARVIS Agentic System
  */
 object SecurityManager {
 
-    const val DEVELOPER_NAME    = "Tech GPTx"
-    const val COPYRIGHT_NOTICE  = "Copyright © 2026 Tech GPTx. All Rights Reserved."
-    const val GITHUB_REPO       = "https://github.com/techgptx/Playlist"
-    const val LICENSE_NAME      = "TAMCL v1.0 — Content creators MUST credit Tech GPTx"
+    const val DEVELOPER_NAME    = "JARVIS Agentic"
+    const val COPYRIGHT_NOTICE  = "JARVIS Agentic System"
+    const val GITHUB_REPO       = ""
+    const val LICENSE_NAME      = "TAMCL v1.0"
 
     private const val EXPECTED_PACKAGE = "com.jarvis.assistant"
 
@@ -34,7 +33,7 @@ object SecurityManager {
                 "This is an unauthorised clone of the JARVIS app by $DEVELOPER_NAME.\n\n" +
                 "Original: $EXPECTED_PACKAGE\n" +
                 "Found   : ${context.packageName}\n\n" +
-                "The app will now close. Please download the official version from:\n$GITHUB_REPO"
+                "The app will now close."
             )
         }
     }
@@ -52,8 +51,7 @@ object SecurityManager {
                 context,
                 "Tampered APK Detected",
                 "This APK has been re-signed or modified.\n\n" +
-                "$DEVELOPER_NAME only distributes APKs signed with the original certificate.\n\n" +
-                "Download the official APK from:\n$GITHUB_REPO"
+                "$DEVELOPER_NAME only distributes APKs signed with the original certificate."
             )
         }
     }

@@ -64,7 +64,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun loadUserData() {
-        val userName = preferences.userName.ifBlank { "Rehaan" }
+        val userName = preferences.userName.ifBlank { "Operator" }
         binding.tvProfileName.text = userName
         binding.tvProfileSubtitle.text = "JARVIS OPERATOR • PRIMARY USER"
 
@@ -176,17 +176,9 @@ class SettingsFragment : Fragment() {
             startActivity(Intent(requireContext(), OverlayAvatarActivity::class.java))
         }
 
-        binding.rowApplications.setOnClickListener {
-            startActivity(Intent(requireContext(), HandsFreeActivity::class.java))
-        }
-
         // Section 3: Appearance & Security
         binding.rowAppTheme.setOnClickListener {
             ThemeSelectionBottomSheet.newInstance().show(childFragmentManager, ThemeSelectionBottomSheet.TAG)
-        }
-
-        binding.rowPrivacyPolicy.setOnClickListener {
-            startActivity(Intent(requireContext(), PrivacyShieldActivity::class.java))
         }
 
         binding.rowAppIdentity.setOnClickListener {
@@ -196,52 +188,6 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton("Close", null)
                 .show()
         }
-
-        binding.rowCredits.setOnClickListener {
-            showCreditsDialog()
-        }
-
-        // Social Media Community Buttons
-        binding.btnSocialTelegram.setOnClickListener {
-            openUrl("https://t.me/+sYana61LvHdmZmE1")
-        }
-
-        binding.btnSocialInstagram.setOnClickListener {
-            openUrl("https://www.instagram.com/techgptx.ai")
-        }
-
-        binding.btnSocialYoutube.setOnClickListener {
-            openUrl("https://youtube.com/@TechGptX")
-        }
-
-        binding.tvFooterCredit.setOnClickListener {
-            showCreditsDialog()
-        }
-    }
-
-    private fun showCreditsDialog() {
-        val options = arrayOf(
-            "📺 YouTube Channel (@TechGptX)",
-            "📢 Telegram Channel",
-            "💬 Telegram Discussion Group",
-            "📸 Instagram (@techgptx.ai)",
-            "💻 GitHub Repository (Playlist)"
-        )
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Credits & Original Creator")
-            .setMessage("Original Project & Tutorial Series:\nJARVIS Android AI Assistant (Part 1 to 7)\nCreated by Tech GPTx / Rehaan.\n\nLicense: TAMCL v1.0\nAttribution strictly preserved.\n\nSelect a link below to visit:")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> openUrl("https://youtube.com/@TechGptX")
-                    1 -> openUrl("https://t.me/+sYana61LvHdmZmE1")
-                    2 -> openUrl("https://t.me/+DmyO7NFUia01YTVl")
-                    3 -> openUrl("https://www.instagram.com/techgptx.ai")
-                    4 -> openUrl("https://github.com/techgptx/Playlist")
-                }
-            }
-            .setPositiveButton("Close", null)
-            .show()
     }
 
     private fun showLanguageDialog() {
@@ -262,7 +208,7 @@ class SettingsFragment : Fragment() {
 
     private fun showEditNameDialog() {
         val input = EditText(requireContext()).apply {
-            setText(preferences.userName.ifBlank { "Rehaan" })
+            setText(preferences.userName.ifBlank { "Operator" })
             setSelection(text.length)
         }
         MaterialAlertDialogBuilder(requireContext())
@@ -278,15 +224,6 @@ class SettingsFragment : Fragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
-    }
-
-    private fun openUrl(url: String) {
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            startActivity(intent)
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Unable to open link", Toast.LENGTH_SHORT).show()
-        }
     }
 
     override fun onDestroyView() {
