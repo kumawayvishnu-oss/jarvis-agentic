@@ -94,6 +94,7 @@ class TaskProgressOverlay(private val context: Context) {
     private var attached = false
     private var avatarMode = true
     private var loadedAvatar = ""
+    private val bundledAvatars = setOf("droid", "mech", "ghost", "alien", "circle", "hexagon")
     private var displayedTaskId: String? = null
     private var downRawX = 0f
     private var downRawY = 0f
@@ -137,7 +138,12 @@ class TaskProgressOverlay(private val context: Context) {
         val selectedAvatar = preferences.taskOverlayAvatar
         if (selectedAvatar != loadedAvatar) {
             loadedAvatar = selectedAvatar
-            avatar.loadUrl("https://appassets.androidplatform.net/assets/overlay-toys/$selectedAvatar.html")
+            val avatarPath = if (selectedAvatar in bundledAvatars) {
+                "https://appassets.androidplatform.net/assets/overlay-toys/$selectedAvatar.html"
+            } else {
+                "https://appassets.androidplatform.net/assets/overlay-toys/droid.html?type=$selectedAvatar"
+            }
+            avatar.loadUrl(avatarPath)
         }
         val nextTaskId = snapshot?.taskId
         if (displayedTaskId != nextTaskId) {

@@ -42,9 +42,10 @@
     const { createRoot } = await import("https://esm.sh/react-dom@18.3.1/client?deps=react@18.3.1");
     const { BotAvatar } = await import("https://esm.sh/bot-avatars?deps=react@18.3.1,react-dom@18.3.1");
     const { createElement: h } = React;
+    const avatarType = new URLSearchParams(window.location.search).get("type") || "droid";
 
     createRoot(document.getElementById("root")).render(
-      h(BotAvatar, { type: "droid", face: "mouth", size: 64, shading: "fabric", interactive: true })
+      h(BotAvatar, { type: avatarType, face: "mouth", size: 64, shading: "fabric", interactive: true })
     );
   } catch (e) {
     document.getElementById("root").textContent = "Load failed: " + e.message + " (internet check karo)";
