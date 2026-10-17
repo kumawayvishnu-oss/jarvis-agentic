@@ -20,15 +20,22 @@ class SmartProviderRouter private constructor(
     // Health tracking for each provider
     private val healthMap = ConcurrentHashMap<ModelProvider, ProviderHealth>()
 
-    // Default provider priority order
+    // Default 15-provider priority cascade (Free high-speed -> Free developer -> Paid -> Zero-Key Free -> Offline Local)
     private val defaultCascade = listOf(
         ModelProvider.GEMINI,
         ModelProvider.GROQ,
+        ModelProvider.GLM_ZHIPU,
+        ModelProvider.SILICONFLOW,
+        ModelProvider.NVIDIA_NIM,
         ModelProvider.CEREBRAS,
         ModelProvider.MISTRAL,
         ModelProvider.SAMBANOVA,
-        ModelProvider.DEEPSEEK,
+        ModelProvider.GITHUB_MODELS,
         ModelProvider.OPENROUTER,
+        ModelProvider.HUGGINGFACE,
+        ModelProvider.COHERE,
+        ModelProvider.DEEPSEEK,
+        ModelProvider.POLLINATIONS_FREE,
         ModelProvider.OLLAMA_LOCAL
     )
 
@@ -220,7 +227,7 @@ class SmartProviderRouter private constructor(
     suspend fun testProvider(provider: ModelProvider): Pair<Boolean, String> = withContext(Dispatchers.IO) {
         val apiKey = vault.getApiKey(provider).orEmpty()
         val baseUrl = vault.getBaseUrl(provider)
-        if (!provider.isLocal && apiKey.isBlank()) {
+        if (provider.requiresApiKey && apiKey.isBlank()) {
             return@withContext Pair(false, "No API key configured")
         }
 

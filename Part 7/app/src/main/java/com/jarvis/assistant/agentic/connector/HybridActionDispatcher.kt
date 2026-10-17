@@ -148,23 +148,28 @@ class HybridActionDispatcher private constructor(
             }
         }
 
-        // Fallback: Web search or Play store
+        // Fallback: Anonymous background research via FreeLiveSearchClient (NEVER pop open Chrome with user's Google ID)
         return@withContext try {
-            val fallbackUrl = "https://www.google.com/search?q=" + Uri.encode(appName)
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl)).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val bgResults = com.jarvis.assistant.agentic.search.FreeLiveSearchClient().search(appName, maxResults = 3)
+            if (bgResults.isNotEmpty()) {
+                val summary = bgResults.joinToString("\n") { "• ${it.title}: ${it.snippet}" }
+                HybridActionResult(
+                    isSuccess = true,
+                    executedTier = ExecutionTier.TIER1_INTENT,
+                    message = "App '$appName' is not installed locally. Background Web Research:\n$summary"
+                )
+            } else {
+                HybridActionResult(
+                    isSuccess = false,
+                    executedTier = ExecutionTier.FAILED,
+                    message = "App '$appName' is not installed on this device."
+                )
             }
-            context.startActivity(browserIntent)
-            HybridActionResult(
-                isSuccess = true,
-                executedTier = ExecutionTier.TIER1_INTENT,
-                message = "App not locally installed. Opened web alternative for $appName."
-            )
         } catch (e: Exception) {
             HybridActionResult(
                 isSuccess = false,
                 executedTier = ExecutionTier.FAILED,
-                message = "Could not open $appName or web fallback: ${e.message}"
+                message = "Could not open $appName: ${e.message}"
             )
         }
     }

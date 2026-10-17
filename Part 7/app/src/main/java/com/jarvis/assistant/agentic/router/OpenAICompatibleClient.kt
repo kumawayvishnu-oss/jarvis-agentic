@@ -71,8 +71,8 @@ class OpenAICompatibleClient(
             }
             add("messages", messagesArray)
 
-            // Add tools if present
-            if (request.tools.isNotEmpty()) {
+            // Add tools if present (skip for zero-key fallback if it prefers plain text/JSON prompt)
+            if (request.tools.isNotEmpty() && provider != ModelProvider.POLLINATIONS_FREE) {
                 val toolsArray = JsonArray()
                 request.tools.forEach { tool ->
                     val toolObj = JsonObject().apply {
@@ -119,7 +119,7 @@ class OpenAICompatibleClient(
             .url(endpointUrl)
             .addHeader("Content-Type", "application/json")
             .apply {
-                if (provider != ModelProvider.OLLAMA_LOCAL && apiKey.isNotBlank()) {
+                if (provider.requiresApiKey && apiKey.isNotBlank() && apiKey != "zero-key-provider-ready") {
                     addHeader("Authorization", "Bearer $apiKey")
                 }
                 if (provider == ModelProvider.OPENROUTER) {
@@ -181,9 +181,10 @@ class OpenAICompatibleClient(
                 val messageObj = firstChoice.getAsJsonObject("message")
                 var textContent = messageObj?.get("content")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asString.orEmpty()
 
-                // Check for DeepSeek R1 reasoning_content if content is empty
+                // Check for DeepSeek R1 reasoning_content or Pollinations reasoning if content is empty
                 if (textContent.isBlank()) {
                     val reasoning = messageObj?.get("reasoning_content")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asString
+                        ?: messageObj?.get("reasoning")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asString
                     if (!reasoning.isNullOrBlank()) {
                         textContent = reasoning
                     }

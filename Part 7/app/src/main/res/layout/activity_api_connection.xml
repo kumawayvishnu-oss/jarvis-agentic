@@ -108,18 +108,25 @@
                     android:id="@+id/tvEndpointSummary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="8-Provider Cascade: Gemini ➔ Groq ➔ Cerebras ➔ Mistral ➔ SambaNova ➔ DeepSeek ➔ OpenRouter ➔ Ollama"
+                    android:text="15-Provider Cascade: Gemini ➔ Groq ➔ GLM (Free) ➔ SiliconFlow (Free) ➔ NVIDIA NIM (Free) ➔ Cerebras ➔ Mistral ➔ SambaNova ➔ GitHub ➔ OpenRouter ➔ HF ➔ Cohere ➔ DeepSeek ➔ Pollinations (Zero-Key Free) ➔ Ollama"
                     android:textColor="?attr/themeTextMuted"
                     android:textSize="12sp"
                     android:fontFamily="sans-serif"
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
+            <!-- Dynamic Container for Free Providers (GLM, SiliconFlow, NVIDIA NIM, GitHub Models, HuggingFace, Cohere, Pollinations Zero-Key) -->
+            <LinearLayout
+                android:id="@+id/layoutExtraProviders"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
             <!-- Card 2: Google Gemini (Primary) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Primary Provider: Google Gemini (Voice + Agent)"
+                android:text="Primary: Google AI Studio • 🟢 FREE TIER (15 RPM / 1,500 Req/Day) + PAID"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -269,7 +276,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fallback 1: Groq LPU (Ultra-Fast ~250ms)"
+                android:text="Groq Cloud LPU • 🟢 FREE TIER (30 RPM / 14,400 Req/Day • ~250ms)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -371,11 +378,11 @@
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
-            <!-- Card 4: OpenRouter Free Matrix (Fallback 2) -->
+            <!-- Card 4: OpenRouter Free Matrix -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fallback 2: OpenRouter Matrix (Free &amp; Paid)"
+                android:text="OpenRouter Matrix • 🟡 FREE (:free models 20 RPM) + PAID"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -477,11 +484,11 @@
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
-            <!-- Card 5: DeepSeek (Fallback 3) -->
+            <!-- Card 5: DeepSeek -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fallback 3: DeepSeek V3 / R1 (Reasoning)"
+                android:text="DeepSeek Official V3 / R1 • 🔴 PAID API (Requires Top-Up Balance)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -583,11 +590,11 @@
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
-            <!-- Card 5B: Cerebras Wafer-Scale (Fallback 4) -->
+            <!-- Card 5B: Cerebras Wafer-Scale -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fallback 4: Cerebras Wafer-Scale (~2000 tok/s)"
+                android:text="Cerebras Wafer-Scale • 🟢 FREE TIER (30 RPM / 1M Tok/Day • ~2000 tok/s)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -689,11 +696,11 @@
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
-            <!-- Card 5C: Mistral AI (Fallback 5) -->
+            <!-- Card 5C: Mistral AI -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fallback 5: Mistral AI (La Plateforme)"
+                android:text="Mistral AI (La Plateforme) • 🟢 FREE TIER (Experiment Plan • 500K tok/min)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -795,11 +802,11 @@
                     android:layout_marginTop="6dp" />
             </LinearLayout>
 
-            <!-- Card 5D: SambaNova Cloud RDU (Fallback 6) -->
+            <!-- Card 5D: SambaNova Cloud RDU -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fallback 6: SambaNova Cloud RDU (Llama 3.3 70B)"
+                android:text="SambaNova Cloud RDU • 🟢 FREE TIER (20 RPM • Llama 3.3 70B)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"
@@ -905,7 +912,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fallback 7: Local Ollama (LAN / Termux Engine)"
+                android:text="Local Ollama (LAN / Termux) • 🟢 100% FREE OFFLINE (Zero Key)"
                 android:textColor="?attr/themeTextMuted"
                 android:textSize="13sp"
                 android:fontFamily="sans-serif-medium"

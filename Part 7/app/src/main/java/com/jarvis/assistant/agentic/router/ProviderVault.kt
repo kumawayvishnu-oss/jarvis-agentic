@@ -39,8 +39,8 @@ class ProviderVault private constructor(context: Context) {
      * Retrieves the API key for a given provider.
      */
     fun getApiKey(provider: ModelProvider): String? {
-        if (provider == ModelProvider.OLLAMA_LOCAL) {
-            return "ollama-local-no-key"
+        if (!provider.requiresApiKey || provider == ModelProvider.OLLAMA_LOCAL || provider == ModelProvider.POLLINATIONS_FREE) {
+            return "zero-key-provider-ready"
         }
         val keyName = keyForProvider(provider)
         val stored = securePrefs?.getString(keyName, null) ?: memoryFallback[keyName]
@@ -77,7 +77,7 @@ class ProviderVault private constructor(context: Context) {
      * Checks if a valid key is configured for this provider.
      */
     fun hasApiKey(provider: ModelProvider): Boolean {
-        if (provider == ModelProvider.OLLAMA_LOCAL) return true
+        if (!provider.requiresApiKey || provider == ModelProvider.OLLAMA_LOCAL || provider == ModelProvider.POLLINATIONS_FREE) return true
         val key = getApiKey(provider)
         return !key.isNullOrBlank()
     }

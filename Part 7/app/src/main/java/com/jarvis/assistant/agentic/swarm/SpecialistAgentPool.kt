@@ -218,15 +218,39 @@ class CognitiveSpecialistAgent(
     ): AgentExecutionResult = withContext(Dispatchers.IO) {
         reportStep("CognitiveStart", "Analyzing query: $taskGoal", StepLogLevel.INFO, taskId)
 
+        val lower = taskGoal.lowercase()
+        if ((lower.contains("30 min") || lower.contains("30 minut") || lower.contains("user soul") || lower.contains("mere bare me")) &&
+            (lower.contains("research") || lower.contains("kya hai") || lower.contains("check") || lower.contains("analyze"))
+        ) {
+            val soulMgr = com.jarvis.assistant.agentic.soul.UserSoulManager.getInstance(context)
+            val cycleSummary = soulMgr.runDeepUserResearchCycle(forceRun = true)
+            val fullProfile = soulMgr.buildUserSoulPromptContext()
+            val out = "$cycleSummary\n\n$fullProfile"
+            writeBlackboard(taskId, "last_cognitive_output", out)
+            return@withContext AgentExecutionResult(
+                agentId = id,
+                agentName = name,
+                isSuccess = true,
+                output = out
+            )
+        }
+
         val relevantTools = com.jarvis.assistant.agentic.router.UnifiedToolRegistry
             .getInstance(context)
             .selectRelevantTools(taskGoal, maxTools = 4)
 
         val dualSoulCtx = (inputData["dualSoulContext"] as? String).orEmpty()
-        val enrichedSystemPrompt = if (dualSoulCtx.isNotBlank()) {
-            "$systemPrompt\n\n$dualSoulCtx"
-        } else {
-            systemPrompt
+        val probPlanCtx = (inputData["probabilisticPlan"] as? String).orEmpty()
+        val enrichedSystemPrompt = buildString {
+            appendLine(systemPrompt)
+            if (probPlanCtx.isNotBlank()) {
+                appendLine()
+                appendLine(probPlanCtx)
+            }
+            if (dualSoulCtx.isNotBlank()) {
+                appendLine()
+                appendLine(dualSoulCtx)
+            }
         }
 
         val request = UnifiedPromptRequest(
@@ -288,19 +312,26 @@ class ShellCodingSpecialistAgent(
         reportStep("AgentShellStart", "Autonomous Terminal Task: $trimmed", StepLogLevel.INFO, taskId)
 
         try {
-            // Case 1: Explicit recipe, permission doctor, pagination, or raw shell prefix
+            // Case 1: Explicit recipe, download, research, git clone, permission doctor, pagination, or raw shell prefix
             val directCommand: String? = when {
                 trimmed.startsWith("sh ") -> trimmed.removePrefix("sh ").trim()
                 trimmed.startsWith("r ") || trimmed.startsWith("perm ") ||
                     trimmed.startsWith("agy ") || trimmed.startsWith("opencode ") ||
                     trimmed.startsWith("build-preview ") || trimmed.startsWith("termux:") ||
+                    trimmed.startsWith("curl ") || trimmed.startsWith("wget ") ||
+                    trimmed.startsWith("git ") || trimmed.startsWith("gh ") ||
+                    trimmed.startsWith("pkg ") || trimmed.startsWith("apt ") ||
+                    trimmed.startsWith("npm ") || trimmed.startsWith("pip ") ||
+                    trimmed.startsWith("search ") || trimmed.startsWith("research ") ||
                     trimmed == "--more" -> trimmed
+                (lower.contains("antigravity") || lower.contains("anti gravity") || lower.contains("anti-gravity") || lower.contains("agy") || lower.contains("opencode")) &&
+                    (lower.contains("download") || lower.contains("install") || lower.contains("setup") || lower.contains("karke dikhao")) -> "r install-agy"
                 lower.contains("sysinfo") || lower.contains("system info") || lower.contains("kernel") -> "r sysinfo"
                 lower.contains("setup termux") || lower.contains("install termux") -> "r setup-termux"
-                lower.contains("install agy") || lower.contains("install antigravity") || lower.contains("install opencode") -> "r install-agy"
                 lower.contains("install ubuntu") || lower.contains("proot") -> "r install-ubuntu"
                 lower.contains("list project") || lower.contains("workspace file") -> "r list-projects"
                 lower.contains("permission doctor") || lower.startsWith("check permission") -> "perm all"
+                lower.contains("research") || lower.contains("search") -> "research $trimmed"
                 else -> null
             }
 
@@ -323,7 +354,7 @@ class ShellCodingSpecialistAgent(
                     caller = com.jarvis.assistant.agentic.shell.AgentShellEngine.CallerRole.SHELL_CODING_SPECIALIST
                 )
             } else {
-                // Case 3: Translate natural-language terminal request into safe Linux shell command or run directly
+                // Case 3: Pass to AgentShellEngine (which supports embedded Linux + self-healing fallback)
                 val safeCmd = trimmed
                     .removePrefix("run in terminal")
                     .removePrefix("execute in terminal")
@@ -431,11 +462,21 @@ class SpecialistAgentPool private constructor(private val context: Context) {
             }
         }
 
+        // 1B. Self-Awareness, Creator Identity, Provider List, or 30-Minute User SOUL Research
+        if (lower.contains("30 min") || lower.contains("30 minut") || lower.contains("user soul") ||
+            lower.contains("mere bare") || lower.contains("kisne banaya") || lower.contains("who built you") ||
+            lower.contains("who created you") || lower.contains("apne feature") || lower.contains("tumhare feature")
+        ) {
+            return pool["agent_cognitive"] ?: pool.values.first()
+        }
+
         // 2. Autonomous AI Terminal / Linux / Antigravity Coding / Live Preview
         if (lower.startsWith("sh ") || lower.startsWith("r ") || lower.startsWith("perm ") ||
             lower.startsWith("agy ") || lower.startsWith("opencode ") || lower.startsWith("termux:") ||
             lower.contains("terminal") || lower.contains("termux") || lower.contains("linux") ||
-            lower.contains("ubuntu") || lower.contains("antigravity") || lower.contains("opencode") ||
+            lower.contains("ubuntu") || lower.contains("antigravity") || lower.contains("anti gravity") ||
+            lower.contains("anti-gravity") || lower.contains("opencode") || lower.contains("curl ") ||
+            lower.contains("wget ") || lower.contains("git clone") || lower.contains("pkg install") ||
             lower.contains("preview") || lower.contains("web app") || lower.contains("webapp") ||
             lower.contains("website") || lower.contains("html") || lower.contains("script") ||
             lower.contains("sysinfo") || lower.contains("git ") || lower.contains("python") ||

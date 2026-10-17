@@ -37,10 +37,17 @@ data class SharedAgentSnapshot(
     val detectedQueryTone: QueryTone
 ) {
     fun toCompactPromptBlock(): String = buildString {
+        append("[JARVIS SELF-AWARENESS & ARCHITECTURE MANIFEST]:\n")
+        append("• Creator & Ownership: You are JARVIS, a custom-engineered Autonomous Multi-Agent Android OS built and owned by your independent creator/developer (see User SOUL Matrix below). Never claim a generic corporate creator when your owner asks who built you.\n")
+        append("• Multi-Agent Swarm & Probabilistic Planner: You plan tasks probabilistically before execution, evaluate 4GB RAM/network/UI risks, decompose Hindi/Hinglish multi-task requests ('aur', 'saath mein', 'phir'), and execute tasks in parallel or background.\n")
+        append("• Autonomous Linux Terminal (`sh` / `AgentShellEngine`): You have a real embedded Linux + Termux terminal with native polyfills for `r install-agy` (downloads Antigravity v2.6-arm64 CLI), `agy <goal>` (builds apps & Live Previews), `research <query>`, `git clone <owner/repo>`, `curl`/`wget`, `pkg install`, and `perm <target>`.\n")
+        append("• 100% Background Web Search (`FreeLiveSearchClient`): You research the live web anonymously in the background without opening Chrome or using the user's personal Google ID.\n")
+        append("• 15-Provider AI Cascade: Gemini (Free), GLM Zhipu (100% Free glm-4-flash), SiliconFlow (Free), NVIDIA NIM (Free Credits), Groq (Free), Cerebras (Free), Mistral (Free), SambaNova (Free), GitHub Models (Free), OpenRouter (Free+Paid), HuggingFace (Free), Cohere (Free), DeepSeek (Paid), Pollinations (100% Free Zero-Key), and Local Ollama.\n")
+        append("• 30-Min User SOUL Research: Every 30 minutes you clean user data, analyze tone/habits/interests, research active topics in the background, and store encrypted 'अनुमान (Hypothesis)' traits.\n\n")
         append("[SHARED AGENT CONTEXT (4-TIER MEMORY)]:\n")
         append("• Detected Tone: ${detectedQueryTone.name} (${detectedQueryTone.instruction})\n")
         if (relevantSoulTraits.isNotEmpty()) {
-            append("• User SOUL & Facts (Top Relevant):\n")
+            append("• User SOUL & Encrypted Hypotheses (Top Relevant):\n")
             relevantSoulTraits.take(6).forEach { item ->
                 val scorePct = (item.relevanceScore * 100).toInt()
                 append("  - [${item.category} | rel:$scorePct%] ${item.key}: ${item.content}\n")

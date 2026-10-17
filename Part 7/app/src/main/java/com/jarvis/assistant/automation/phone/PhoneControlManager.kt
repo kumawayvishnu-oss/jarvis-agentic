@@ -555,9 +555,26 @@ class PhoneControlManager(
             return openUrl(urlTarget)
         }
 
-        val encoded = URLEncoder.encode(cleanQuery, "UTF-8")
-        val searchUrl = "https://www.google.com/search?q=$encoded"
-        return openUrl(searchUrl)
+        // Execute anonymous background web research without opening Chrome or using user's personal Google ID
+        val lowerQ = cleanQuery.lowercase(Locale.ROOT)
+        if (lowerQ.contains("in chrome") || lowerQ.contains("in browser") || lowerQ.contains("browser kholo")) {
+            val encoded = URLEncoder.encode(cleanQuery.replace(Regex("(?i)\\b(in chrome|in browser|browser kholo)\\b"), "").trim(), "UTF-8")
+            return openUrl("https://duckduckgo.com/?q=$encoded")
+        }
+
+        return try {
+            val results = kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+                com.jarvis.assistant.agentic.search.FreeLiveSearchClient().search(cleanQuery, maxResults = 4)
+            }
+            if (results.isNotEmpty()) {
+                "Background Web Research for '$cleanQuery':\n" +
+                    results.joinToString("\n\n") { "• ${it.title}: ${it.snippet}\n  (${it.url})" }
+            } else {
+                "Background search completed for '$cleanQuery' (no public results matched)."
+            }
+        } catch (e: Exception) {
+            "Background search error: ${e.message}"
+        }
     }
 
     fun extractUrlsFromText(input: String): List<String> {

@@ -219,20 +219,45 @@ class JarvisConversationService : Service() {
         fun sendTextMessage(text: String) {
             val instance = activeInstance
             val liveWs = instance?.liveWebSocket
-            if (instance != null && liveWs != null && liveWs.isSessionReady()) {
+            val lower = text.trim().lowercase()
+            val forceSwarmExecution =
+                lower.contains("antigravity") ||
+                lower.contains("anti gravity") ||
+                lower.contains("anti-gravity") ||
+                lower.contains("terminal") ||
+                lower.contains("termux") ||
+                lower.startsWith("r ") ||
+                lower.startsWith("agy ") ||
+                lower.startsWith("perm ") ||
+                lower.contains("git clone") ||
+                lower.contains("curl ") ||
+                lower.contains("wget ") ||
+                lower.contains(" aur ") ||
+                lower.contains(" saath mein ") ||
+                lower.contains(" sath me ") ||
+                lower.contains("30 min") ||
+                lower.contains("user soul") ||
+                lower.contains("background")
+
+            if (!forceSwarmExecution && instance != null && liveWs != null && liveWs.isSessionReady()) {
                 liveWs.sendClientContent(text)
                 JarvisApp.instance.chatRepository.addTurn(text, "")
             } else {
-                // Multi-Agent Swarm Autonomous Execution
+                // Multi-Agent Swarm Autonomous Execution (Probabilistic Plan + Parallel Swarm + Autonomous Terminal)
                 val app = JarvisApp.instance
-                app.chatRepository.addTurn(text, "⏳ Processing with JARVIS Multi-Agent Swarm...")
+                app.chatRepository.addTurn(text, "⏳ Processing with JARVIS Probabilistic Multi-Agent Swarm...")
                 (instance?.serviceScope ?: CoroutineScope(Dispatchers.IO)).launch {
                     try {
                         val output = app.managerAgent.executeGoal(text)
                         withContext(Dispatchers.Main) {
                             app.chatRepository.updateLastTurnReply(text, output)
                             if (!app.preferences.isSilentExecutionMode) {
-                                instance?.tts?.speak(output, TextToSpeech.QUEUE_FLUSH, null, "text_task_done")
+                                instance?.tts?.speak(
+                                    output.take(360),
+                                    TextToSpeech.QUEUE_FLUSH,
+                                    null,
+                                    "text_task_done"
+                                )
                             }
                         }
                     } catch (e: Exception) {
@@ -1905,7 +1930,10 @@ class JarvisConversationService : Service() {
                     "search_in_chrome" -> {
                         val query = args.optString("query", "").trim()
                         val extracted = app.phoneControlManager.extractUrlsFromText(query)
-                        if (extracted.isNotEmpty()) {
+                        val explicitBrowserIntent = autonomousTaskGoal.contains("chrome", ignoreCase = true) ||
+                            autonomousTaskGoal.contains("browser", ignoreCase = true) ||
+                            autonomousTaskGoal.contains("website", ignoreCase = true)
+                        if (extracted.isNotEmpty() && explicitBrowserIntent) {
                             val ok = executeSerializedTaskMutation("open-search-results") {
                                 app.phoneControlManager.openUrlsInChromeTabs(extracted)
                             }
@@ -1919,20 +1947,31 @@ class JarvisConversationService : Service() {
                             }
                         } else {
                             val targetUrl = app.phoneControlManager.parseTargetUrl(query)
-                            val searchUrl = targetUrl ?: "https://www.google.com/search?q=${Uri.encode(query)}"
-                            val ok = executeSerializedTaskMutation("open-search-url") {
-                                app.phoneControlManager.openUrlsInChromeTabs(listOf(searchUrl))
-                            }
-                            result.put("success", ok)
-                            result.put("message", if (targetUrl != null) "Opened $targetUrl in Chrome." else "Searched \"$query\" in Chrome.")
-                            delay(200)
-                            val orchestrator = com.jarvis.assistant.vision.VisualTaskOrchestrator.getInstance()
-                            val summary = orchestrator.inspectScreen(waitForContent = true)
-                            if (summary.isNotBlank()) {
-                                result.put("current_screen_elements", summary)
-                            }
-                            if (targetUrl == null) {
-                                result.put("action_required", "CRITICAL NEXT STEP: You are on the Google Search results page for \"$query\". Look at the search result links in current_screen_elements and IMMEDIATELY call click_ui_element with the link name or element_id to open the website! Do NOT claim you refined or created the video until you enter the website and submit the generation!")
+                            if (targetUrl != null && explicitBrowserIntent) {
+                                val ok = executeSerializedTaskMutation("open-search-url") {
+                                    app.phoneControlManager.openUrlsInChromeTabs(listOf(targetUrl))
+                                }
+                                result.put("success", ok)
+                                result.put("message", "Opened $targetUrl in Chrome.")
+                                delay(200)
+                                val orchestrator = com.jarvis.assistant.vision.VisualTaskOrchestrator.getInstance()
+                                val summary = orchestrator.inspectScreen(waitForContent = true)
+                                if (summary.isNotBlank()) {
+                                    result.put("current_screen_elements", summary)
+                                }
+                            } else {
+                                // 100% Anonymous Background Web Research (Never open Chrome with user's Google ID)
+                                val bgResults = runCatching {
+                                    com.jarvis.assistant.agentic.search.FreeLiveSearchClient().search(query, 5)
+                                }.getOrNull().orEmpty()
+                                val formatted = if (bgResults.isNotEmpty()) {
+                                    bgResults.joinToString("\n\n") { "• ${it.title}: ${it.snippet} (${it.url})" }
+                                } else {
+                                    com.jarvis.assistant.util.BuiltInChromeEngine.searchAndExtract(query)
+                                }
+                                result.put("success", formatted.isNotBlank())
+                                result.put("message", "Completed silent background web research for \"$query\" without opening Chrome.")
+                                result.put("result", formatted)
                             }
                         }
                     }

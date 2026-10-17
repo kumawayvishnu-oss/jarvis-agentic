@@ -151,6 +151,49 @@ class FreeLiveSearchClient(
         return@withContext results.take(maxResults)
     }
 
+    /**
+     * Reads full article/documentation content as clean Markdown in the background
+     * using Jina Reader (`https://r.jina.ai/<url>`) or direct HTTP extraction,
+     * with ZERO Chrome browser popup and ZERO user Google account cookies.
+     */
+    suspend fun readFullWebpageMarkdown(targetUrl: String, maxChars: Int = 4000): String = withContext(Dispatchers.IO) {
+        val cleanUrl = if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://")) {
+            targetUrl.trim()
+        } else {
+            "https://${targetUrl.trim()}"
+        }
+        try {
+            val jinaReq = Request.Builder()
+                .url("https://r.jina.ai/$cleanUrl")
+                .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; JARVIS Background Researcher)")
+                .addHeader("X-Return-Format", "markdown")
+                .build()
+            client.newCall(jinaReq).execute().use { resp ->
+                if (resp.isSuccessful) {
+                    val text = resp.body?.string().orEmpty().trim()
+                    if (text.length > 40) {
+                        return@withContext text.take(maxChars)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+        }
+
+        return@withContext try {
+            val directReq = Request.Builder()
+                .url(cleanUrl)
+                .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; JARVIS Background Researcher)")
+                .build()
+            client.newCall(directReq).execute().use { resp ->
+                val rawHtml = resp.body?.string().orEmpty()
+                cleanHtml(rawHtml).take(maxChars).ifBlank { "Unable to extract text from $cleanUrl (HTTP ${resp.code})" }
+            }
+        } catch (e: Exception) {
+            "Background webpage fetch error for $cleanUrl: ${e.message}"
+        }
+    }
+
     private fun extractTopicItem(obj: JsonObject, results: MutableList<SearchResultItem>) {
         val text = obj.get("Text")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asString.orEmpty()
         val firstUrl = obj.get("FirstURL")?.takeIf { !it.isJsonNull && it.isJsonPrimitive }?.asString.orEmpty()
